@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
@@ -25,9 +22,6 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 		#endregion
 
 		#region Fields
-
-		internal static Dictionary<int, char> AvailableChars;
-
 		private readonly LogEventProperty _logEventProperty;
 
 		#endregion
@@ -36,11 +30,6 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 		#endregion
 
 		#region (De)Constructors
-
-		static ApplicationIdentifierEnricher()
-		{
-			AvailableChars = ApplicationIdentifierEnricher.GetAvailableCharsForIdentifier();
-		}
 		
 		/// <summary>
 		/// Constructor
@@ -48,7 +37,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 		/// <param name="values"> A collection of strings from which a unique identifier is created via <see cref="BuildAlphanumericIdentifier"/>. </param>
 		/// <remarks> The order of the values is not relevant for building the identifier. </remarks>
 		public ApplicationIdentifierEnricher(params string[] values)
-			: this(ApplicationIdentifierEnricher.BuildAlphanumericIdentifier(values))
+			: this(IdentifierBuilder.BuildAlphanumericIdentifier(values))
 		{ }
 
 		/// <summary>
@@ -69,52 +58,6 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 		{
 			logEvent.AddPropertyIfAbsent(_logEventProperty);
 		}
-
-		/// <summary>
-		/// Creates an identifier comprised of 20 alphanumeric characters.
-		/// </summary>
-		/// <param name="values"> The values from which to create the hash code. </param>
-		/// <returns> An 20 alphanumeric characters long identifier. </returns>
-		/// <remarks> The order of the values is not relevant for building the identifier. </remarks>
-		public static string BuildAlphanumericIdentifier(params string[] values)
-		{
-			var seed = 317;
-			if (values.Any())
-			{
-				var allValues = String.Join(String.Empty, values.OrderBy(value => value));
-				var valuesData = Encoding.UTF8.GetBytes(allValues);
-				using var hashGenerator = System.Security.Cryptography.SHA256.Create();
-				var hashData = hashGenerator.ComputeHash(valuesData);
-				seed = BitConverter.ToInt32(hashData, 0);
-			}
-
-			var random = new Random(seed);
-			var chars = new char[20];
-			var amountOfAvailableChars = AvailableChars.Count;
-			for (var index = 0; index < chars.Length; index++)
-			{
-				chars[index] = AvailableChars[random.Next(0, amountOfAvailableChars)];
-			}
-
-			var identifier = new String(chars);
-			return identifier;
-		}
-
-		private static Dictionary<int, char> GetAvailableCharsForIdentifier()
-		{
-			var availableChars = new List<int>()
-				.Concat(Enumerable.Range(48, 10)) // 0-9
-				.Concat(Enumerable.Range(65, 26)) // A-Z
-				.Concat(Enumerable.Range(97, 26)) // a-z
-				.Select((value, index) => (Index: index, Char: Encoding.ASCII.GetString(new[] { (byte)value })[0]))
-				.ToDictionary
-				(
-					anonymous => anonymous.Index,
-					anonymous => anonymous.Char
-				)
-				;
-			return availableChars;
-		}
 		
 		#endregion
 	}
@@ -134,6 +77,18 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 		{
 			if (enrich is null) throw new ArgumentNullException(nameof(enrich));
 			return enrich.With(new ApplicationIdentifierEnricher(applicationIdentifier));
+		}
+
+		/// <summary>
+		/// Adds a unique alphanumeric to log events that is created from <paramref name="values"/>.
+		/// </summary>
+		/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
+		/// <param name="values"> A collection of strings from which an unique alphanumeric identifier is created. The order of the values is not relevant for building the identifier. </param>
+		/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
+		public static LoggerConfiguration WithApplicationIdentifier(this LoggerEnrichmentConfiguration enrich, params string[] values)
+		{
+			if (enrich is null) throw new ArgumentNullException(nameof(enrich));
+			return enrich.With(new ApplicationIdentifierEnricher(values));
 		}
 	}
 }

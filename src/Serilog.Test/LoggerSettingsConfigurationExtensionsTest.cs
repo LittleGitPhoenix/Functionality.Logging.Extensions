@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using NUnit.Framework;
 using Phoenix.Functionality.Logging.Extensions.Serilog;
@@ -57,10 +58,10 @@ namespace Serilog.Test
 			contentBuilder.AppendLine(@"    }");
 			contentBuilder.AppendLine(@"  }");
 			contentBuilder.AppendLine(@"}");
-			var settingsFile = testDirectory.CreateFile("serilog.config", contentBuilder.ToString());
+			var configurationFile = testDirectory.CreateFile("serilog.config", contentBuilder.ToString());
 
 			// Act
-			var configuration = new LoggerConfiguration().ReadFrom.JsonFile(settingsFile);
+			var configuration = new LoggerConfiguration().ReadFrom.JsonFile(configurationFile);
 			var logger = configuration.CreateLogger();
 			var type = logger.GetType();
 

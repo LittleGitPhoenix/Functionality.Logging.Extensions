@@ -4,13 +4,13 @@
 		<TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</AssemblyName>
-		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</RootNamespace>
+		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Microsoft</AssemblyName>
+		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Microsoft</RootNamespace>
 		<Version>1.0.0-beta1</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2021</Copyright>
-		<Description>Containes helper functionality for using the Seq sink of Serilog.</Description>
+		<Description>Containes helper functionality for using Microsoft.Extensions.Logging.</Description>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeSymbols>true</IncludeSymbols>
@@ -21,10 +21,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="..\Serilog\IdentifierBuilder.cs" Link="IdentifierBuilder.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<None Include="..\..\nuget.png" Pack="true" PackagePath="" Link="⬙\nuget.png" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="" Link="⬙\README.md" />
 		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="" Link="⬙\LICENSE.md" />
@@ -33,8 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Serilog.Sinks.Seq" Version="5.0.0" />
-		<PackageReference Include="Seq.Api" Version="2021.2.0" />
+	  <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
 	</ItemGroup>
 
 	<!-- Move the created NuGet packages into another folder. -->

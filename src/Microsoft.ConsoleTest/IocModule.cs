@@ -1,12 +1,11 @@
 ﻿using System;
 using Autofac;
 using Microsoft.Extensions.Logging;
-using Phoenix.Functionality.Logging.Extensions.Serilog;
-using Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
+using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Serilog.ConsoleTest
+namespace Microsoft.ConsoleTest
 {
 	class IocModule : Autofac.Module
 	{
@@ -15,30 +14,30 @@ namespace Serilog.ConsoleTest
 		protected override void Load(ContainerBuilder builder)
 		{
 			IocModule.RegisterLogging(builder);
+			builder.RegisterType<ExecutionExample>().AsSelf().SingleInstance();
 		}
 
 		private static void RegisterLogging(ContainerBuilder builder)
 		{
-			var applicationTitle = "Phoenix.LogEmitter";
+			//var applicationTitle = "Phoenix.LogEmitter";
 
 			// Setup Serilog self logging.
 			global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.WriteLine(message));
 			global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
 
 			// Create the serilog configuration.
-			
 			var configuration = new LoggerConfiguration()
-				.WriteTo.Debug()
-				.WriteTo.Console()
-				.ReadFrom.JsonFile("serilog.config", "Serilog")
-				.WriteTo.Seq
+				.MinimumLevel.Verbose()
+				.WriteTo.Debug
 				(
-					seqHost: "http://localhost",
-					seqPort: 5341,
-					applicationTitle: applicationTitle,
-					configurationApiKey: "pYHlGsUQw5RsLSFTJHKF"
+					outputTemplate: "[{Timestamp:HH:mm:ss.ffff} {Level:u3}] {Message:lj} {EventId}{NewLine}{Exception}",
+					restrictedToMinimumLevel: LogEventLevel.Verbose
 				)
-				//.WriteTo.Seq("http://localhost:5341", LogEventLevel.Verbose, apiKey: "Y3umZ02hux3ZlW4noezT") // Original Seq method.
+				//.WriteTo.Console
+				//(
+				//	outputTemplate: "[{Timestamp:HH:mm:ss.ffff} {Level:u3}] {Message:lj} {EventId}{NewLine}{Exception}",
+				//	restrictedToMinimumLevel: LogEventLevel.Verbose
+				//)
 				;
 			
 			// Create the logger.
@@ -106,20 +105,20 @@ namespace Serilog.ConsoleTest
 		}
 	}
 
-	class OperationIocModule : Autofac.Module
-	{
-		private readonly string _identifier;
+	//class OperationIocModule : Autofac.Module
+	//{
+	//	private readonly string _identifier;
 
-		public OperationIocModule(string identifier)
-		{
-			_identifier = identifier;
-		}
+	//	public OperationIocModule(string identifier)
+	//	{
+	//		_identifier = identifier;
+	//	}
 
-		/// <inheritdoc />
-		protected override void Load(ContainerBuilder builder)
-		{
-			builder.Register(context => context.Resolve<ILoggerFactory>().CreateLogger(_identifier)).As<Microsoft.Extensions.Logging.ILogger>();
-			builder.RegisterType<EndlessLogging>().AsSelf().SingleInstance();
-		}
-	}
+	//	/// <inheritdoc />
+	//	protected override void Load(ContainerBuilder builder)
+	//	{
+	//		builder.Register(context => context.Resolve<ILoggerFactory>().CreateLogger(_identifier)).As<Microsoft.Extensions.Logging.ILogger>();
+	//		builder.RegisterType<EndlessLogging>().AsSelf().SingleInstance();
+	//	}
+	//}
 }

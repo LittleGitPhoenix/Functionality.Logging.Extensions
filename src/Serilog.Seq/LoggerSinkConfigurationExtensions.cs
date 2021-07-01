@@ -34,9 +34,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		public static LoggerConfiguration Seq
 			(
 			this LoggerSinkConfiguration writeTo,
-			string seqHost, 
-			ushort? seqPort, 
-			string applicationTitle, 
+			string seqHost,
+			ushort? seqPort,
+			string applicationTitle,
 			string? configurationApiKey = null,
 			bool retryOnError = true,
 			LogEventLevel restrictedToMinimumLevel = LogEventLevel.Verbose,

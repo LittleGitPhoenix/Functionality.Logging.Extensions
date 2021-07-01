@@ -1,13 +1,20 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Logging;
+using IContainer = Autofac.IContainer;
 
 namespace Serilog.ConsoleTest
 {
@@ -83,11 +90,12 @@ namespace Serilog.ConsoleTest
 			var iteration = 0;
 			var @continue = true;
 			do
-			{ 
+			{
 				cancellationToken.ThrowIfCancellationRequested();
 				
 				try
 				{
+
 					using (_logger.BeginScope
 					(
 						new Dictionary<string, object?>()
@@ -96,11 +104,10 @@ namespace Serilog.ConsoleTest
 						}
 					))
 					{
-						_logger.LogDebug("Starting iteration {Iteration}.");
+						_logger.LogDebug("Starting iteration {Iteration}");
 						
 						for (int i = 0; i < 6; i++)
 						{
-
 							using (_logger.BeginScope
 							(
 								new Dictionary<string, object?>()

@@ -17,30 +17,30 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 		/// Creates a <see cref="LoggerConfiguration"/> directly from a json file.
 		/// </summary>
 		/// <param name="loggerSettingsConfiguration"> The extended <see cref="LoggerSettingsConfiguration"/> instance. </param>
-		/// <param name="serilogSettingsFilePath"> The path to the settings file. </param>
+		/// <param name="serilogConfigurationFilePath"> The path to the settings file. </param>
 		/// <param name="serilogSectionName"> Optional name of the json section that contains the serilog settings. Default is 'Serilog'. </param>
 		/// <returns> A new <see cref="LoggerConfiguration"/> instance. </returns>
 		/// <exception cref="SerilogSettingsException"> Thrown if the json file could not be parsed or if it contained invalid data. </exception>
-		public static LoggerConfiguration JsonFile(this LoggerSettingsConfiguration loggerSettingsConfiguration, string serilogSettingsFilePath, string serilogSectionName = DefaultSerilogSectionName)
-			=> loggerSettingsConfiguration.JsonFile(new FileInfo(serilogSettingsFilePath), serilogSectionName);
+		public static LoggerConfiguration JsonFile(this LoggerSettingsConfiguration loggerSettingsConfiguration, string serilogConfigurationFilePath, string serilogSectionName = DefaultSerilogSectionName)
+			=> loggerSettingsConfiguration.JsonFile(new FileInfo(serilogConfigurationFilePath), serilogSectionName);
 
 		/// <summary>
 		/// Creates a <see cref="LoggerConfiguration"/> directly from a json file.
 		/// </summary>
 		/// <param name="loggerSettingsConfiguration"> The extended <see cref="LoggerSettingsConfiguration"/> instance. </param>
-		/// <param name="serilogSettingsFile"> The settings file. </param>
+		/// <param name="serilogConfigurationFile"> The settings file. </param>
 		/// <param name="serilogSectionName"> Optional name of the json section that contains the serilog settings. Default is 'Serilog'. </param>
 		/// <returns> A new <see cref="LoggerConfiguration"/> instance. </returns>
 		/// <exception cref="SerilogSettingsException"> Thrown if the json file could not be parsed or if it contained invalid data. </exception>
-		public static LoggerConfiguration JsonFile(this LoggerSettingsConfiguration loggerSettingsConfiguration, FileInfo serilogSettingsFile, string serilogSectionName = DefaultSerilogSectionName)
+		public static LoggerConfiguration JsonFile(this LoggerSettingsConfiguration loggerSettingsConfiguration, FileInfo serilogConfigurationFile, string serilogSectionName = DefaultSerilogSectionName)
 		{
-			var configuration = LoggerSettingsConfigurationExtensions.LoadConfiguration(serilogSettingsFile);
+			var configuration = LoggerSettingsConfigurationExtensions.LoadConfiguration(serilogConfigurationFile);
 			var isValid = LoggerSettingsConfigurationExtensions.VerifyConfiguration(configuration, serilogSectionName, out var foundSerilogSectionName);
 			if (!isValid)
 			{
 				var message = (serilogSectionName.ToLower() == DefaultSerilogSectionName.ToLower())
-					? $"The content of file {serilogSettingsFile.FullName} does not contain a section named '{serilogSectionName}'."
-					: $"The content of file {serilogSettingsFile.FullName} does not contain a section named either '{serilogSectionName}' or '{DefaultSerilogSectionName}'.";
+					? $"The content of file {serilogConfigurationFile.FullName} does not contain a section named '{serilogSectionName}'."
+					: $"The content of file {serilogConfigurationFile.FullName} does not contain a section named either '{serilogSectionName}' or '{DefaultSerilogSectionName}'.";
 				throw new SerilogSettingsException(message);
 			}
 
@@ -51,25 +51,25 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 			}
 			catch (Exception ex)
 			{
-				throw new SerilogSettingsException($"The content of file {serilogSettingsFile.FullName} does not provided serilog configuration or it is invalid.", ex);
+				throw new SerilogSettingsException($"The content of file {serilogConfigurationFile.FullName} does not provided serilog configuration or it is invalid.", ex);
 			}
 		}
 
-		private static IConfiguration LoadConfiguration(FileInfo serilogSettingsFile)
+		private static IConfiguration LoadConfiguration(FileInfo serilogConfigurationFile)
 		{
 			try
 			{
 				return (
 							new ConfigurationBuilder()
-								.AddJsonFile(serilogSettingsFile.FullName, false, true)
+								.AddJsonFile(serilogConfigurationFile.FullName, false, true)
 								.Build()
 						)
-						?? throw new SerilogSettingsException($"The file {serilogSettingsFile.FullName} could not be parsed.")
+						?? throw new SerilogSettingsException($"The file {serilogConfigurationFile.FullName} could not be parsed.")
 						;
 			}
 			catch (Exception ex)
 			{
-				throw new SerilogSettingsException($"The file {serilogSettingsFile.FullName} could not be parsed.", ex);
+				throw new SerilogSettingsException($"The file {serilogConfigurationFile.FullName} could not be parsed.", ex);
 			}
 		}
 

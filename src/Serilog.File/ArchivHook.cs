@@ -7,7 +7,7 @@ using Serilog.Sinks.File;
 namespace Phoenix.Functionality.Logging.Extensions.Serilog.File
 {
 	/// <summary>
-	/// Special <see cref="FileLifecycleHooks"/> of the serilog file sink, that compresses files into zip archives and also only keeps a configurable amount of archived files.
+	/// Special <see cref="FileLifecycleHooks"/> for the serilog file sink, that compresses log files into zip archives and also only keeps a configurable amount of archived files.
 	/// </summary>
 	/// <remarks> This should be used with the 'retainedFileCountLimit' set to 1. </remarks>
 	public sealed class ArchiveHook : FileLifecycleHooks
@@ -36,8 +36,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.File
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="amountOfFilesToKeep"> The amount of files that should be kept. </param>
-		/// <param name="compressionLevel"> The <see cref="CompressionLevel"/> to use. </param>
+		/// <param name="amountOfFilesToKeep"> Optional amount of archived files that should be kept. Default is 30. </param>
+		/// <param name="compressionLevel"> Optional <see cref="CompressionLevel"/> to use. Default is <see cref="CompressionLevel.Fastest"/>. </param>
 		/// <param name="archiveDirectory"> Optional directory where the zipped log files are saved. If this is null, then the directory of the log file is used. </param>
 		public ArchiveHook(int amountOfFilesToKeep = 30, CompressionLevel compressionLevel = CompressionLevel.Fastest, DirectoryInfo? archiveDirectory = null)
 		{

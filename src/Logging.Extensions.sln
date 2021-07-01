@@ -17,13 +17,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "+Microsoft", "+Microsoft", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{DD740BFF-6756-485A-881A-97B5CAB7EC6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Seq", "Serilog.Seq\Serilog.Seq.csproj", "{2309F895-E2D3-49ED-A30A-8A299BFB3FCF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Seq", "Serilog.Seq\Serilog.Seq.csproj", "{2309F895-E2D3-49ED-A30A-8A299BFB3FCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Seq.Test", "Serilog.Seq.Test\Serilog.Seq.Test.csproj", "{96BB6AF4-0B10-479D-9FE5-AF6055514729}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Seq.Test", "Serilog.Seq.Test\Serilog.Seq.Test.csproj", "{96BB6AF4-0B10-479D-9FE5-AF6055514729}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.File", "Serilog.File\Serilog.File.csproj", "{92434F55-3980-4554-BD35-A915BD6DEF91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.File", "Serilog.File\Serilog.File.csproj", "{92434F55-3980-4554-BD35-A915BD6DEF91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.File.Test", "Serilog.File.Test\Serilog.File.Test.csproj", "{687B3E54-047A-493F-8434-1CE5A3BD78DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.File.Test", "Serilog.File.Test\Serilog.File.Test.csproj", "{687B3E54-047A-493F-8434-1CE5A3BD78DB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft", "Microsoft\Microsoft.csproj", "{9DDEAFBE-D09A-4606-8192-B3BF42CB984E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Test", "Microsoft.Test\Microsoft.Test.csproj", "{17E47DCC-3708-4BCB-8DF4-AE1C5E50FF7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ConsoleTest", "Microsoft.ConsoleTest\Microsoft.ConsoleTest.csproj", "{9B9053D9-1172-4E47-9A86-CA2DE71AA252}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +65,18 @@ Global
 		{687B3E54-047A-493F-8434-1CE5A3BD78DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{687B3E54-047A-493F-8434-1CE5A3BD78DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{687B3E54-047A-493F-8434-1CE5A3BD78DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DDEAFBE-D09A-4606-8192-B3BF42CB984E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DDEAFBE-D09A-4606-8192-B3BF42CB984E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DDEAFBE-D09A-4606-8192-B3BF42CB984E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DDEAFBE-D09A-4606-8192-B3BF42CB984E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17E47DCC-3708-4BCB-8DF4-AE1C5E50FF7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17E47DCC-3708-4BCB-8DF4-AE1C5E50FF7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17E47DCC-3708-4BCB-8DF4-AE1C5E50FF7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17E47DCC-3708-4BCB-8DF4-AE1C5E50FF7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B9053D9-1172-4E47-9A86-CA2DE71AA252}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B9053D9-1172-4E47-9A86-CA2DE71AA252}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B9053D9-1172-4E47-9A86-CA2DE71AA252}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B9053D9-1172-4E47-9A86-CA2DE71AA252}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +91,9 @@ Global
 		{96BB6AF4-0B10-479D-9FE5-AF6055514729} = {5FA6D0C4-C0F8-4487-916B-C14C036E9A87}
 		{92434F55-3980-4554-BD35-A915BD6DEF91} = {AFADA955-AE58-4214-AC35-B576A51AC3FE}
 		{687B3E54-047A-493F-8434-1CE5A3BD78DB} = {5FA6D0C4-C0F8-4487-916B-C14C036E9A87}
+		{9DDEAFBE-D09A-4606-8192-B3BF42CB984E} = {67010671-F9D6-4441-A3BB-D3E61521B6E7}
+		{17E47DCC-3708-4BCB-8DF4-AE1C5E50FF7F} = {DD740BFF-6756-485A-881A-97B5CAB7EC6F}
+		{9B9053D9-1172-4E47-9A86-CA2DE71AA252} = {DD740BFF-6756-485A-881A-97B5CAB7EC6F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {09B3A735-03F6-4F7B-9609-10F3E51502B5}

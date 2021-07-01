@@ -88,7 +88,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			int queueSizeLimit = 5000
 		)
 		{
-			var apiKey = ApplicationIdentifierEnricher.BuildAlphanumericIdentifier(applicationTitle);
+			var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationTitle);
 
 			// Directly try to register the token in the seq server.
 			bool couldRegisterApplication = seqServer.RegisterApplicationAsync(applicationTitle, apiKey).Result;

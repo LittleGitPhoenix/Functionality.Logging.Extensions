@@ -28,10 +28,27 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Serilog.File\Serilog.File.csproj" />
 	  <ProjectReference Include="..\Serilog.Seq\Serilog.Seq.csproj" />
-	  <ProjectReference Include="..\Serilog\Serilog.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Localization\l10n.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>l10n.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Localization\l10n.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>l10n.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Localization\l10n.log">
+		  <Generator>ResXFileCodeGenerator</Generator>
+		</None>
 		<None Update="serilog.config">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
