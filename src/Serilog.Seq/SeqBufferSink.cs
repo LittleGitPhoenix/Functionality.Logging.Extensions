@@ -1,4 +1,9 @@
-﻿using System;
+﻿#region LICENSE NOTICE
+//! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
+#endregion
+
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 #if !NETSTANDARD2_0 && !NETSTANDARD1_6 && !NETSTANDARD1_5 && !NETSTANDARD1_4 && !NETSTANDARD1_3 && !NETSTANDARD1_2 && !NETSTANDARD1_1 && !NETSTANDARD1_0
