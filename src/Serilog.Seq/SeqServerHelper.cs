@@ -5,9 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Seq.Api;
+using Seq.Api.Client;
 using Seq.Api.Model.Inputs;
 using Seq.Api.Model.Security;
 
@@ -199,6 +204,53 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			}
 
 			return apiKeys.Count;
+		}
+
+		/// <summary>
+		/// Sends log events to a seq server.
+		/// </summary>
+		/// <param name="apiKey"> The api key to use when sending the log events. </param>
+		/// <param name="logFile"> A reference to the json log file. </param>
+		/// <param name="connection"> The <see cref="SeqConnection"/> to use. </param>
+		/// <returns> An awaitable <see cref="Task"/>. </returns>
+		/// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
+		/// <remarks> https://docs.datalust.co/docs/posting-raw-events </remarks>
+		internal static async Task SendLogFileToServerAsync(string apiKey, FileInfo logFile, SeqConnection connection)
+		{
+			using var streamReader = logFile.OpenText();
+			var content = await streamReader.ReadToEndAsync();
+
+			await SeqServerHelper.SendLogEventsToServerAsync(apiKey, content, connection);
+		}
+
+		/// <summary>
+		/// Sends log events to a seq server.
+		/// </summary>
+		/// <param name="apiKey"> The api key to use when sending the log events. </param>
+		/// <param name="logFileContent"> A <see cref="System.Environment.NewLine"/> separated string of log events. </param>
+		/// <param name="connection"> The <see cref="SeqConnection"/> to use. </param>
+		/// <returns> An awaitable <see cref="Task"/>. </returns>
+		/// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
+		/// <remarks> https://docs.datalust.co/docs/posting-raw-events </remarks>
+		internal static async Task SendLogEventsToServerAsync(string apiKey, string logFileContent, SeqConnection connection)
+		{
+			try
+			{
+				HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"{connection.Client.ServerUrl}/api/events/raw/");
+				request.Headers.Add("X-Seq-ApiKey", apiKey);
+				request.Content = new StringContent(logFileContent, Encoding.UTF8, "application/vnd.serilog.clef");
+
+				var response = await connection.Client.HttpClient.SendAsync(request);
+				if (!response.IsSuccessStatusCode)
+				{
+					var responseMessage = await response.Content.ReadAsStringAsync();
+					throw new SeqServerException($"Could not send the log events to the seq server '{connection.Client.ServerUrl}'. The response was '{responseMessage}' with status code '{response.StatusCode} ({(int)response.StatusCode})'.");
+				}
+			}
+			catch (Exception ex)
+			{
+				throw new SeqServerException($"An error occurred while sending the log events to the seq server '{connection.Client.ServerUrl}'. See the inner exception for more details.", new[] {ex});
+			}
 		}
 	}
 }

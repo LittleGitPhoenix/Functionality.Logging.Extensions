@@ -31,7 +31,16 @@ namespace Serilog.ConsoleTest
 			var fileVersion = new Version(entryAssembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0.0.0");
 			var informationalVersion = entryAssembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? fileVersion.ToString();
 			logger.LogInformation("Application started. Version is {Version}", informationalVersion);
-			
+
+			//IReadOnlyCollection<(int JobId, string JobName, string LocationName)> collection = new(int JobId, string JobName, string LocationName)[]
+			//{
+			//	(123, "Job#01", "Location#01"),
+			//	(456, "Job#02", "Location#01"),
+			//	(789, "Job#03", "Location#01")
+			//};
+			//logger.LogInformation("The following {Count} jobs where NOK {Jobs}.", collection.Count, collection);
+			//await Task.Delay(100, CancellationToken.None);
+
 			var cancellationTokenSource = new CancellationTokenSource();
 			var token = cancellationTokenSource.Token;
 
@@ -41,8 +50,8 @@ namespace Serilog.ConsoleTest
 				//.Range(1, 10)
 				.Select(identifier => Program.CreateAndStartEndlessLogging(container, identifier, token))
 				;
-			
-			await Task.WhenAll(tasks);
+
+			//await Task.WhenAll(tasks);
 			logger.LogInformation("Application stopped.");
 		}
 

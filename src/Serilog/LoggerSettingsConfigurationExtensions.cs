@@ -56,7 +56,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 			}
 			catch (Exception ex)
 			{
-				throw new SerilogSettingsException($"The content of file {serilogConfigurationFile.FullName} does not provided serilog configuration or it is invalid.", ex);
+				throw new SerilogSettingsException($"An error occurred while reading the serilog configuration of file {serilogConfigurationFile.FullName}. See the inner exception for further details.", ex);
 			}
 		}
 

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 {
 	/// <summary>
-	/// Special exception used when for seq sink.
+	/// Special exception used by the seq sink or the seq server helper classes.
 	/// </summary>
 	public class SeqServerException : AggregateException
 	{

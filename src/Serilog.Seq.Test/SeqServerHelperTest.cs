@@ -1,10 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NUnit.Framework;
 using Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 using Seq.Api.Model.Inputs;
+using Seq.Api.Streams;
+using Serilog.Formatting.Compact.Reader;
 
 namespace Serilog.Seq.Test
 {
@@ -135,6 +140,85 @@ namespace Serilog.Seq.Test
 			Assert.That(deletedCount, Is.EqualTo(1));
 			var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
 			Assert.That(apiKeys.Count, Is.EqualTo(0));
+		}
+
+		/// <summary>
+		/// Checks that sending log events via POST succeeds for a properly registered application.
+		/// </summary>
+		[Test]
+		public async Task Check_Sending_Events_Via_Post_Succeeds()
+		{
+			using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+			try
+			{
+				// Arrange
+				await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, connection);
+				var content = new[]
+				{
+					"{\"@t\":\"" + $"{DateTime.UtcNow:O}" + "\",\"@mt\":\"Hello, {User}\",\"User\":\"alice\"}",
+					"{\"@t\":\"" + $"{DateTime.UtcNow:O}" + "\",\"@mt\":\"Hello, {User}\",\"User\":\"bob\"}"
+				};
+				var receivedLogEventCount = 0;
+				var filter = $"Application = '{_title}'";
+				using var stream = await connection.Events.StreamAsync<Newtonsoft.Json.Linq.JObject>(filter: filter);
+				using var subscription = stream
+					.Select
+					(
+						jObject =>
+						{
+							return LogEventReader.ReadFromJObject(jObject);
+						}
+					)
+					.Subscribe
+					(
+						logEvent =>
+						{
+							receivedLogEventCount++;
+						}
+					)
+					;
+
+				// Act + Assert
+				Assert.DoesNotThrowAsync(() => SeqServerHelper.SendLogEventsToServerAsync(_apiKey, String.Join(System.Environment.NewLine, content), connection));
+				
+				// Wait a little bit for the events to reach the server and for the observable to be notified.
+				await Task.Delay(TimeSpan.FromMilliseconds(2000));
+				subscription.Dispose();
+				stream.Dispose();
+
+				// Assert
+				Assert.That(receivedLogEventCount, Is.EqualTo(content.Length));
+			}
+			finally
+			{
+				await SeqServerHelper.DeleteApiKeysAsync(_title, connection);
+			}
+		}
+
+		/// <summary>
+		/// Checks that sending log events via POST fails, if the application wasn't registered.
+		/// </summary>
+		/// <remarks> This needs the seq server to enforce having an registered api key for ingestion: Settings → API KEYS → 'Require authentication for HTTP/S ingestion' </remarks>
+		[Test]
+		public async Task Check_Sending_Events_Via_Post_Fails_Because_Application_Is_Not_Registered()
+		{
+			using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+			try
+			{
+				// Arrange
+				var content = new[]
+				{
+					"{\"@t\":\"" + $"{DateTime.UtcNow:O}" + "\",\"@mt\":\"Hello, {User}\",\"User\":\"alice\"}",
+					"{\"@t\":\"" + $"{DateTime.UtcNow:O}" + "\",\"@mt\":\"Hello, {User}\",\"User\":\"bob\"}"
+				};
+
+				// Act + Assert
+				Assert.CatchAsync<SeqServerException>(() => SeqServerHelper.SendLogEventsToServerAsync(_apiKey, String.Join(System.Environment.NewLine, content), connection));
+			}
+			finally
+			{
+				await SeqServerHelper.DeleteApiKeysAsync(_title, connection);
+			}
 		}
 	}
 }

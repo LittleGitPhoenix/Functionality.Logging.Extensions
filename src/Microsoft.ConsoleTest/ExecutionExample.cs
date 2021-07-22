@@ -25,7 +25,7 @@ namespace Microsoft.ConsoleTest
 		#endregion
 
 		#region Enumerations
-		
+
 		enum ExecutionResult
 		{
 			Unknown,
@@ -60,7 +60,7 @@ namespace Microsoft.ConsoleTest
 
 		private async Task Execute(int iteration)
 		{
-			using (_logger.BeginScope(() => iteration))
+			using (_logger.CreateScope(() => iteration))
 			{
 				Console.WriteLine(_logger.LogStart(iteration));
 

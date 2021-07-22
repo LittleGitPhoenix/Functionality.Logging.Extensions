@@ -28,18 +28,24 @@ namespace Serilog.ConsoleTest
 			// Create the serilog configuration.
 			
 			var configuration = new LoggerConfiguration()
-				.WriteTo.Debug()
-				.WriteTo.Console()
+				//.WriteTo.Debug()
+				//.WriteTo.Console()
 				.ReadFrom.JsonFile("serilog.config", "Serilog")
-				.WriteTo.Seq
-				(
-					seqHost: "http://localhost",
-					seqPort: 5341,
-					applicationTitle: applicationTitle,
-					configurationApiKey: "pYHlGsUQw5RsLSFTJHKF"
-				)
-				//.WriteTo.Seq("http://localhost:5341", LogEventLevel.Verbose, apiKey: "Y3umZ02hux3ZlW4noezT") // Original Seq method.
 				;
+
+			if (false)
+			{
+				configuration
+					.WriteTo.Seq
+					(
+						seqHost: "http://localhost",
+						seqPort: 5341,
+						applicationTitle: applicationTitle,
+						configurationApiKey: "pYHlGsUQw5RsLSFTJHKF"
+					)
+					//.WriteTo.Seq("http://localhost:5341", Serilog.Events.LogEventLevel.Verbose, apiKey: "Y3umZ02hux3ZlW4noezT") // Original Seq method.
+					;
+			}
 			
 			// Create the logger.
 			var logger = configuration.CreateLogger();
@@ -101,8 +107,8 @@ namespace Serilog.ConsoleTest
 			//	;
 
 			// Register generic and un-generic ILoggers.
-			builder.RegisterGeneric(typeof(Logger<>)).As(typeof(ILogger<>));
-			builder.Register(context => context.Resolve<ILoggerFactory>().CreateLogger(String.Empty)).As<Microsoft.Extensions.Logging.ILogger>();
+			builder.RegisterGeneric(typeof(Logger<>)).As(typeof(Microsoft.Extensions.Logging.ILogger<>));
+			builder.Register(context => context.Resolve<Microsoft.Extensions.Logging.ILoggerFactory>().CreateLogger(String.Empty)).As<Microsoft.Extensions.Logging.ILogger>();
 		}
 	}
 

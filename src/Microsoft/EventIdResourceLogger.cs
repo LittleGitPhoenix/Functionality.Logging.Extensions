@@ -74,15 +74,64 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 		/// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
 		/// <returns> The translated log message. </returns>
 		protected internal string LogEventFromResource(int eventId, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
+			=> this.LogEventFromResource((EventId) eventId, null, logLevel, resourceName, logArgs, messageArgs);
+		//{
+		//	logArgs ??= Array.Empty<object>();
+		//	messageArgs ??= logArgs;
+
+		//	var @event = (EventId)eventId;
+		//	var (logMessage, unformattedOutput) = this.GetLogData(@event, resourceName, logArgs, messageArgs);
+
+		//	// Log
+		//	base.LogEvent(@event, null, logLevel, logMessage, logArgs);
+
+		//	// Format output message
+		//	try
+		//	{
+		//		return String.Format(unformattedOutput, messageArgs);
+		//	}
+		//	catch (FormatException)
+		//	{
+		//		var arguments = messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs);
+		//		return $"Could not format the message '{unformattedOutput}' because of a mismatch with the format arguments '{arguments}'.";
+		//	}
+		//}
+		
+		/// <summary>
+		/// Logs an event with a message resolved from a resource file together with an <paramref name="exception"/> and returns this message translated into the current ui culture (or its nearest fallback).
+		/// </summary>
+		/// <param name="eventId"> The id of the event. </param>
+		/// <param name="exception"> The <see cref="Exception"/> to log. </param>
+		/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+		/// <param name="resourceName"> The name of the resource that is the log message. </param>
+		/// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
+		/// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
+		/// <returns> The translated log message. </returns>
+		protected internal string LogEventFromResource(int eventId, Exception exception, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
+			=> this.LogEventFromResource((EventId) eventId, exception, logLevel, resourceName, logArgs, messageArgs);
+
+		#endregion
+
+		#region Helper
+
+		/// <summary>
+		/// Logs an event with a message resolved from a resource file and returns this message translated into the current ui culture (or its nearest fallback).
+		/// </summary>
+		/// <param name="eventId"> The id of the event. </param>
+		/// <param name="exception"> An optional <see cref="Exception"/> to log. Default is null. </param>
+		/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+		/// <param name="resourceName"> The name of the resource that is the log message. </param>
+		/// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
+		/// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
+		/// <returns> The translated log message. </returns>
+		private string LogEventFromResource(EventId eventId, Exception? exception, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
 		{
 			logArgs ??= Array.Empty<object>();
 			messageArgs ??= logArgs;
-
-			var @event = (EventId)eventId;
-			var (logMessage, unformattedOutput) = this.GetLogData(@event, resourceName, logArgs, messageArgs);
+			var (logMessage, unformattedOutput) = this.GetLogData(eventId, resourceName, logArgs, messageArgs);
 
 			// Log
-			this.LogEvent(@event, logLevel, logMessage, logArgs);
+			base.LogEvent(eventId, exception, logLevel, logMessage, logArgs);
 
 			// Format output message
 			try
@@ -95,10 +144,6 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 				return $"Could not format the message '{unformattedOutput}' because of a mismatch with the format arguments '{arguments}'.";
 			}
 		}
-
-		#endregion
-
-		#region Helper
 
 		/// <summary>
 		/// Gets the <see cref="LogData"/> from the internal cache or creates a new instance.

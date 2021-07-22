@@ -145,7 +145,7 @@ The `Phoenix.Functionality.Logging.Extensions.Microsoft` package also provides s
 The following function helps creating log scopes by specifying the scope values as **ValueTuple**.
 
 ```csharp
-IDisposable BeginScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
+IDisposable CreateScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
 ```
 Example:
 
@@ -176,7 +176,7 @@ Output:
 The following function helps creating log scopes by passing value as **Expression**s. The names of the values will be inferred from the **Expression** and converted into **PascalCase**.
 
 ```csharp
-IDisposable BeginScope(this ILogger logger, params Expression<Func<object>>[] scopedValues)
+IDisposable CreateScope(this ILogger logger, params Expression<Func<object>>[] scopedValues)
 ```
 Example:
 
@@ -317,7 +317,7 @@ sample of a complete **Serilog** configuration file:
 							"retainedFileCountLimit": 1,
 							"fileSizeLimitBytes": null,
 							"levelSwitch": "$fileSwitch",
-							"hooks": "Phoenix.Functionality.Logging.Extensions.Serilog.File.ArchiveHook, Phoenix.Functionality.Logging.NetLogger.Serilog"
+							"hooks": "Phoenix.Functionality.Logging.Extensions.Serilog.File.ArchiveHook, Phoenix.Functionality.Logging.Extensions.Serilog.File"
 						}
 					}
 				]
@@ -437,6 +437,15 @@ If registering fails, those errors will be written to **Serilog.Debugging.SelfLo
 ```cs
 global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.WriteLine(message));
 global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
+```
+
+### `SeqServer`
+
+This class for interacting with a given **Seq Server** provides the following helper functionality:
+
+- Send a log file formatted in **Serilog's** [compact JSON format](https://github.com/serilog/serilog-formatting-compact) directly to a **Seq Server**.
+```csharp
+Task SendLogFileAsync(string applicationTitle, FileInfo logFile)
 ```
 
 

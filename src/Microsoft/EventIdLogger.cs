@@ -77,30 +77,42 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 		/// <param name="logMessage"> The message to log. </param>
 		/// <param name="args"> Arguments passed to the log message. </param>
 		protected internal void LogEvent(int eventId, LogLevel logLevel, string logMessage, params object[] args)
-			=> this.LogEvent((EventId)eventId, logLevel, logMessage, args);
+			=> this.LogEvent((EventId) eventId, null, logLevel, logMessage, args);
+
+		/// <summary>
+		/// Logs an event with a given <paramref name="logMessage"/> and <paramref name="exception"/>.
+		/// </summary>
+		/// <param name="eventId"> The id of the event. </param>
+		/// <param name="exception"> The <see cref="Exception"/> to log. </param>
+		/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+		/// <param name="logMessage"> The message to log. </param>
+		/// <param name="args"> Arguments passed to the log message. </param>
+		protected internal void LogEvent(int eventId, Exception exception, LogLevel logLevel, string logMessage, params object[] args)
+			=> this.LogEvent((EventId) eventId, exception, logLevel, logMessage, args);
 
 		#endregion
 
 		#region Helper
-
+		
 		/// <summary>
-		/// Logs an event with a given <paramref name="logMessage"/>. This method catches format exceptions.
+		/// Logs messages while catching format exceptions.
 		/// </summary>
 		/// <param name="eventId"> The <see cref="EventId"/> of the event. </param>
+		/// <param name="exception"> An optional <see cref="Exception"/> to log. Default is null. </param>
 		/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
 		/// <param name="logMessage"> The message to log. </param>
 		/// <param name="args"> Arguments passed to the log message. </param>
-		private protected void LogEvent(EventId eventId, LogLevel logLevel, string logMessage, params object[] args)
+		private protected void LogEvent(EventId eventId, Exception? exception, LogLevel logLevel, string logMessage, params object[] args)
 		{
 			// Log
 			try
 			{
-				this.Logger.Log(logLevel, eventId, logMessage, args);
+				this.Log(logLevel, eventId, exception, logMessage, args);
 			}
 			catch (AggregateException ex) when (ex.Flatten().InnerExceptions.Select(exception => exception.GetType()).Contains(typeof(IndexOutOfRangeException)))
 			{
 				var arguments = args.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", args);
-				this.Logger.Log(logLevel, eventId, $"Could not format the message '{logMessage.Replace("{", "{{").Replace("}", "}}")}' because of a mismatch with the supplied arguments {arguments}.", args);
+				this.Log(logLevel, eventId, exception, $"Could not format the message '{logMessage.Replace("{", "{{").Replace("}", "}}")}' because of a mismatch with the supplied arguments {arguments}.", args);
 			}
 			catch (Exception ex)
 			{

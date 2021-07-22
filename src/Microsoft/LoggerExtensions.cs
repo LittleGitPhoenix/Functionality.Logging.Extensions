@@ -23,7 +23,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 		/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 		/// <param name="scopedValues"> Collection of named values. </param>
 		/// <returns> The logging scope. </returns>
-		public static IDisposable BeginScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
+		public static IDisposable CreateScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
 		{
 			var scopes = scopedValues
 				.ToDictionary
@@ -42,7 +42,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 		/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 		/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
 		/// <returns> The logging scope. </returns>
-		public static IDisposable BeginScope(this ILogger logger, params Expression<Func<object>>[] scopedValues)
+		public static IDisposable CreateScope(this ILogger logger, params Expression<Func<object>>[] scopedValues)
 		{
 			var scopes = scopedValues
 				.Select(LoggerExtensions.GetExpressionData)

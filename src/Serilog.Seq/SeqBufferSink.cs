@@ -124,12 +124,12 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		{
 			if (!_applicationHasBeenRegistered)
 			{
-				if (_queue.Count >= _queueSizeLimit) _queue.TryDequeue(out _);
+				if (this.IsQueueSizeLimitReached()) this.RemoveElementFromQueue();
 				_queue.Enqueue(logEvent);
 			}
 			else
 			{
-				_otherSink.Emit(logEvent);
+				this.ForwardLogEventToOtherSink(logEvent);
 			}
 		}
 
@@ -147,8 +147,27 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			catch (ObjectDisposedException) { /* ignored */ }
 		}
 
-#endregion
+		#endregion
+
+		#region Helper
 		
-#endregion
+		internal virtual bool IsQueueSizeLimitReached()
+		{
+			return _queue.Count >= _queueSizeLimit;
+		}
+
+		internal virtual void RemoveElementFromQueue()
+		{
+			_queue.TryDequeue(out _);
+		}
+
+		internal virtual void ForwardLogEventToOtherSink(LogEvent logEvent)
+		{
+			_otherSink.Emit(logEvent);
+		}
+
+		#endregion
+
+		#endregion
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
@@ -59,14 +60,47 @@ namespace Serilog.Seq.Test
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
 			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false));
 			_fixture.Inject(seqServerMock.Object);
-			var bufferSink = _fixture.Create<SeqBufferSink>();
 
+			var bufferSinkGenerator = new Check_Log_Events_Are_Buffered_As_Long_As_Application_Is_Not_Registered_SeqBufferSinkGenerator(logEvents.Length);
+			_fixture.Customizations.Add(bufferSinkGenerator);
+			var bufferSink = _fixture.Create<Mock<SeqBufferSink>>().Object;
+			_fixture.Customizations.Remove(bufferSinkGenerator);
+			
 			// Act
-			foreach (var logEvent in logEvents) {bufferSink.Emit(logEvent);}
+			foreach (var logEvent in logEvents) bufferSink.Emit(logEvent);
 
 			// Assert
-			Assert.AreEqual(bufferSink.QueuedEvents, logEvents);
+			Mock.Get(bufferSink).Verify(sink => sink.RemoveElementFromQueue(), Times.Never);
+			Mock.Get(bufferSink).Verify(sink => sink.ForwardLogEventToOtherSink(It.IsAny<LogEvent>()), Times.Never);
 			Mock.Get(mockSink).Verify(sink => sink.Emit(It.IsAny<LogEvent>()), Times.Never);
+			Assert.AreEqual(bufferSink.QueuedEvents, logEvents);
+		}
+
+		class Check_Log_Events_Are_Buffered_As_Long_As_Application_Is_Not_Registered_SeqBufferSinkGenerator : ISpecimenBuilder
+		{
+			private readonly int _logEventCount;
+
+			public Check_Log_Events_Are_Buffered_As_Long_As_Application_Is_Not_Registered_SeqBufferSinkGenerator(int logEventCount)
+			{
+				_logEventCount = logEventCount;
+			}
+
+			public object Create(object request, ISpecimenContext context)
+			{
+				if
+				(
+					request is ParameterInfo parameter
+					&& parameter.Member.DeclaringType == typeof(SeqBufferSink)
+					&& parameter.ParameterType == typeof(int)
+					&& parameter.IsOptional
+					//&& parameter.Name == "queueSizeLimit"
+				)
+				{
+					return parameter.DefaultValue ?? _logEventCount;
+				}
+
+				return new NoSpecimen();
+			}
 		}
 
 		[Test]
