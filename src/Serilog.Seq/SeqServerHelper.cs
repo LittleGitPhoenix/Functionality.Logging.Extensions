@@ -218,9 +218,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		internal static async Task SendLogFileToServerAsync(string apiKey, FileInfo logFile, SeqConnection connection)
 		{
 			using var streamReader = logFile.OpenText();
-			var content = await streamReader.ReadToEndAsync();
+			var content = await streamReader.ReadToEndAsync().ConfigureAwait(false);
 
-			await SeqServerHelper.SendLogEventsToServerAsync(apiKey, content, connection);
+			await SeqServerHelper.SendLogEventsToServerAsync(apiKey, content, connection).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -240,10 +240,10 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 				request.Headers.Add("X-Seq-ApiKey", apiKey);
 				request.Content = new StringContent(logFileContent, Encoding.UTF8, "application/vnd.serilog.clef");
 
-				var response = await connection.Client.HttpClient.SendAsync(request);
+				var response = await connection.Client.HttpClient.SendAsync(request).ConfigureAwait(false);
 				if (!response.IsSuccessStatusCode)
 				{
-					var responseMessage = await response.Content.ReadAsStringAsync();
+					var responseMessage = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 					throw new SeqServerException($"Could not send the log events to the seq server '{connection.Client.ServerUrl}'. The response was '{responseMessage}' with status code '{response.StatusCode} ({(int)response.StatusCode})'.");
 				}
 			}

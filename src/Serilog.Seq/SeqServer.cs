@@ -64,6 +64,22 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		#region Methods
 
 		/// <summary>
+		/// Registers the application with <paramref name="applicationTitle"/> with the seq server.
+		/// </summary>
+		/// <param name="applicationTitle"> The title/name of the application that will be used to create the api key. </param>
+		/// <returns>
+		/// <para> An <see cref="System.ValueTuple"/> </para>
+		/// <para> Success (<see cref="bool"/>): Was the application registered or not. </para>
+		/// <para> ApiKey (<see cref="string"/>): The generated api key. </para>
+		/// </returns>
+		public virtual async Task<(bool Success, string ApiKey)> RegisterApplicationAsync(string applicationTitle)
+		{
+			var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationTitle);
+			var success = await this.RegisterApplicationAsync(applicationTitle, apiKey).ConfigureAwait(false);
+			return (success, apiKey);
+		}
+
+		/// <summary>
 		/// Registers the application with <paramref name="applicationTitle"/> and <paramref name="apiKey"/> with the seq server.
 		/// </summary>
 		/// <param name="applicationTitle"> The title/name of the application to register. </param>

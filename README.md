@@ -153,7 +153,7 @@ Example:
 var user = "John Doe";
 var action = "Delete";
 Microsoft.Extensions.Logging.ILogger logger = null;
-using (logger.BeginScope(("User", user), ("Action", action)))
+using (logger.CreateScope(("User", user), ("Action", action)))
 {
 	//...
     logger.LogInformation("User {User} triggered {Action}.");
@@ -443,10 +443,20 @@ global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
 
 This class for interacting with a given **Seq Server** provides the following helper functionality:
 
+- Register an application with the **Seq Server**.
+
+    ```csharp
+    var seqServer = new Phoenix.Functionality.Logging.Extensions.Serilog.Seq.SeqServer("localhost", 5341, "***");
+    await seqServer.RegisterApplicationAsync("MyApplication");
+    ```
+
 - Send a log file formatted in **Serilog's** [compact JSON format](https://github.com/serilog/serilog-formatting-compact) directly to a **Seq Server**.
-```csharp
-Task SendLogFileAsync(string applicationTitle, FileInfo logFile)
-```
+
+    ```csharp
+    var logFile = new FileInfo("...");
+    var seqServer = new Phoenix.Functionality.Logging.Extensions.Serilog.Seq.SeqServer("localhost", 5341, "***");
+    await seqServer.SendLogFileAsync("MyApplication", logFile);
+    ```
 
 
 

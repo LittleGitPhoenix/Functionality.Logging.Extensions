@@ -93,10 +93,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			int queueSizeLimit = 5000
 		)
 		{
-			var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationTitle);
-
 			// Directly try to register the token in the seq server.
-			bool couldRegisterApplication = seqServer.RegisterApplicationAsync(applicationTitle, apiKey).Result;
+			var (couldRegisterApplication, apiKey) = seqServer.RegisterApplicationAsync(applicationTitle).Result;
 			if (!couldRegisterApplication && !retryOnError)
 			{
 				SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with api key '{apiKey}' with the seq server '{seqServer.Url}'. Since '{nameof(retryOnError)}' is disabled, no logs will be written.");

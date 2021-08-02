@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</RootNamespace>
-		<Version>1.0.0-beta2</Version>
+		<Version>1.0.0-beta3</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2021</Copyright>
