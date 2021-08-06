@@ -4,6 +4,7 @@
 
 
 using System;
+using System.Linq;
 using System.Net.Http;
 using Serilog;
 using Serilog.Core;
@@ -94,11 +95,25 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		)
 		{
 			// Directly try to register the token in the seq server.
-			var (couldRegisterApplication, apiKey) = seqServer.RegisterApplicationAsync(applicationTitle).Result;
-			if (!couldRegisterApplication && !retryOnError)
+			string apiKey;
+			bool couldRegisterApplication;
+			try
 			{
-				SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with api key '{apiKey}' with the seq server '{seqServer.Url}'. Since '{nameof(retryOnError)}' is disabled, no logs will be written.");
-				return default;
+				apiKey = seqServer.RegisterApplication(applicationTitle);
+				couldRegisterApplication = true;
+			}
+			catch (SeqServerApplicationRegisterException ex)
+			{
+				if (!retryOnError)
+				{
+					SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.Url}'. Since '{nameof(retryOnError)}' is disabled, no logs will be written. Exception was {ex}.");
+					return default;
+				}
+				else
+				{
+					apiKey = ex.ApiKey;
+					couldRegisterApplication = false;
+				}
 			}
 
 			// Get the seq requirements.
@@ -118,7 +133,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			}
 			else
 			{
-				return (new SeqBufferSink(seqServer, applicationTitle, apiKey, periodicBatchingSink, queueSizeLimit), evaluationFunction);
+				return (new SeqBufferSink(seqServer, applicationTitle, periodicBatchingSink, queueSizeLimit), evaluationFunction);
 			}
 		}
 

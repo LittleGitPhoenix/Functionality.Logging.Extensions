@@ -37,7 +37,7 @@ namespace Serilog.Seq.Test
 			Mock.Get(mockSink).Setup(sink => sink.Emit(It.IsAny<LogEvent>())).Verifiable();
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			_fixture.Inject(seqServerMock.Object);
 			var bufferSink = _fixture.Create<SeqBufferSink>();
 
@@ -58,14 +58,14 @@ namespace Serilog.Seq.Test
 			Mock.Get(mockSink).Setup(sink => sink.Emit(It.IsAny<LogEvent>())).Verifiable();
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false));
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 			_fixture.Inject(seqServerMock.Object);
 
 			var bufferSinkGenerator = new Check_Log_Events_Are_Buffered_As_Long_As_Application_Is_Not_Registered_SeqBufferSinkGenerator(logEvents.Length);
 			_fixture.Customizations.Add(bufferSinkGenerator);
 			var bufferSink = _fixture.Create<Mock<SeqBufferSink>>().Object;
 			_fixture.Customizations.Remove(bufferSinkGenerator);
-			
+
 			// Act
 			foreach (var logEvent in logEvents) bufferSink.Emit(logEvent);
 
@@ -111,7 +111,7 @@ namespace Serilog.Seq.Test
 			var logEvents = _fixture.CreateMany<LogEvent>(sizeLimit * 2).ToArray();
 			_fixture.Inject(sizeLimit);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false));
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 			_fixture.Inject(seqServerMock.Object);
 			var bufferSink = _fixture.Create<SeqBufferSink>();
 
@@ -137,18 +137,18 @@ namespace Serilog.Seq.Test
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
 			seqServerMock
-				.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>()))
+				.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.Returns
 				(
 					() =>
 					{
 						//! Let application registering fail until a certain amount of queued log events is reached.
 						// ReSharper disable once AccessToModifiedClosure → This is desired behavior, as this counter signals, when to stop emitting log events.
-						if (emittedLogEventCount <= 5) return Task.FromResult(false);
+						if (emittedLogEventCount <= 5) throw _fixture.Create<SeqServerApplicationRegisterException>();
 
 						//! Cancel log event emission.
 						cancellationTokenSource.Cancel();
-						return Task.FromResult(true);
+						return Task.CompletedTask;
 					}
 				);
 			_fixture.Inject(seqServerMock.Object);
@@ -166,7 +166,7 @@ namespace Serilog.Seq.Test
 				catch (OperationCanceledException) { /* ignore */ }
 			}
 			while (!cancellationToken.IsCancellationRequested);
-			
+
 			// Act
 			// Wait for flush to complete.
 			await Task.Delay(500, CancellationToken.None);

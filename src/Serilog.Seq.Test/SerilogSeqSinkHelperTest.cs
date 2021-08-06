@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
@@ -37,12 +38,12 @@ namespace Serilog.Seq.Test
 			var seqHost = "http://nevermind";
 			_fixture.Inject(seqHost);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			var seqServer = seqServerMock.Object;
 
 			// Act
 			var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title");
-			
+
 			// Assert
 			Assert.That(sink, Is.Not.TypeOf<SeqBufferSink>());
 		}
@@ -54,12 +55,12 @@ namespace Serilog.Seq.Test
 			var seqHost = "http://nevermind";
 			_fixture.Inject(seqHost);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false));
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 			var seqServer = seqServerMock.Object;
 
 			// Act
 			var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title");
-			
+
 			// Assert
 			Assert.That(sink, Is.TypeOf<SeqBufferSink>());
 		}
@@ -71,12 +72,12 @@ namespace Serilog.Seq.Test
 			var seqHost = "http://nevermind";
 			_fixture.Inject(seqHost);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false));
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 			var seqServer = seqServerMock.Object;
 
 			// Act
 			var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title", retryOnError: false);
-			
+
 			// Assert
 			Assert.Null(sink);
 		}

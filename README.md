@@ -184,7 +184,7 @@ Example:
 var user = "John Doe";
 var action = "Delete";
 Microsoft.Extensions.Logging.ILogger logger = null;
-using (logger.BeginScope(() => user, () => action))
+using (logger.CreateScope(() => user, () => action))
 {
 	//...
     logger.LogInformation("User {User} triggered {Action}.");

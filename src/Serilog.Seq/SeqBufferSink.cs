@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 #if !NETSTANDARD2_0 && !NETSTANDARD1_6 && !NETSTANDARD1_5 && !NETSTANDARD1_4 && !NETSTANDARD1_3 && !NETSTANDARD1_2 && !NETSTANDARD1_1 && !NETSTANDARD1_0
 using System.Collections.Immutable;
 #endif
@@ -58,7 +59,6 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		(
 			SeqServer seqServer,
 			string applicationTitle,
-			string apiKey,
 			ILogEventSink otherSink,
 			int queueSizeLimit = 100000
 		)
@@ -71,18 +71,23 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			_applicationHasBeenRegistered = false;
 			_queue = new ConcurrentQueue<LogEvent>();
 
-			this.StartPeriodicApplicationRegistering(seqServer, applicationTitle, apiKey);
+			this.StartPeriodicApplicationRegistering(seqServer, applicationTitle);
 		}
 
 #endregion
 
 #region Methods
 
-		private void StartPeriodicApplicationRegistering(SeqServer seqServer, string applicationTitle, string apiKey)
+		private void StartPeriodicApplicationRegistering(SeqServer seqServer, string applicationTitle)
 		{
 			// Directly try to register the application to prevent creating a new thread if not necessary.
-			_applicationHasBeenRegistered = seqServer.RegisterApplicationAsync(applicationTitle, apiKey).Result;
-			if (_applicationHasBeenRegistered) return;
+			try
+			{
+				seqServer.RegisterApplication(applicationTitle);
+				_applicationHasBeenRegistered = true;
+				return;
+			}
+			catch (Exception) { /* ignore */ }
 
 			new Thread
 				(
@@ -91,16 +96,20 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 						// Endlessly try to register the application with the seq server.
 						do
 						{
-							_applicationHasBeenRegistered = seqServer.RegisterApplicationAsync(applicationTitle, apiKey).Result;
-							if (!_applicationHasBeenRegistered)
+							try
 							{
-								SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with api key '{apiKey}' with the seq server '{seqServer.Url}'. Will be tried again in {WaitTime.TotalMilliseconds}ms seconds.");
+								seqServer.RegisterApplication(applicationTitle);
+								_applicationHasBeenRegistered = true;
+								break;
+							}
+							catch (SeqServerApplicationRegisterException ex)
+							{
+								SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.Url}'. Will be tried again in {WaitTime.TotalMilliseconds}ms seconds. Exception was: {ex}.");
 								Thread.Sleep(WaitTime);
 							}
 						}
-						while (!_applicationHasBeenRegistered);
-
-
+						while (true);
+						
 						// Flush the queue.
 						while (_queue.TryDequeue(out var logEvent))
 						{
