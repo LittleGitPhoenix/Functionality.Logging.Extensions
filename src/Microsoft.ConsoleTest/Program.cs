@@ -19,12 +19,23 @@ namespace Microsoft.ConsoleTest
 			builder.RegisterModule<IocModule>();
 			var container = builder.Build();
 
-			var logger = Logger.FromILogger(container.Resolve<ILogger>());
+			//! Log events are only written to the debug window (and not to the console).
+			var msLogger = container.Resolve<ILogger>();
+			var logger = Logger.FromILogger(msLogger);
+			var msLogger2 = container.Resolve<ILogger>();
+			var logger2 = Logger.FromILogger(msLogger2);
+
+			if (Object.ReferenceEquals(msLogger, msLogger2))
+			{
+
+			}
+			
 			try
 			{
 				logger.LogApplicationStart();
 				var executor = container.Resolve<ExecutionExample>();
 				await executor.StartWork();
+				logger.IterationsFinished();
 			}
 			finally
 			{
@@ -66,6 +77,11 @@ namespace Microsoft.ConsoleTest
 				var entryAssembly = Assembly.GetEntryAssembly();
 				var fileVersion = new Version(entryAssembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0.0.0");
 				base.LogEvent(133887472, LogLevel.Information, "Application started. Version is {Version}.", fileVersion);
+			}
+
+			public void IterationsFinished()
+			{
+				base.LogEvent(1163052199, LogLevel.Information, "All iterations finished.");
 			}
 
 			internal void LogApplicationEnd()

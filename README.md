@@ -28,7 +28,7 @@ It is always good practice to add an unique id to each different log message. Us
 
 ### Classes
 
-This package provides the following classes that help with writing logs along with a id:
+This package provides the following classes that help with writing logs along with an id:
 
 #### `EventIdLogger`
 
@@ -202,9 +202,101 @@ Output:
 }
 ```
 
+## IoC
 
+### Autofac
 
+Below are examples on how to register an **Microsoft.Extensions.ILogger** backed by **Serilog** with **Autofac**.
 
+```csharp
+class LoggerModule : Autofac.Module
+{
+	/// <inheritdoc />
+	protected override void Load(ContainerBuilder builder)
+	{
+		LoggerModule.RegisterLogging(builder);
+	}
+
+	private static void RegisterLogging(ContainerBuilder builder)
+	{
+		// Setup Serilog self logging.
+		global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.WriteLine(message));
+		global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
+
+		// Create the serilog configuration.
+		var configuration = new LoggerConfiguration()
+			.MinimumLevel.Verbose()
+			.WriteTo.Debug
+			(
+				outputTemplate: "[{Timestamp:HH:mm:ss.ffff} {Level:u3}] {Message:lj} {Scope} {EventId}{NewLine}{Exception}",
+				restrictedToMinimumLevel: LogEventLevel.Verbose
+			)
+			;
+
+		// Create the logger.
+		var logger = configuration.CreateLogger();
+
+		// Register the logger factories.
+		LoggerModule.RegisterLoggerFactories(builder, logger);
+		
+		// Register the logger.
+		LoggerModule.RegisterLoggers(builder);
+	}
+
+	/// <summary>
+	/// Directly use the <paramref name="logger"/> instance to register <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory"/> and <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory"/>.
+	/// </summary>
+	private static void RegisterLoggerFactories(ContainerBuilder builder, Logger logger)
+	{
+		// Register the factory returning unnamed loggers.
+		builder
+			.Register
+			(
+				context =>
+				{
+					ILogger Factory() => new Serilog.Extensions.Logging.SerilogLoggerProvider(logger, true).CreateLogger(String.Empty);
+					return (Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory)Factory;
+				}
+			)
+			.As<Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory>()
+			.SingleInstance()
+			;
+
+		// Register the factory returning named loggers.
+		builder
+			.Register
+			(
+				context =>
+				{
+					ILogger Factory(string name) => new Serilog.Extensions.Logging.SerilogLoggerProvider(logger, true).CreateLogger(name);
+					return (Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory)Factory;
+				}
+			)
+			.As<Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory>()
+			.SingleInstance()
+			;
+	}
+	
+	/// <summary>
+	/// Directly use the factories to get <see cref="Microsoft.Extensions.Logging.ILogger"/>s at runtime from the container.
+	/// </summary>
+	private static void RegisterLoggers(ContainerBuilder builder)
+	{
+		// Register unnamed loggers via the factory.
+		builder
+			.Register(context => context.Resolve<Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory>().Invoke())
+			.As<Microsoft.Extensions.Logging.ILogger>()
+			;
+
+		// Register a named logger via the factory.
+		builder
+			.Register(context => context.Resolve<Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory>().Invoke("MyLogger"))
+			.Named<Microsoft.Extensions.Logging.ILogger>("MyLogger")
+			.SingleInstance()
+			;
+	}
+}
+```
 ___
 
 # Phoenix.Functionality.Logging.Extensions.Serilog
@@ -353,19 +445,25 @@ namespace MyApp.Logging
 
 ## Serilog.Seq
 
-If using [**Seq**](https://datalust.co/seq) as a sink for **Serilog** it is good practice to use an separate **Api Key** for each application forwarding logs to the **Seq Server** so that authentication and filtering can be handled by the server. Normally those **APi Keys** are manually created via the web gui of the **Seq Server** and then hard-code it into the application.
+If using [**Seq**](https://datalust.co/seq) as a sink for **Serilog** it is good practice to use an separate **Api Key** for each application forwarding logs to the **Seq Server** so that authentication and filtering can be handled by the server. Normally those **Api Keys** are manually created via the web frontend of the **Seq Server** and then hard-coded into the application.
 
-For some applications this may however not be feasible, e.g. if one application has many different installations each using a different feature set. In such cases it would be better to differentiate those instances from one another via different **Api Keys**. This package helps in creating and registering such **Api Keys** dynamically. To be able to use this feature, the following things are necessary:
+For some applications this may however not be feasible, e.g. if one application has many different installations each using a different configuration or feature set. In such cases it would be better to differentiate those instances from one another via different **Api Keys**. This package helps in creating and registering such **Api Keys** dynamically. To be able to use this feature, the following things are necessary:
 
 - Configuration **Api Key**
 
 	A separate **Api Key** has to be created in the **Seq Server** that is allowed to change the servers configuration. This **Api Key** is the one that will get hard-coded into the application, but won't be used to emit log messages. It is only used to dynamically create and retrieve other **Api Keys** for different application instances.
 
+> This *admin* **Api Key** seems to need all available permission of the **Seq Server**:
+>  - Ingest
+>  - Read
+>  - Write
+>  - Setup
+
 - Unique application name
 
-	Each instance of an application needs a unique name. This could be the normal name of the application suffixed with the computer it is running on (e.g. MyApplication@Home, MyApplication@Server, ...). This name is used to create the unique 20 alphanumeric characters long  **Api Key** that will be registered in the **Seq Server** if necessary.
+	Each instance of an application needs a unique name. For example this could be the normal name of the application suffixed with the computer it is running on (e.g. MyApplication@Home, MyApplication@Server, ...). This name is used to create the unique 20 alphanumeric characters long  **Api Key** that will be registered in the **Seq Server** if necessary.
 
-Then only the `Seq` extension method has to during configuration.
+Then only the `Seq` extension method has to be called during configuration.
 
 ```csharp
 var entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
@@ -383,7 +481,7 @@ var logger = new LoggerConfiguration()
 	;
 ```
 
-Alternatively this can be done via a json configuration. However, dynamically creating the application identifier from runtime information is not possible this way.
+Alternatively this can be done via json configuration. However, dynamically creating the application identifier from runtime information is not possible this way.
 
 ```json
 {

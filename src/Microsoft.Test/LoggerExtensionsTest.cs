@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using NUnit.Framework;
@@ -14,14 +17,22 @@ namespace Microsoft.Test
 		private IFixture _fixture;
 #pragma warning restore 8618
 
-		public bool BoolProperty => _boolProperty;
+		internal bool BoolProperty => _boolProperty;
 		private readonly bool _boolProperty = true;
 
-		public int NumericProperty => _numericProperty;
+		internal int NumericProperty => _numericProperty;
 		private readonly int _numericProperty = 5;
 
-		public string StringProperty => _stringProperty;
+		internal string StringProperty => _stringProperty;
 		private readonly string _stringProperty = Guid.NewGuid().ToString();
+
+		internal Nested NestedProperty => _nestedProperty;
+		private readonly Nested _nestedProperty = new Nested();
+
+		internal class Nested
+		{
+			public Guid Guid { get; } = Guid.NewGuid();
+		}
 
 		[SetUp]
 		public void Setup()
@@ -62,6 +73,50 @@ namespace Microsoft.Test
 			// Assert
 			Assert.That(name, Is.EqualTo(nameof(StringProperty)));
 			Assert.That(value, Is.EqualTo(this.StringProperty));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Nested_Property()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => this.NestedProperty.Guid);
+
+			// Assert
+			Assert.That(name, Is.EqualTo(nameof(NestedProperty.Guid)));
+			Assert.That(value, Is.EqualTo(this.NestedProperty.Guid));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Direct_Numeric_Value()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => 2);
+
+			// Assert
+			Assert.That(name, Is.EqualTo($"{nameof(System)}.{nameof(System.Int32)}"));
+			Assert.That(value, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Direct_Calculation_Value()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => 2 * 2);
+
+			// Assert
+			Assert.That(name, Is.EqualTo($"{nameof(System)}.{nameof(System.Int32)}"));
+			Assert.That(value, Is.EqualTo(4));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Direct_String_Value()
+		{
+			// Act																		
+			var (name, value) = LoggerExtensions.GetExpressionData(() => "Hello");
+
+			// Assert
+			Assert.That(name, Is.EqualTo($"{nameof(System)}.{nameof(System.String)}"));
+			Assert.That(value, Is.EqualTo("Hello"));
 		}
 
 		[Test]
@@ -131,6 +186,48 @@ namespace Microsoft.Test
 
 			// Assert
 			Assert.That(actual, Is.EqualTo(target));
+		}
+
+		/// <summary> Checks that <see cref="System.ValueTuple"/>s are properly converted into <see cref="Dictionary{string, object}"/> to later be used for logger scope creation. </summary>
+		[Test]
+		public void Check_Tuple_Conversion()
+		{
+			// Arrange
+			var scopedTuples = new (string Identifier, object? Value)[]
+			{
+				("Value", this.StringProperty),
+				("Bool", this.BoolProperty),
+				("Number", this.NumericProperty),
+				("Object", null),
+			};
+
+			// Act
+			var scopedValues = LoggerExtensions.ConvertTuplesToDictionary(scopedTuples);
+
+			// Assert
+			Assert.That(scopedValues, Has.Count.EqualTo(scopedTuples.Length));
+			Assert.That(scopedValues.Keys, Is.EqualTo(scopedTuples.Select(tuple => tuple.Identifier)));
+			Assert.That(scopedValues.Values, Is.EqualTo(scopedTuples.Select(tuple => tuple.Value)));
+		}
+
+		/// <summary> Checks that <see cref="Expression"/>s are properly converted into <see cref="Dictionary{string, object}"/> to later be used for logger scope creation. </summary>
+		[Test]
+		public void Check_Expression_Conversion()
+		{
+			// Arrange
+			var nested = new Nested();
+			var scopedExpressions = new Expression<Func<object>>[]
+			{
+				() => this.StringProperty,
+				() => this.BoolProperty,
+				() => this.NumericProperty
+			};
+
+			// Act
+			var scopedValues = LoggerExtensions.ConvertExpressionsToDictionary(scopedExpressions);
+
+			// Assert
+			Assert.That(scopedValues, Has.Count.EqualTo(scopedExpressions.Length));
 		}
 	}
 }

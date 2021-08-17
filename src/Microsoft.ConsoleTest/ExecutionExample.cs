@@ -35,7 +35,7 @@ namespace Microsoft.ConsoleTest
 
 		#endregion
 
-		#region (De)Constructors
+		#region (De)Constructos
 
 		public ExecutionExample(Microsoft.Extensions.Logging.ILogger logger)
 		{
@@ -43,6 +43,7 @@ namespace Microsoft.ConsoleTest
 
 			// Initialize fields.
 			_logger = Logger.FromILogger(logger);
+			logger.CreateScope(("Scope", nameof(ExecutionExample)));
 		}
 
 		#endregion
@@ -51,8 +52,8 @@ namespace Microsoft.ConsoleTest
 
 		internal async Task StartWork()
 		{
-			var iterations = 10;
-			for (int iteration = 1; iteration <= iterations; iteration++)
+			const int iterations = 3;
+			for (var iteration = 1; iteration <= iterations; iteration++)
 			{
 				await this.Execute(iteration);
 			}
