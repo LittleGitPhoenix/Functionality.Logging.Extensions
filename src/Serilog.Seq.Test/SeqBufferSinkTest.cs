@@ -175,5 +175,98 @@ namespace Serilog.Seq.Test
 			Assert.That(bufferSink.QueuedEvents, Is.Empty);
 			Mock.Get(mockSink).Verify(sink => sink.Emit(It.IsAny<LogEvent>()), Times.Exactly(emittedLogEventCount));
 		}
+
+		[Test]
+		public async Task Check_Queue_Is_Cleared_If_Application_Could_Not_Be_Registered()
+		{
+			// Arrange
+			byte? retryCount = 2;
+			var emittedLogEventCount = 0;
+			var failedRegistrations = -1; //! The initial registration is not part of the retry count. So counting must start at -1.
+			var mockSink = Mock.Of<ILogEventSink>();
+			Mock.Get(mockSink)
+				.Setup(sink => sink.Emit(It.IsAny<LogEvent>()))
+				.Verifiable()
+				;
+			_fixture.Inject(mockSink);
+			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
+			seqServerMock
+				.Setup(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.Returns
+				(
+					() =>
+					{
+						failedRegistrations++;
+						throw _fixture.Create<SeqServerApplicationRegisterException>();
+					}
+				)
+				;
+			_fixture.Inject(seqServerMock.Object);
+			_fixture.Inject(retryCount);
+			var bufferSink = _fixture.Create<SeqBufferSink>();
+
+			// Act
+			
+			// Start emitting log events.
+			do
+			{
+				bufferSink.Emit(_fixture.Create<LogEvent>());
+				emittedLogEventCount++;
+				await Task.Delay(500, CancellationToken.None);
+			}
+			while (failedRegistrations < retryCount);
+
+			// Wait for queue clearance to complete.
+			await Task.Delay(500, CancellationToken.None);
+			
+			// Assert
+			Assert.That(bufferSink.QueuedEvents, Is.Empty);
+			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value + 1));
+		}
+
+		[Test]
+		public async Task Check_Log_Events_Are_Ignored_If_Application_Could_Not_Be_Registered()
+		{
+			// Arrange
+			byte? retryCount = 2;
+			var failedRegistrations = -1; //! The initial registration is not part of the retry count. So counting must start at -1.
+			var mockSink = Mock.Of<ILogEventSink>();
+			Mock.Get(mockSink)
+				.Setup(sink => sink.Emit(It.IsAny<LogEvent>()))
+				.Verifiable()
+				;
+			_fixture.Inject(mockSink);
+			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
+			seqServerMock
+				.Setup(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.Returns
+				(
+					() =>
+					{
+						failedRegistrations++;
+						throw _fixture.Create<SeqServerApplicationRegisterException>();
+					}
+				)
+				;
+			_fixture.Inject(seqServerMock.Object);
+			_fixture.Inject(retryCount);
+			var bufferSink = _fixture.Create<SeqBufferSink>();
+
+			// Act
+			
+			// Wait until registration failed.
+			do
+			{
+				await Task.Delay(500, CancellationToken.None);
+			}
+			while (failedRegistrations < retryCount);
+			
+			// Emit a log event that should be ignored.
+			bufferSink.Emit(_fixture.Create<LogEvent>());
+			
+			// Assert
+			Assert.That(bufferSink.QueuedEvents, Is.Empty);
+			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value + 1));
+		}
 	}
 }

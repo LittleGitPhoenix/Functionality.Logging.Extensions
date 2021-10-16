@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using Serilog;
 using Serilog.Core;
 using Serilog.Debugging;
@@ -21,11 +22,12 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <summary>
 		/// Creates an <see cref="ILogEventSink"/> capable to write to a seq server.
 		/// </summary>
-		/// <param name="seqHost"> The seq host like https://localhost or https://localhost:5341. </param>
+		/// <param name="seqHost"> The seq host (e.g. https://localhost or https://localhost:5341). </param>
 		/// <param name="seqPort"> An optional port of the seq server. The port can also be specified in <paramref name="seqHost"/>. </param>
 		/// <param name="applicationTitle"> The title of the application that will log to seq. </param>
 		/// <param name="configurationApiKey"> Api key used for configuration. </param>
 		/// <param name="retryOnError"> Should registering the application with the seq server automatically be retried, if it initially failed. </param>
+		/// <param name="retryCount"> The amount of attempts made to register the application after the initial one failed. If this is null, then endless attempts will be made. Is only used if <paramref name="retryOnError"/> is true. </param>
 		/// <param name="controlLevelSwitch"> If provided, the switch will be updated based on the Seq server's level setting for the corresponding API key. Passing the same key to MinimumLevel.ControlledBy() will make the whole pipeline dynamically controlled. Do not specify restrictedToMinimumLevel with this setting. </param>
 		/// <param name="batchPostingLimit"> The maximum number of events to post in a single batch. </param>
 		/// <param name="period"> The time to wait between checking for event batches. </param>
@@ -44,6 +46,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			string applicationTitle,
 			string? configurationApiKey = null,
 			bool retryOnError = true,
+			byte? retryCount = null,
 			LoggingLevelSwitch? controlLevelSwitch = null,
 			int batchPostingLimit = 1000,
 			TimeSpan? period = null,
@@ -56,6 +59,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 				new SeqServer(seqHost, seqPort, configurationApiKey),
 				applicationTitle,
 				retryOnError,
+				retryCount,
 				controlLevelSwitch,
 				batchPostingLimit,
 				period,
@@ -70,6 +74,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <param name="seqServer"> The <see cref="SeqServer"/> used to register the application. </param>
 		/// <param name="applicationTitle"> The title of the application that will log to seq. </param>
 		/// <param name="retryOnError"> Should registering the application with the seq server automatically be retried, if it initially failed. </param>
+		/// <param name="retryCount"> The amount of attempts made to register the application after the initial one failed. If this is null, then endless attempts will be made. Is only used if <paramref name="retryOnError"/> is true. </param>
 		/// <param name="controlLevelSwitch"> If provided, the switch will be updated based on the Seq server's level setting for the corresponding API key. Passing the same key to MinimumLevel.ControlledBy() will make the whole pipeline dynamically controlled. Do not specify restrictedToMinimumLevel with this setting. </param>
 		/// <param name="batchPostingLimit"> The maximum number of events to post in a single batch. </param>
 		/// <param name="period"> The time to wait between checking for event batches. </param>
@@ -86,6 +91,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			SeqServer seqServer,
 			string applicationTitle,
 			bool retryOnError = true,
+			byte? retryCount = null,
 			LoggingLevelSwitch? controlLevelSwitch = null,
 			int batchPostingLimit = 1000,
 			TimeSpan? period = null,
@@ -99,7 +105,10 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			bool couldRegisterApplication;
 			try
 			{
-				apiKey = seqServer.RegisterApplication(applicationTitle);
+				// Automatically cancel the initial attempt to register the application after some seconds if it didn't succeed until then.
+				// This helps keeping setup times low in cases where the server may (temporarily) be unavailable.
+				using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+				apiKey = seqServer.RegisterApplication(applicationTitle, cancellationTokenSource.Token);
 				couldRegisterApplication = true;
 			}
 			catch (SeqServerApplicationRegisterException ex)
@@ -133,7 +142,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			}
 			else
 			{
-				return (new SeqBufferSink(seqServer, applicationTitle, periodicBatchingSink, queueSizeLimit), evaluationFunction);
+				return (new SeqBufferSink(seqServer, applicationTitle, periodicBatchingSink, retryCount, queueSizeLimit), evaluationFunction);
 			}
 		}
 

@@ -71,8 +71,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <param name="applicationTitle"> The title/name of the application that will be used to create the api key. </param>
 		/// <param name="timeout"> The amount of time to wait until registering has to be successful. </param>
 		/// <returns> The generated api key. </returns>
-		/// <exception cref="OperationCanceledException"> Will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </exception>
 		/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+		/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
 		public virtual string RegisterApplication(string applicationTitle, TimeSpan timeout)
 		{
 			using var cancellationTokenSource = new CancellationTokenSource(timeout);
@@ -85,8 +85,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <param name="applicationTitle"> The title/name of the application that will be used to create the api key. </param>
 		/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
 		/// <returns> The generated api key. </returns>
-		/// <exception cref="OperationCanceledException"> Will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </exception>
 		/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+		/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
 		public virtual string RegisterApplication(string applicationTitle, CancellationToken cancellationToken = default)
 		{
 			var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationTitle);
@@ -100,8 +100,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <param name="applicationTitle"> The title/name of the application that will be used to create the api key. </param>
 		/// <param name="timeout"> The amount of time to wait until registering has to be successful. </param>
 		/// <returns> The generated api key. </returns>
-		/// <exception cref="OperationCanceledException"> Will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </exception>
 		/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+		/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
 		public virtual Task<string> RegisterApplicationAsync(string applicationTitle, TimeSpan timeout)
 		{
 			using var cancellationTokenSource = new CancellationTokenSource(timeout);
@@ -114,23 +114,23 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <param name="applicationTitle"> The title/name of the application that will be used to create the api key. </param>
 		/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
 		/// <returns> The generated api key. </returns>
-		/// <exception cref="OperationCanceledException"> Will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </exception>
 		/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+		/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
 		public virtual async Task<string> RegisterApplicationAsync(string applicationTitle, CancellationToken cancellationToken = default)
 		{
 			var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationTitle);
 			await this.RegisterApplicationAsync(applicationTitle, apiKey, cancellationToken).ConfigureAwait(false);
 			return apiKey;
 		}
-		
+
 		/// <summary>
 		/// Registers the application with <paramref name="applicationTitle"/> and <paramref name="apiKey"/> with the seq server.
 		/// </summary>
 		/// <param name="applicationTitle"> The title/name of the application to register. </param>
 		/// <param name="apiKey"> The api key. </param>
 		/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
-		/// <exception cref="OperationCanceledException"> Will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </exception>
 		/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+		/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
 		private void RegisterApplication(string applicationTitle, string apiKey, CancellationToken cancellationToken = default)
 		{
 			try
@@ -163,8 +163,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <param name="apiKey"> The api key. </param>
 		/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
 		/// <returns> An awaitable <see cref="Task"/>. </returns>
-		/// <exception cref="OperationCanceledException"> Will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </exception>
 		/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+		/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
 		internal virtual async Task RegisterApplicationAsync(string applicationTitle, string apiKey, CancellationToken cancellationToken = default)
 		{
 			var connection = SeqServerHelper.ConnectToSeq(this.Host, this.Port, _configurationApiKey);

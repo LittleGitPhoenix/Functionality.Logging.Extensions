@@ -4,6 +4,7 @@
 
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -18,6 +19,72 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 	/// </summary>
 	public static partial class LoggerExtensions
 	{
+		/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup"/>
+		public static ILogger AddToGroups(this ILogger logger, params object[] groupIdentifiers)
+		{
+			foreach (var groupIdentifier in groupIdentifiers)
+			{
+				LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier);
+			}
+			return logger;
+		}
+
+		/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup"/>
+		public static ILogger AddToGroup(this ILogger logger, object groupIdentifier)
+		{
+			return LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier);
+		}
+
+		/// <inheritdoc cref="LoggerGroupManager.GetAllGroups(ILogger)"/>
+		public static IReadOnlyCollection<(object GroupIdentifier, IReadOnlyCollection<ILogger> LoggerCollection)> GetGroups(this ILogger logger)
+		{
+			return LoggerGroupManager.GetAllGroups(logger).ToArray();
+		}
+
+		/// <inheritdoc cref="LoggerGroupManager.GetAllLoggers"/>
+		public static IReadOnlyCollection<ILogger> AsGroup(this ILogger _, object groupIdentifier)
+		{
+			return LoggerGroupManager.GetAllLoggers(groupIdentifier).ToArray();
+		}
+
+		/// <summary>
+		/// Creates a new logging scope with named values.
+		/// </summary>
+		/// <param name="loggers"> The collection of <see cref="ILogger"/>s that will get the scope. </param>
+		/// <param name="scopedValues"> Collection of named values. </param>
+		/// <returns> A <see cref="IDisposable"/> that removes the scope from all <paramref name="loggers"/> upon disposal. </returns>
+		public static IDisposable CreateScope(this IReadOnlyCollection<ILogger> loggers, params (string Identifier, object? Value)[] scopedValues)
+		{
+			return loggers
+				.Select(logger => logger.CreateScope(scopedValues))
+				.ToSingleDisposable()
+				;
+		}
+
+		/// <summary>
+		/// Creates a new logging scope with named values extracted from the given <see cref="Expression"/>s.
+		/// </summary>
+		/// <param name="loggers"> The collection of <see cref="ILogger"/>s that will get the scope. </param>
+		/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
+		/// <returns> A <see cref="IDisposable"/> that removes the scope from all <paramref name="loggers"/> upon disposal. </returns>
+		public static IDisposable CreateScope(this IReadOnlyCollection<ILogger> loggers, params Expression<Func<object>>[] scopedValues)
+		{
+			return loggers
+				.Select(logger => logger.CreateScope(scopedValues))
+				.ToSingleDisposable()
+				;
+		}
+
+		/// <summary>
+		/// "Squashes" the <paramref name="disposables"/> into a single one.
+		/// </summary>
+		/// <param name="disposables"> The <see cref="IDisposable"/>s that will be chained together as a single one. </param>
+		/// <returns> A new <see cref="IDisposable"/>. </returns>
+		private static IDisposable ToSingleDisposable(this IEnumerable<IDisposable> disposables)
+		{
+			return new LoggerGroupManager.Disposables(disposables);
+		}
+
 		/// <summary>
 		/// Creates a new logging scope with named values.
 		/// </summary>
@@ -67,22 +134,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 			return scopes;
 		}
 
-		//public static string GetParameterName<TParameter>(Expression<Func<TParameter>> parameterToCheck)
-		//{
-		//	MemberExpression memberExpression = parameterToCheck.Body as MemberExpression;
-
-		//	string parameterName = memberExpression.Member.Name;
-
-		//	return parameterName;
-		//}
-
-		//public static TParameter GetParameterValue<TParameter>(Expression<Func<TParameter>> parameterToCheck)
-		//{
-		//	TParameter parameterValue = (TParameter)parameterToCheck.Compile().Invoke();
-
-		//	return parameterValue;
-		//}
-
+		#region Helper
+		
 		/// <summary>
 		/// Gets the name and the value of <paramref name="scopedValue"/>.
 		/// </summary>
@@ -127,22 +180,29 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 				dependencyChain.Add(pointingExpression);
 				pointingExpression = pointingExpression.Expression as MemberExpression;
 			}
-
-			if (dependencyChain.Last().Expression is not ConstantExpression baseExpression)
-			{
-				throw new Exception($"Last expression {dependencyChain.Last().Expression} of dependency chain of {expression} is not a constant. Thus the expression value cannot be found.");
-			}
-
-			var value = baseExpression.Value;
+			
+			// Expression may be null if the scoped value represents a static member.
+			var baseExpression = dependencyChain.Last().Expression as ConstantExpression;
+			var value = baseExpression?.Value;
 			for (var i = dependencyChain.Count; i > 0; i--)
 			{
 				var member = dependencyChain[i - 1].Member;
-				if (member is PropertyInfo propertyInfo) value = propertyInfo.GetValue(value);
-				else if (member is FieldInfo fieldInfo) value = fieldInfo.GetValue(value);
+				if (member is PropertyInfo propertyInfo)
+				{
+					var isStatic = propertyInfo.GetAccessors(nonPublic: true).Any(x => x.IsStatic);
+					if (!isStatic && value is null) break;
+					
+					value = propertyInfo.GetValue(value);
+				}
+				else if (member is FieldInfo fieldInfo)
+				{
+					if (!fieldInfo.IsStatic && value is null) break;
+					value = fieldInfo.GetValue(value);
+				}
 			}
 			return (name, value);
 		}
-		
+
 		private static readonly Regex InvalidCharsRegEx = new Regex("[^_a-zA-Z0-9]", RegexOptions.Compiled);
 
 		private static readonly Regex WhiteSpaceRegEx = new Regex(@"(?<=\s)", RegexOptions.Compiled);
@@ -179,5 +239,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 
 			return string.Concat(pascalCase);
 		}
+
+		#endregion
 	}
 }

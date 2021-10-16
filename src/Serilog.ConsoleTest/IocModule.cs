@@ -31,9 +31,11 @@ namespace Serilog.ConsoleTest
 				//.WriteTo.Debug()
 				//.WriteTo.Console()
 				.ReadFrom.JsonFile("serilog.config", "Serilog")
+				//.ReadFrom.JsonFile("serilog_with_file.config", "Serilog")
+				//.ReadFrom.JsonFile("serilog_with_seq.config", "Serilog")
 				;
 
-			if (false)
+			if (true)
 			{
 				configuration
 					.WriteTo.Seq

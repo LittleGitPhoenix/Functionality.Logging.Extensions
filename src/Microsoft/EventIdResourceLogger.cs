@@ -182,8 +182,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 					break;
 				}
 			}
-			logMessage ??= $"No log-message found for resource '{resourceName}' of event id {eventId}. Arguments where: {(logArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", logArgs))}";
-			outputMessage ??= $"No output-message found for resource '{resourceName}' of event id {eventId}. Arguments where: {(messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs))}";
+			logMessage ??= $"No log-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(logArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", logArgs))}";
+			outputMessage ??= $"No output-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs))}";
 
 			return new LogData(eventId, logMessage!, outputMessage!);
 		}

@@ -16,6 +16,7 @@ using Seq.Api;
 using Seq.Api.Client;
 using Seq.Api.Model.Inputs;
 using Seq.Api.Model.Security;
+using Seq.Api.Model.Shared;
 
 namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 {
@@ -80,14 +81,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 				InputSettings = new InputSettingsPart()
 				{
 					MinimumLevel = global::Seq.Api.Model.LogEvents.LogEventLevel.Verbose, // By default log everything.
-					AppliedProperties = new List<InputAppliedPropertyPart>()
-					{
-						new InputAppliedPropertyPart()
-						{
-							Name = "Application",
-							Value = title
-						}
-					},
+					AppliedProperties = new List<EventPropertyPart>() { new EventPropertyPart("Application", title) },
 					Filter = null,
 				}
 			};
@@ -136,7 +130,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// Adds or updates <paramref name="appliedProperties"/> to all <see cref="ApiKeyEntity"/>s of applications matching <paramref name="title"/> from the seq server.
 		/// </summary>
 		/// <param name="throwIfMultipleApiKeysAreFound"> Optional flag specifying if this function throws if more than one <see cref="ApiKeyEntity"/> was found. </param>
-		internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, string seqHost, ushort? seqPort, ICollection<InputAppliedPropertyPart> appliedProperties, string? configurationApiKey = null, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
+		internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, string seqHost, ushort? seqPort, ICollection<EventPropertyPart> appliedProperties, string? configurationApiKey = null, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
 		{
 			// Establish a connection to the seq server.
 			using var connection = SeqServerHelper.ConnectToSeq(seqHost, seqPort, configurationApiKey);
@@ -147,7 +141,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// Adds or updates <paramref name="appliedProperties"/> to all <see cref="ApiKeyEntity"/>s of applications matching <paramref name="title"/> from the seq server using an already established <paramref name="connection"/>.
 		/// </summary>
 		/// <param name="throwIfMultipleApiKeysAreFound"> Optional flag specifying if this function throws if more than one <see cref="ApiKeyEntity"/> was found. </param>
-		internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, SeqConnection connection, ICollection<InputAppliedPropertyPart> appliedProperties, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
+		internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, SeqConnection connection, ICollection<EventPropertyPart> appliedProperties, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
 		{
 			// Get all matching api keys.
 			var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(title, connection, cancellationToken).ConfigureAwait(false);

@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog.File</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog.File</RootNamespace>
-		<Version>1.0.0-beta1</Version>
+		<Version>1.0.0</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2021</Copyright>
@@ -29,7 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
 	</ItemGroup>
 
 	<!-- Move the created NuGet packages into another folder. -->

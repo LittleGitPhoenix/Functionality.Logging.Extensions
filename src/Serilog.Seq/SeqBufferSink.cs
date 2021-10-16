@@ -34,12 +34,16 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		#region Fields
 		
 		private readonly ILogEventSink _otherSink;
-		
+
+		private readonly byte? _retryCount;
+
 		private readonly ConcurrentQueue<LogEvent> _queue;
 
 		private readonly int _queueSizeLimit;
 		
 		private bool _applicationHasBeenRegistered;
+		
+		private bool _applicationRegisteringFailed;
 
 		#endregion
 
@@ -60,15 +64,18 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			SeqServer seqServer,
 			string applicationTitle,
 			ILogEventSink otherSink,
+			byte? retryCount = null,
 			int queueSizeLimit = 100000
 		)
 		{
 			// Save parameters.
 			_otherSink = otherSink;
+			_retryCount = retryCount;
 			_queueSizeLimit = queueSizeLimit;
 
 			// Initialize fields.
 			_applicationHasBeenRegistered = false;
+			_applicationRegisteringFailed = false;
 			_queue = new ConcurrentQueue<LogEvent>();
 
 			this.StartPeriodicApplicationRegistering(seqServer, applicationTitle);
@@ -94,16 +101,29 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 					() =>
 					{
 						// Endlessly try to register the application with the seq server.
+						var iteration = 0;
 						do
 						{
 							try
 							{
-								seqServer.RegisterApplication(applicationTitle);
+								iteration++;
+
+								// Automatically cancel the attempt to register the application after some seconds if it didn't succeed until then.
+								using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+								seqServer.RegisterApplication(applicationTitle, cancellationTokenSource.Token);
 								_applicationHasBeenRegistered = true;
 								break;
 							}
 							catch (SeqServerApplicationRegisterException ex)
 							{
+								if (_retryCount is not null && iteration >= _retryCount.Value)
+								{
+									_applicationRegisteringFailed = true;
+									this.ClearQueue();
+									SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.Url}'. The maximum amount of {_retryCount.Value} retries has been reached. No further attempts will be made. Exception was: {ex}.");
+									break;
+								}
+
 								SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.Url}'. Will be tried again in {WaitTime.TotalMilliseconds}ms seconds. Exception was: {ex}.");
 								Thread.Sleep(WaitTime);
 							}
@@ -118,7 +138,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 					}
 				)
 				{
-					Name = "Application register thread",
+					Name = "Seq registration thread",
 					IsBackground = true,
 					Priority = ThreadPriority.BelowNormal,
 				}
@@ -131,6 +151,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <inheritdoc />
 		public void Emit(LogEvent logEvent)
 		{
+			// If registering ultimately failed, do nothing anymore.
+			if (_applicationRegisteringFailed) return;
+			
 			if (!_applicationHasBeenRegistered)
 			{
 				if (this.IsQueueSizeLimitReached()) this.RemoveElementFromQueue();
@@ -170,13 +193,22 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			_queue.TryDequeue(out _);
 		}
 
+		internal virtual void ClearQueue()
+		{
+#if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
+			while (_queue.TryDequeue(out _)) { }
+#else
+			_queue.Clear();
+#endif
+		}
+
 		internal virtual void ForwardLogEventToOtherSink(LogEvent logEvent)
 		{
 			_otherSink.Emit(logEvent);
 		}
 
-		#endregion
+#endregion
 
-		#endregion
+#endregion
 	}
 }

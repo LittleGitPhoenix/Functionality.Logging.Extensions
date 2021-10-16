@@ -22,11 +22,12 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// Extends Serilog configuration to write events to Seq.
 		/// </summary>
 		/// <param name="writeTo"> The extended <see cref="LoggerSinkConfiguration"/>. </param>
-		/// <param name="seqHost"> The seq host like https://localhost or https://localhost:5341. </param>
+		/// <param name="seqHost"> The seq host (e.g. https://localhost or https://localhost:5341). </param>
 		/// <param name="seqPort"> An optional port of the seq server. The port can also be specified in <paramref name="seqHost"/>. </param>
 		/// <param name="applicationTitle"> The title of the application that will log to seq. </param>
 		/// <param name="configurationApiKey"> Api key used for configuration. </param>
 		/// <param name="retryOnError"> Should registering the application with the seq server automatically be retried, if it initially failed. </param>
+		/// <param name="retryCount"> The amount of attempts made to register the application after the initial one failed. If this is null, then endless attempts will be made. Is only used if <paramref name="retryOnError"/> is true. </param>
 		/// <param name="restrictedToMinimumLevel"> The minimum log event level required in order to write an event to the sink. </param>
 		/// <param name="batchPostingLimit"> The maximum number of events to post in a single batch. </param>
 		/// <param name="period"> The time to wait between checking for event batches. </param>
@@ -37,13 +38,14 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <returns> Logger configuration, allowing configuration to continue. </returns>
 		/// <remarks> See https://docs.datalust.co/docs/using-serilog for further information about how to setup serilog for seq. </remarks>
 		public static LoggerConfiguration Seq
-			(
+		(
 			this LoggerSinkConfiguration writeTo,
 			string seqHost,
 			ushort? seqPort,
 			string applicationTitle,
 			string? configurationApiKey = null,
 			bool retryOnError = true,
+			byte? retryCount = null,
 			LogEventLevel restrictedToMinimumLevel = LogEventLevel.Verbose,
 			int batchPostingLimit = 1000,
 			TimeSpan? period = null,
@@ -51,10 +53,10 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			LoggingLevelSwitch? controlLevelSwitch = null,
 			HttpMessageHandler? messageHandler = null,
 			int queueSizeLimit = 100000
-			)
+		)
 		{
 			// Create the seq sink decorator.
-			var (sink, evaluationFunction) = SerilogSeqSinkHelper.CreateSink(seqHost, seqPort, applicationTitle, configurationApiKey, retryOnError, controlLevelSwitch, batchPostingLimit, period, eventBodyLimitBytes, messageHandler, queueSizeLimit);
+			var (sink, evaluationFunction) = SerilogSeqSinkHelper.CreateSink(seqHost, seqPort, applicationTitle, configurationApiKey, retryOnError, retryCount, controlLevelSwitch, batchPostingLimit, period, eventBodyLimitBytes, messageHandler, queueSizeLimit);
 			if (sink is null || evaluationFunction is null)
 			{
 				SelfLog.WriteLine($"Could not create a proper instance of an '{nameof(ILogEventSink)}'. Therefore logging to the seq server is not possible. Please see the previous messages for further details.");

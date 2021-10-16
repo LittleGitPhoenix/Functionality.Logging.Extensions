@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 using Seq.Api.Model.Inputs;
+using Seq.Api.Model.Shared;
 using Seq.Api.Streams;
 using Serilog.Formatting.Compact.Reader;
 
@@ -164,11 +165,7 @@ namespace Serilog.Seq.Test
 			var propertyValue = Guid.NewGuid().ToString();
 			var newAppliedProperties = new[]
 			{
-				new InputAppliedPropertyPart()
-				{
-					Name = propertyName,
-					Value = propertyValue
-				}
+				new EventPropertyPart(propertyName, propertyValue)
 			};
 			await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey);
 
@@ -196,11 +193,7 @@ namespace Serilog.Seq.Test
 			var propertyValue = Guid.NewGuid().ToString();
 			var newAppliedProperties = new[]
 			{
-				new InputAppliedPropertyPart()
-				{
-					Name = propertyName,
-					Value = propertyValue
-				}
+				new EventPropertyPart(propertyName, propertyValue)
 			};
 			SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey).Wait();
 

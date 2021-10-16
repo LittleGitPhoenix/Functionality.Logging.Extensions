@@ -17,21 +17,27 @@ namespace Microsoft.Test
 		private IFixture _fixture;
 #pragma warning restore 8618
 
-		internal bool BoolProperty => _boolProperty;
-		private readonly bool _boolProperty = true;
+		internal bool BoolProperty => _boolField;
+		private readonly bool _boolField = true;
 
-		internal int NumericProperty => _numericProperty;
-		private readonly int _numericProperty = 5;
+		internal int NumericProperty => _numericField;
+		private readonly int _numericField = 5;
 
-		internal string StringProperty => _stringProperty;
-		private readonly string _stringProperty = Guid.NewGuid().ToString();
+		internal string StringProperty => _stringField;
+		private readonly string _stringField = Guid.NewGuid().ToString();
+		
+		internal static string StaticStringProperty => _staticStringField;
+		private static readonly string _staticStringField = Guid.NewGuid().ToString();
+		
+		internal string? NullStringProperty { get; } = null;
 
-		internal Nested NestedProperty => _nestedProperty;
-		private readonly Nested _nestedProperty = new Nested();
+		internal Nested NestedProperty { get; } = new Nested();
 
 		internal class Nested
 		{
-			public Guid Guid { get; } = Guid.NewGuid();
+			internal Guid Guid { get; } = Guid.NewGuid();
+			
+			internal static Guid StaticGuid { get; } = Guid.NewGuid();
 		}
 
 		[SetUp]
@@ -76,6 +82,28 @@ namespace Microsoft.Test
 		}
 
 		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Static_String_Property()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => LoggerExtensionsTest.StaticStringProperty);
+
+			// Assert
+			Assert.That(name, Is.EqualTo(nameof(LoggerExtensionsTest.StaticStringProperty)));
+			Assert.That(value, Is.EqualTo(LoggerExtensionsTest.StaticStringProperty));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Null_String_Property()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => this.NullStringProperty);
+
+			// Assert
+			Assert.That(name, Is.EqualTo(nameof(NullStringProperty)));
+			Assert.That(value, Is.EqualTo(this.NullStringProperty));
+		}
+
+		[Test]
 		public void Check_GetExpressionData_Succeeds_For_Nested_Property()
 		{
 			// Act
@@ -84,6 +112,29 @@ namespace Microsoft.Test
 			// Assert
 			Assert.That(name, Is.EqualTo(nameof(NestedProperty.Guid)));
 			Assert.That(value, Is.EqualTo(this.NestedProperty.Guid));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Nested_Static_Property()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => LoggerExtensionsTest.Nested.StaticGuid);
+
+			// Assert
+			Assert.That(name, Is.EqualTo(nameof(LoggerExtensionsTest.Nested.StaticGuid)));
+			Assert.That(value, Is.EqualTo(LoggerExtensionsTest.Nested.StaticGuid));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Null_Instance()
+		{
+			// Act
+			Nested? nullInstance = null;
+			var (name, value) = LoggerExtensions.GetExpressionData(() => nullInstance.Guid);
+
+			// Assert
+			Assert.That(name, Is.EqualTo(nameof(Nested.Guid)));
+			Assert.That(value, Is.EqualTo(null));
 		}
 
 		[Test]
@@ -120,36 +171,58 @@ namespace Microsoft.Test
 		}
 
 		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Direct_Null_Value()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => null);
+
+			// Assert
+			Assert.That(name, Is.EqualTo($"{nameof(System)}.{nameof(System.Object)}"));
+			Assert.That(value, Is.EqualTo(null));
+		}
+
+		[Test]
 		public void Check_GetExpressionData_Succeeds_For_Bool_Member()
 		{
 			// Act
-			var (name, value) = LoggerExtensions.GetExpressionData(() => _boolProperty);
+			var (name, value) = LoggerExtensions.GetExpressionData(() => _boolField);
 
 			// Assert
-			Assert.That(name, Is.EqualTo(nameof(BoolProperty)));
-			Assert.That(value, Is.EqualTo(_boolProperty));
+			Assert.That(name, Is.EqualTo("BoolField"));
+			Assert.That(value, Is.EqualTo(_boolField));
 		}
 
 		[Test]
 		public void Check_GetExpressionData_Succeeds_For_Numeric_Member()
 		{
 			// Act
-			var (name, value) = LoggerExtensions.GetExpressionData(() => _numericProperty);
+			var (name, value) = LoggerExtensions.GetExpressionData(() => _numericField);
 
 			// Assert
-			Assert.That(name, Is.EqualTo(nameof(NumericProperty)));
-			Assert.That(value, Is.EqualTo(_numericProperty));
+			Assert.That(name, Is.EqualTo("NumericField"));
+			Assert.That(value, Is.EqualTo(_numericField));
 		}
 
 		[Test]
 		public void Check_GetExpressionData_Succeeds_For_String_Member()
 		{
 			// Act
-			var (name, value) = LoggerExtensions.GetExpressionData(() => _stringProperty);
+			var (name, value) = LoggerExtensions.GetExpressionData(() => _stringField);
 
 			// Assert
-			Assert.That(name, Is.EqualTo(nameof(StringProperty)));
-			Assert.That(value, Is.EqualTo(_stringProperty));
+			Assert.That(name, Is.EqualTo("StringField"));
+			Assert.That(value, Is.EqualTo(_stringField));
+		}
+
+		[Test]
+		public void Check_GetExpressionData_Succeeds_For_Static_String_Member()
+		{
+			// Act
+			var (name, value) = LoggerExtensions.GetExpressionData(() => LoggerExtensionsTest._staticStringField);
+
+			// Assert
+			Assert.That(name, Is.EqualTo("StaticStringField"));
+			Assert.That(value, Is.EqualTo(LoggerExtensionsTest._staticStringField));
 		}
 
 		[Test]
