@@ -23,16 +23,17 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 	internal class SeqBufferSink : ILogEventSink, IDisposable
 	{
 		#region Delegates / Events
+
 		#endregion
 
 		#region Constants
 
-		private static readonly TimeSpan WaitTime = TimeSpan.FromSeconds(5);
+		private static readonly TimeSpan WaitTime = TimeSpan.FromSeconds(10);
 
 		#endregion
 
 		#region Fields
-		
+
 		private readonly ILogEventSink _otherSink;
 
 		private readonly byte? _retryCount;
@@ -40,14 +41,14 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		private readonly ConcurrentQueue<LogEvent> _queue;
 
 		private readonly int _queueSizeLimit;
-		
+
 		private bool _applicationHasBeenRegistered;
-		
+
 		private bool _applicationRegisteringFailed;
 
 		#endregion
 
-#region Properties
+		#region Properties
 
 #if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
 		internal IReadOnlyList<LogEvent> QueuedEvents => _queue.ToArray();
@@ -55,9 +56,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		internal IReadOnlyList<LogEvent> QueuedEvents => _queue.ToImmutableList();
 #endif
 
-#endregion
+		#endregion
 
-#region (De)Constructors
+		#region (De)Constructors
 
 		public SeqBufferSink
 		(
@@ -81,21 +82,12 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			this.StartPeriodicApplicationRegistering(seqServer, applicationTitle);
 		}
 
-#endregion
+		#endregion
 
-#region Methods
+		#region Methods
 
 		private void StartPeriodicApplicationRegistering(SeqServer seqServer, string applicationTitle)
 		{
-			// Directly try to register the application to prevent creating a new thread if not necessary.
-			try
-			{
-				seqServer.RegisterApplication(applicationTitle);
-				_applicationHasBeenRegistered = true;
-				return;
-			}
-			catch (Exception) { /* ignore */ }
-
 			new Thread
 				(
 					() =>
@@ -129,7 +121,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 							}
 						}
 						while (true);
-						
+
 						// Flush the queue.
 						while (_queue.TryDequeue(out var logEvent))
 						{
@@ -145,15 +137,15 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 				.Start()
 				;
 		}
-		
-#region Implementation of ILogEventSink
+
+		#region Implementation of ILogEventSink
 
 		/// <inheritdoc />
 		public void Emit(LogEvent logEvent)
 		{
 			// If registering ultimately failed, do nothing anymore.
 			if (_applicationRegisteringFailed) return;
-			
+
 			if (!_applicationHasBeenRegistered)
 			{
 				if (this.IsQueueSizeLimitReached()) this.RemoveElementFromQueue();
@@ -165,9 +157,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			}
 		}
 
-#endregion
-		
-#region Implementation of IDisposable
+		#endregion
+
+		#region Implementation of IDisposable
 
 		/// <inheritdoc />
 		public void Dispose()
@@ -182,7 +174,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		#endregion
 
 		#region Helper
-		
+
 		internal virtual bool IsQueueSizeLimitReached()
 		{
 			return _queue.Count >= _queueSizeLimit;
@@ -207,8 +199,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			_otherSink.Emit(logEvent);
 		}
 
-#endregion
+		#endregion
 
-#endregion
+		#endregion
 	}
 }

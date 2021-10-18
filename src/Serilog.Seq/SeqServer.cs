@@ -135,7 +135,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		{
 			try
 			{
-				this.RegisterApplicationAsync(applicationTitle, apiKey, cancellationToken).Wait(cancellationToken);
+				this.RegisterApplicationAsync(applicationTitle, apiKey, cancellationToken).Wait(CancellationToken.None);
 			}
 			//! Catching SeqServerApplicationRegisterException should not be necessary, as "Wait()" should per specification throw an AggregateException, but unit test proved otherwise.
 			catch (SeqServerApplicationRegisterException)
@@ -202,7 +202,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		{
 			try
 			{
-				this.SendLogFileAsync(applicationTitle, logFile, cancellationToken).Wait(cancellationToken);
+				this.SendLogFileAsync(applicationTitle, logFile, cancellationToken).Wait(CancellationToken.None);
 			}
 			//! Catching SeqServerException should not be necessary, as "Wait()" should per specification throw an AggregateException, but unit test proved otherwise.
 			catch (SeqServerException)
