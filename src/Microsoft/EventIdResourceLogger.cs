@@ -58,6 +58,25 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 			_cache = new ConcurrentDictionary<EventId, LogData>();
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="logger"> The underlying <see cref="ILogger"/>. </param>
+		/// <param name="name"> The name of the logger. Will be added as scope with the property name <paramref name="propertyName"/>. </param>
+		/// <param name="resourceManagers"> A collection of <see cref="ResourceManager"/>s that are used to resolve log messages. </param>
+		/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from <paramref name="resourceManagers"/>. Default value is the culture 'lo'. </param>
+		/// <param name="propertyName"> The name of the property under which the logger <paramref name="name"/> will be scoped. Default is <see cref="EventIdLogger.LoggerNameProperty"/>. </param>
+		protected EventIdResourceLogger(ILogger logger, string name, ICollection<ResourceManager> resourceManagers, CultureInfo? logCulture = null, string propertyName = EventIdLogger.LoggerNameProperty)
+			: base (logger, name, propertyName)
+		{
+			// Save parameters.
+			_resourceManagers = resourceManagers;
+			_logCulture = logCulture ?? CultureInfo.CreateSpecificCulture("lo");
+
+			// Initialize fields.
+			_cache = new ConcurrentDictionary<EventId, LogData>();
+		}
+
 		#endregion
 
 		#region Methods

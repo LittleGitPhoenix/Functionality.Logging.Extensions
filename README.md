@@ -408,102 +408,6 @@ Output:
   "Action": "Delete"
 }
 ```
-
-## IoC
-
-### Autofac
-
-Below are examples on how to register an **Microsoft.Extensions.ILogger** backed by **Serilog** with **Autofac**.
-
-```csharp
-class LoggerModule : Autofac.Module
-{
-	/// <inheritdoc />
-	protected override void Load(ContainerBuilder builder)
-	{
-		LoggerModule.RegisterLogging(builder);
-	}
-
-	private static void RegisterLogging(ContainerBuilder builder)
-	{
-		// Setup Serilog self logging.
-		global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.WriteLine(message));
-		global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
-
-		// Create the serilog configuration.
-		var configuration = new LoggerConfiguration()
-			.MinimumLevel.Verbose()
-			.WriteTo.Debug
-			(
-				outputTemplate: "[{Timestamp:HH:mm:ss.ffff} {Level:u3}] {Message:lj} {Scope} {EventId}{NewLine}{Exception}",
-				restrictedToMinimumLevel: LogEventLevel.Verbose
-			)
-			;
-
-		// Create the logger.
-		var logger = configuration.CreateLogger();
-
-		// Register the logger factories.
-		LoggerModule.RegisterLoggerFactories(builder, logger);
-		
-		// Register the logger.
-		LoggerModule.RegisterLoggers(builder);
-	}
-
-	/// <summary>
-	/// Directly use the <paramref name="logger"/> instance to register <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory"/> and <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory"/>.
-	/// </summary>
-	private static void RegisterLoggerFactories(ContainerBuilder builder, Serilog.ILogger logger)
-	{
-		// Register the factory returning unnamed loggers.
-		builder
-			.Register
-			(
-				context =>
-				{
-					Microsoft.Extensions.Logging.ILogger Factory() => new Serilog.Extensions.Logging.SerilogLoggerProvider(logger, true).CreateLogger(String.Empty);
-					return (Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory)Factory;
-				}
-			)
-			.As<Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory>()
-			.SingleInstance()
-			;
-
-		// Register the factory returning named loggers.
-		builder
-			.Register
-			(
-				context =>
-				{
-					Microsoft.Extensions.Logging.ILogger Factory(string name) => new Serilog.Extensions.Logging.SerilogLoggerProvider(logger, true).CreateLogger(name);
-					return (Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory)Factory;
-				}
-			)
-			.As<Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory>()
-			.SingleInstance()
-			;
-	}
-	
-	/// <summary>
-	/// Directly use the factories to get <see cref="Microsoft.Extensions.Logging.ILogger"/>s at runtime from the container.
-	/// </summary>
-	private static void RegisterLoggers(ContainerBuilder builder)
-	{
-		// Register unnamed loggers via the factory.
-		builder
-			.Register(context => context.Resolve<Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory>().Invoke())
-			.As<Microsoft.Extensions.Logging.ILogger>()
-			;
-
-		// Register a named logger via the factory.
-		builder
-			.Register(context => context.Resolve<Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory>().Invoke("MyLogger"))
-			.Named<Microsoft.Extensions.Logging.ILogger>("MyLogger")
-			.SingleInstance()
-			;
-	}
-}
-```
 ___
 
 # Phoenix.Functionality.Logging.Extensions.Serilog
@@ -648,6 +552,106 @@ namespace MyApp.Logging
 
 ```json
 "hooks": "MyApp.Logging.SerilogHooks::MyArchiveHook, MyApp"
+```
+
+## Serilog.Microsoft
+
+This package provides an adapater for **Microsoft.Extensions.Logging.ILogger** named `FrameworkLogger` that forwards log events to a **Serilog.ILogger**. Most of the implementation is taken from the existing package [**Serilog.Extensions.Logging**](https://github.com/serilog/serilog-extensions-logging/) with one key difference: 
+
+Whereas **Serilog.Extensions.Logging** uses **System.ThreadingAsyncLocal\<T\>** to add scope to its loggers in a seemingly magical way, this package only uses a simple collection of objects `FrameworkLoggerScopes` that stores the scope. This collection is an internal member of each logger instance and cannot be shared. When using the `FrameworkLogger`  within an application, controlling which logger shares the same scope is now all about which loggers are the same instance and no longer about the execution context of the loggers. Together with the [**logger groups**](#Logger-groups) feature, handling scope becomes more transparent. Additionally it no longer matter in which order scope is added to or removed from a `FrameworkLogger`. Each scope value can be removed from the internal collection at any time.
+
+### IoC (Autofac)
+
+Below is an example on how to register an **Microsoft.Extensions.ILogger** backed by **Serilog** using `FrameworkLogger` with **Autofac**.
+
+```csharp
+class LoggerModule : Autofac.Module
+{
+	/// <inheritdoc />
+	protected override void Load(ContainerBuilder builder)
+	{
+		LoggerModule.RegisterLogging(builder);
+	}
+
+	private static void RegisterLogging(ContainerBuilder builder)
+	{
+		// Setup Serilog self logging.
+		global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.WriteLine(message));
+		global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
+
+		// Create the serilog configuration.
+		var configuration = new LoggerConfiguration()
+			.MinimumLevel.Verbose()
+			.WriteTo.Debug
+			(
+				outputTemplate: "[{Timestamp:HH:mm:ss.ffff} {Level:u3}] {Message:lj} {Scope} {EventId}{NewLine}{Exception}",
+				restrictedToMinimumLevel: LogEventLevel.Verbose
+			)
+			;
+
+		// Create the logger.
+		var logger = configuration.CreateLogger();
+
+		// Register the logger factories.
+		LoggerModule.RegisterLoggerFactories(builder, logger);
+		
+		// Register the logger.
+		LoggerModule.RegisterLoggers(builder);
+	}
+
+	/// <summary>
+	/// Directly use the <paramref name="logger"/> instance to register <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory"/> and <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory"/>.
+	/// </summary>
+	private static void RegisterLoggerFactories(ContainerBuilder builder, Serilog.ILogger logger)
+	{
+		// Register the factory returning unnamed loggers.
+		builder
+			.Register
+			(
+				context =>
+				{
+					Microsoft.Extensions.Logging.ILogger Factory() => new FrameworkLogger(logger);
+					return (Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory)Factory;
+				}
+			)
+			.As<Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory>()
+			.SingleInstance()
+			;
+
+		// Register the factory returning named loggers.
+		builder
+			.Register
+			(
+				context =>
+				{
+					Microsoft.Extensions.Logging.ILogger Factory(string name) => new FrameworkLogger(logger, name);
+					return (Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory)Factory;
+				}
+			)
+			.As<Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory>()
+			.SingleInstance()
+			;
+	}
+	
+	/// <summary>
+	/// Directly use the factories to get <see cref="Microsoft.Extensions.Logging.ILogger"/>s at runtime from the container.
+	/// </summary>
+	private static void RegisterLoggers(ContainerBuilder builder)
+	{
+		// Register unnamed loggers via the factory.
+		builder
+			.Register(context => context.Resolve<Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory>().Invoke())
+			.As<Microsoft.Extensions.Logging.ILogger>()
+			;
+
+		// Register a named logger via the factory.
+		builder
+			.Register(context => context.Resolve<Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory>().Invoke("MyLogger"))
+			.Named<Microsoft.Extensions.Logging.ILogger>("MyLogger")
+			.SingleInstance()
+			;
+	}
+}
 ```
 
 ## Serilog.Seq

@@ -29,7 +29,7 @@ namespace Serilog.Seq.Test
 		}
 
 		[Test]
-		public void Check_Log_Events_Are_Directly_Emitted_If_Application_Was_Registered()
+		public async Task Check_Log_Events_Are_Directly_Emitted_If_Application_Was_Registered()
 		{
 			// Arrange
 			var logEvents = _fixture.CreateMany<LogEvent>(10).ToArray();
@@ -42,6 +42,7 @@ namespace Serilog.Seq.Test
 			var bufferSink = _fixture.Create<SeqBufferSink>();
 
 			// Act
+			await Task.Delay(TimeSpan.FromMilliseconds(100)); //! Give the SeqBufferSink time to register. This is needed, as ALL registration attempts are executed within a separate thread that needs time to run at least once.
 			foreach (var logEvent in logEvents) bufferSink.Emit(logEvent);
 
 			// Assert
@@ -182,7 +183,7 @@ namespace Serilog.Seq.Test
 			// Arrange
 			byte? retryCount = 2;
 			var emittedLogEventCount = 0;
-			var failedRegistrations = -1; //! The initial registration is not part of the retry count. So counting must start at -1.
+			var failedRegistrations = 0;
 			var mockSink = Mock.Of<ILogEventSink>();
 			Mock.Get(mockSink)
 				.Setup(sink => sink.Emit(It.IsAny<LogEvent>()))
@@ -221,7 +222,7 @@ namespace Serilog.Seq.Test
 			
 			// Assert
 			Assert.That(bufferSink.QueuedEvents, Is.Empty);
-			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value + 1));
+			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value));
 		}
 
 		[Test]
@@ -229,7 +230,7 @@ namespace Serilog.Seq.Test
 		{
 			// Arrange
 			byte? retryCount = 2;
-			var failedRegistrations = -1; //! The initial registration is not part of the retry count. So counting must start at -1.
+			var failedRegistrations = 0;
 			var mockSink = Mock.Of<ILogEventSink>();
 			Mock.Get(mockSink)
 				.Setup(sink => sink.Emit(It.IsAny<LogEvent>()))
@@ -266,7 +267,7 @@ namespace Serilog.Seq.Test
 			
 			// Assert
 			Assert.That(bufferSink.QueuedEvents, Is.Empty);
-			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value + 1));
+			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value));
 		}
 	}
 }

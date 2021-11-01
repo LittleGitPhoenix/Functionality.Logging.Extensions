@@ -21,6 +21,10 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 		#endregion
 
 		#region Constants
+
+		/// <summary> The name of the property under which the logger name will be scoped. </summary>
+		public const string LoggerNameProperty = "Context";
+
 		#endregion
 
 		#region Fields
@@ -45,6 +49,19 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 			this.Logger = logger;
 
 			// Initialize fields.
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="logger"> The underlying <see cref="ILogger"/>. </param>
+		/// <param name="name"> The name of the logger. Will be added as scope with the property name <paramref name="propertyName"/>. </param>
+		/// <param name="propertyName"> The name of the property under which the logger <paramref name="name"/> will be scoped. Default is <see cref="EventIdLogger.LoggerNameProperty"/>. </param>
+		protected EventIdLogger(ILogger logger, string name, string propertyName = EventIdLogger.LoggerNameProperty)
+			: this(logger)
+		{
+			if (String.IsNullOrWhiteSpace(propertyName)) propertyName = EventIdLogger.LoggerNameProperty;
+			logger.CreateScope((propertyName, name));
 		}
 
 		#endregion
