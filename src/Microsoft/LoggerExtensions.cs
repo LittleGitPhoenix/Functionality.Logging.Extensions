@@ -19,8 +19,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 	/// </summary>
 	public static partial class LoggerExtensions
 	{
-		/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup"/>
-		public static ILogger AddToGroups(this ILogger logger, params object[] groupIdentifiers)
+		/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup{TIdentifier}"/>
+		public static ILogger AddToGroups<TIdentifier>(this ILogger logger, params TIdentifier[] groupIdentifiers)
+			where TIdentifier : notnull
 		{
 			foreach (var groupIdentifier in groupIdentifiers)
 			{
@@ -29,8 +30,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 			return logger;
 		}
 
-		/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup"/>
-		public static ILogger AddToGroup(this ILogger logger, object groupIdentifier)
+		/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup{TIdentifier}"/>
+		public static ILogger AddToGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
+			where TIdentifier : notnull
 		{
 			return LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier);
 		}
@@ -41,8 +43,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 			return LoggerGroupManager.GetAllGroups(logger).ToArray();
 		}
 
-		/// <inheritdoc cref="LoggerGroupManager.GetAllLoggers"/>
-		public static IReadOnlyCollection<ILogger> AsGroup(this ILogger _, object groupIdentifier)
+		/// <inheritdoc cref="LoggerGroupManager.GetAllLoggers{TIdentifier}"/>
+		public static IReadOnlyCollection<ILogger> AsGroup<TIdentifier>(this ILogger _, TIdentifier groupIdentifier)
+			where TIdentifier : notnull
 		{
 			return LoggerGroupManager.GetAllLoggers(groupIdentifier).ToArray();
 		}

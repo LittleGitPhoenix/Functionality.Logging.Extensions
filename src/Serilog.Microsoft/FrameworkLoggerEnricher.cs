@@ -1,4 +1,9 @@
-﻿using System;
+﻿#region LICENSE NOTICE
+//! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
+#endregion
+
+
+using System;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Serilog.Core;
@@ -7,7 +12,7 @@ using Serilog.Events;
 namespace Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft
 {
 	/// <summary>
-	/// An <see cref="ILoggerProvider"/> that pipes events through Serilog.
+	/// An <see cref="ILogEventEnricher"/> that enriches log events with scopes provided by <see cref="FrameworkLoggerScopes"/>.
 	/// </summary>
 	/// <remarks> Based on https://github.com/serilog/serilog-extensions-logging/blob/dev/src/Serilog.Extensions.Logging/Extensions/Logging/SerilogLoggerProvider.cs </remarks>
 	[ProviderAlias("Serilog")]

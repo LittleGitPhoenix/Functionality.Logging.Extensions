@@ -17,6 +17,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 	/// </summary>
 	public abstract class EventIdLogger : ILogger
 	{
+
 		#region Delegates / Events
 		#endregion
 
@@ -33,7 +34,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 		#region Properties
 
 		/// <summary> The underlying <see cref="ILogger"/>. </summary>
-		protected internal ILogger Logger { get; }
+		[Obsolete("Do not use the internal ILogger directly anymore. This class itself is an ILogger and therefore can and should be used instead.")]
+		protected internal ILogger Logger => _logger;
+		private readonly ILogger _logger;
 
 		#endregion
 
@@ -46,7 +49,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 		protected EventIdLogger(ILogger logger)
 		{
 			// Save parameters.
-			this.Logger = logger;
+			_logger = logger;
 
 			// Initialize fields.
 		}
@@ -61,7 +64,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 			: this(logger)
 		{
 			if (String.IsNullOrWhiteSpace(propertyName)) propertyName = EventIdLogger.LoggerNameProperty;
-			logger.CreateScope((propertyName, name));
+			this.CreateScope((propertyName, name));
 		}
 
 		#endregion
@@ -72,15 +75,15 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft
 
 		/// <inheritdoc />
 		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-			=> this.Logger.Log(logLevel, eventId, state, exception, formatter);
+			=> _logger.Log(logLevel, eventId, state, exception, formatter);
 
 		/// <inheritdoc />
 		public bool IsEnabled(LogLevel logLevel)
-			=> this.Logger.IsEnabled(logLevel);
+			=> _logger.IsEnabled(logLevel);
 
 		/// <inheritdoc />
 		public IDisposable BeginScope<TState>(TState state)
-			=> this.Logger.BeginScope(state);
+			=> _logger.BeginScope(state);
 
 		#endregion
 
