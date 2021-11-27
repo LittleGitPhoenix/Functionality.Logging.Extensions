@@ -115,7 +115,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			{
 				if (!retryOnError)
 				{
-					SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.Url}'. Since '{nameof(retryOnError)}' is disabled, no logs will be written. Exception was {ex}.");
+					SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.ConnectionData.Url}'. Since '{nameof(retryOnError)}' is disabled, no logs will be written. Exception was {ex}.");
 					return default;
 				}
 				else
@@ -126,7 +126,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 			}
 
 			// Get the seq requirements.
-			var couldGetSeqRequirements = SerilogSeqSinkHelper.TryGetSeqRequirements(out var seqSink, out var evaluationFunction, seqServer.Url, apiKey, controlLevelSwitch, eventBodyLimitBytes, messageHandler);
+			var couldGetSeqRequirements = SerilogSeqSinkHelper.TryGetSeqRequirements(out var seqSink, out var evaluationFunction, seqServer.ConnectionData.Url, apiKey, controlLevelSwitch, eventBodyLimitBytes, messageHandler);
 			if (!couldGetSeqRequirements)
 			{
 				SelfLog.WriteLine($"Could not create the required seq objects.");

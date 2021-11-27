@@ -37,7 +37,7 @@ namespace Serilog.Seq.Test
 			Mock.Get(mockSink).Setup(sink => sink.Emit(It.IsAny<LogEvent>())).Verifiable();
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			_fixture.Inject(seqServerMock.Object);
 			var bufferSink = _fixture.Create<SeqBufferSink>();
 
@@ -59,7 +59,7 @@ namespace Serilog.Seq.Test
 			Mock.Get(mockSink).Setup(sink => sink.Emit(It.IsAny<LogEvent>())).Verifiable();
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 			_fixture.Inject(seqServerMock.Object);
 
 			var bufferSinkGenerator = new Check_Log_Events_Are_Buffered_As_Long_As_Application_Is_Not_Registered_SeqBufferSinkGenerator(logEvents.Length);
@@ -112,7 +112,7 @@ namespace Serilog.Seq.Test
 			var logEvents = _fixture.CreateMany<LogEvent>(sizeLimit * 2).ToArray();
 			_fixture.Inject(sizeLimit);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
+			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 			_fixture.Inject(seqServerMock.Object);
 			var bufferSink = _fixture.Create<SeqBufferSink>();
 
@@ -138,7 +138,7 @@ namespace Serilog.Seq.Test
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
 			seqServerMock
-				.Setup(server => server.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.Returns
 				(
 					() =>
@@ -192,7 +192,7 @@ namespace Serilog.Seq.Test
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
 			seqServerMock
-				.Setup(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.Setup(mock => mock.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.Returns
 				(
 					() =>
@@ -222,7 +222,7 @@ namespace Serilog.Seq.Test
 			
 			// Assert
 			Assert.That(bufferSink.QueuedEvents, Is.Empty);
-			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value));
+			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value));
 		}
 
 		[Test]
@@ -239,7 +239,7 @@ namespace Serilog.Seq.Test
 			_fixture.Inject(mockSink);
 			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
 			seqServerMock
-				.Setup(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+				.Setup(mock => mock.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.Returns
 				(
 					() =>
@@ -267,7 +267,7 @@ namespace Serilog.Seq.Test
 			
 			// Assert
 			Assert.That(bufferSink.QueuedEvents, Is.Empty);
-			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value));
+			seqServerMock.Verify(mock => mock.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Exactly(retryCount.Value));
 		}
 	}
 }

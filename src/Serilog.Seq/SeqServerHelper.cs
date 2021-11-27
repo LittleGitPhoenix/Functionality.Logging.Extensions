@@ -28,8 +28,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <summary>
 		/// Builds a seq url from <paramref name="seqHost"/> and <paramref name="seqPort"/>.
 		/// </summary>
-		/// <param name="seqHost"> The host of the seq server. This can already include the port like 'http://localhost:5431'. </param>
-		/// <param name="seqPort"> An optional port that is added to <paramref name="seqHost"/>. </param>
+		/// <param name="seqHost"> <see cref="SeqServerConnectionData.Host"/> </param>
+		/// <param name="seqPort"> <see cref="SeqServerConnectionData.Port"/> </param>
 		/// <returns> The full url of the seq server. </returns>
 		internal static string BuildSeqUrl(string seqHost, ushort? seqPort)
 		{
@@ -39,9 +39,9 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <summary>
 		/// Creates a connection to a seq server.
 		/// </summary>
-		/// <param name="seqHost"> The host of the seq server. This can already include the port like 'http://localhost:5431'. </param>
-		/// <param name="seqPort"> An optional port that is added to <paramref name="seqHost"/>. </param>
-		/// <param name="configurationApiKey"> Optional api key that allows changes to the seq server configuration. </param>
+		/// <param name="seqHost"> <see cref="SeqServerConnectionData.Host"/> </param>
+		/// <param name="seqPort"> <see cref="SeqServerConnectionData.Port"/> </param>
+		/// <param name="configurationApiKey"> <see cref="SeqServerConnectionData.ApiKey"/> </param>
 		/// <returns> A <see cref="SeqConnection"/> connection object. </returns>
 		internal static SeqConnection ConnectToSeq(string seqHost, ushort? seqPort, string? configurationApiKey = null)
 		{
@@ -220,7 +220,13 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 		/// <remarks> https://docs.datalust.co/docs/posting-raw-events </remarks>
 		internal static async Task SendLogFileToServerAsync(string apiKey, FileInfo logFile, SeqConnection connection, CancellationToken cancellationToken = default)
 		{
-			using var streamReader = logFile.OpenText();
+#if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
+			using var fileStream = logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+	
+#else
+			await using var fileStream = logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+#endif
+			using var streamReader = new StreamReader(fileStream);
 			var content = await streamReader.ReadToEndAsync().ConfigureAwait(false);
 
 			await SeqServerHelper.SendLogEventsToServerAsync(apiKey, content, connection, cancellationToken).ConfigureAwait(false);

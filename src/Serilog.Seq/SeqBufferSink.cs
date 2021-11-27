@@ -112,11 +112,11 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
 								{
 									_applicationRegisteringFailed = true;
 									this.ClearQueue();
-									SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.Url}'. The maximum amount of {_retryCount.Value} retries has been reached. No further attempts will be made. Exception was: {ex}.");
+									SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.ConnectionData.Url}'. The maximum amount of {_retryCount.Value} retries has been reached. No further attempts will be made. Exception was: {ex}.");
 									break;
 								}
 
-								SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.Url}'. Will be tried again in {WaitTime.TotalMilliseconds}ms seconds. Exception was: {ex}.");
+								SelfLog.WriteLine($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.ConnectionData.Url}'. Will be tried again in {WaitTime.TotalMilliseconds}ms seconds. Exception was: {ex}.");
 								Thread.Sleep(WaitTime);
 							}
 						}

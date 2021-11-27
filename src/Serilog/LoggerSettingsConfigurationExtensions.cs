@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Configuration;
+using Serilog.Debugging;
 
 namespace Phoenix.Functionality.Logging.Extensions.Serilog
 {
@@ -39,6 +40,23 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog
 		/// <exception cref="SerilogSettingsException"> Thrown if the json file could not be parsed or if it contained invalid data. </exception>
 		public static LoggerConfiguration JsonFile(this LoggerSettingsConfiguration loggerSettingsConfiguration, FileInfo serilogConfigurationFile, string serilogSectionName = DefaultSerilogSectionName)
 		{
+			// Check if the log file
+			var workingPath = Directory.GetCurrentDirectory();
+#if NET5_0_OR_GREATER
+			var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
+#else
+			//! This is especially needed for .NET Core 3.1 single file published apps, as they run from a temp directory.
+			var applicationPath = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+#endif
+			if (workingPath != applicationPath && !serilogConfigurationFile.Exists)
+			{
+				var defaultSerilogConfigurationFile = new FileInfo(Path.Combine(applicationPath, serilogConfigurationFile.Name));
+				if (!defaultSerilogConfigurationFile.Exists) throw new SerilogSettingsException($"The default file {serilogConfigurationFile.FullName} could not be found in the application directory '{applicationPath}' and can therefore not be copied to the working directory '{workingPath}'.");
+				defaultSerilogConfigurationFile.CopyTo(serilogConfigurationFile.FullName, true);
+				serilogConfigurationFile.Refresh();
+				SelfLog.WriteLine($"The configuration file '{serilogConfigurationFile.Name}' has been copied from the application directory '{applicationPath}' to the working directory '{workingPath}'.");
+			}
+
 			var configuration = LoggerSettingsConfigurationExtensions.LoadConfiguration(serilogConfigurationFile);
 			var isValid = LoggerSettingsConfigurationExtensions.VerifyConfiguration(configuration, serilogSectionName, out var foundSerilogSectionName);
 			if (!isValid)

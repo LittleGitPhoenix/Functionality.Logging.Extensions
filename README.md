@@ -428,7 +428,7 @@ With some extension methods of **LoggerSettingsConfiguration** creating a new **
 
 ```csharp
 // Get the configuration file.
-var configurationFile = new FileInfo(Path.Combine(Directory.GetCurrentDirectory(), "serilog.config"));
+var configurationFile = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "serilog.config"));
 
 // Build the configuration.
 var configuration = new LoggerConfiguration()
