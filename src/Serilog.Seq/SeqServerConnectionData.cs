@@ -1,36 +1,26 @@
-﻿using System;
+﻿#region LICENSE NOTICE
+//! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
+#endregion
 
-namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq
+
+namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
+
+/// <summary>
+/// Connection data for a seq server.
+/// </summary>
+/// <param name="Host"> The host address of the seq server. This can already include the port like 'http://localhost:5431'. </param>
+/// <param name="Port"> Optional port where the seq server listens. It will be added to <see cref="Host"/>. </param>
+/// <param name="ApiKey"> The api key that allows changes to the seq server configuration. </param>
+public record SeqServerConnectionData(string Host, ushort? Port, string? ApiKey)
 {
-	/// <summary>
-	/// Connection data for a seq server.
-	/// </summary>
-	public record SeqServerConnectionData
-	{
-		/// <summary> The host address of the seq server. This can already include the port like 'http://localhost:5431'. </summary>
-		public string Host { get; }
-
-		/// <summary> Optional port where the seq server listens. It will be added to <see cref="Host"/>. </summary>
-		public ushort? Port { get; }
-
-		/// <summary> The api key that allows changes to the seq server configuration. </summary>
-		public string? ApiKey { get; }
-
-		/// <summary> A combination of <see cref="Host"/> and <see cref="Port"/>. </summary>
-		public string Url { get; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="host"> <see cref="Host"/> </param>
-		/// <param name="port"> <see cref="Port"/> </param>
-		/// <param name="apiKey"> <see cref="ApiKey"/> </param>
-		public SeqServerConnectionData(string host, ushort? port, string? apiKey)
-		{
-			this.Host = host;
-			this.Port = port;
-			this.ApiKey = apiKey;
-			this.Url = SeqServerHelper.BuildSeqUrl(host, port);
-		}
-	}
+    /// <summary> A combination of <see cref="Host"/> and <see cref="Port"/>. </summary>
+    public string Url
+    {
+        get
+        {
+            
+            return _url ??= SeqServerHelper.BuildSeqUrl(this.Host, this.Port);
+        }
+    }
+    private string? _url;
 }

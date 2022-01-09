@@ -25,7 +25,7 @@ namespace Serilog.Seq.Test
 		public void Check_Get_SeqSink_Via_Reflection_Succeeds()
 		{
 			// Act
-			var success = SerilogSeqSinkHelper.TryGetSeqRequirements(out _, out _, "http://localhost");
+			var success = SerilogSeqSinkHelper.TryGetSeqRequirements(out _, out _, SelfLogger.DefaultSelfLogger, "http://localhost");
 
 			// Assert
 			Assert.True(success);

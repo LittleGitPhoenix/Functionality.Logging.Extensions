@@ -1,65 +1,61 @@
-﻿using System;
-using System.IO;
+﻿ namespace Serilog.Test;
 
-namespace Serilog.Test
+sealed class TestFile : IDisposable
 {
-	sealed class TestFile : IDisposable
-	{
-		#region Delegates / Events
-		#endregion
+    #region Delegates / Events
+    #endregion
 
-		#region Constants
-		#endregion
+    #region Constants
+    #endregion
 
-		#region Fields
+    #region Fields
 
-		private static DirectoryInfo _directory;
+    private static DirectoryInfo _directory;
 
-		#endregion
+    #endregion
 
-		#region Properties
+    #region Properties
 
-		public FileInfo File { get; }
+    public FileInfo File { get; }
 
-		#endregion
+    #endregion
 
-		#region (De)Constructors
+    #region (De)Constructors
 
-		public TestFile(string name, string content)
-		{
-			// Save parameters.
+    public TestFile(string name, string content)
+    {
+        // Save parameters.
 
-			// Initialize fields.
-			this.File = TestFile.CreateTempFile(name, content);
-		}
+        // Initialize fields.
+        this.File = TestFile.CreateTempFile(name, content);
+    }
 
-		private static FileInfo CreateTempFile(string name, string content)
-		{
-			var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), $".temp_{Guid.NewGuid()}");
-			_directory = new DirectoryInfo(directoryPath);
-			_directory.Create();
+    private static FileInfo CreateTempFile(string name, string content)
+    {
+        var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), $".temp_{Guid.NewGuid()}");
+        _directory = new DirectoryInfo(directoryPath);
+        _directory.Create();
 			
-			var filePath = Path.Combine(_directory.FullName, name);
-			var file = new FileInfo(filePath);
-			{
-				using var fileStream = file.Open(FileMode.Create, FileAccess.ReadWrite);
-				using var writer = new StreamWriter(fileStream);
-				writer.Write(content);
-			}
-			file.Refresh();
-			return file;
-		}
+        var filePath = Path.Combine(_directory.FullName, name);
+        var file = new FileInfo(filePath);
+        {
+            using var fileStream = file.Open(FileMode.Create, FileAccess.ReadWrite);
+            using var writer = new StreamWriter(fileStream);
+            writer.Write(content);
+        }
+        file.Refresh();
+        return file;
+    }
 
-		#endregion
+    #endregion
 
-		#region Methods
+    #region Methods
 
-		/// <inheritdoc />
-		public void Dispose()
-		{
-			_directory?.Delete(true);
-		}
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _directory?.Delete(true);
+    }
 
-		#endregion
-	}
+    #endregion
 }

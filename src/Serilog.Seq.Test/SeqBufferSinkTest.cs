@@ -148,6 +148,7 @@ namespace Serilog.Seq.Test
 						if (emittedLogEventCount <= 5) throw _fixture.Create<SeqServerApplicationRegisterException>();
 
 						//! Cancel log event emission.
+						Console.WriteLine($"{DateTime.Now:hh:mm:ss:ffff}:: Log server is now registered.");
 						cancellationTokenSource.Cancel();
 						return Task.CompletedTask;
 					}
@@ -160,6 +161,7 @@ namespace Serilog.Seq.Test
 			{
 				bufferSink.Emit(_fixture.Create<LogEvent>());
 				emittedLogEventCount++;
+				Console.WriteLine($"{DateTime.Now:hh:mm:ss:ffff}:: Emitted log message #{emittedLogEventCount:D2}.");
 				try
 				{
 					await Task.Delay(500, cancellationToken);

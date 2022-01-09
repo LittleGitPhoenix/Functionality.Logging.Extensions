@@ -11,9 +11,9 @@ ___
 
 # Phoenix.Functionality.Logging.Extensions.Microsoft
 
-|   .NET Framework   |     .NET Standard      |          .NET          |
-| :----------------: | :--------------------: | :--------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 |
+|   .NET Framework   |     .NET Standard      |                     .NET                      |
+| :----------------: | :--------------------: | :-------------------------------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
 
 ## General Information
 
@@ -408,13 +408,64 @@ Output:
   "Action": "Delete"
 }
 ```
+
+**Scopes from CallerArgumentExpression**
+
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Information</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		This is only available when using at least <b>.NET Core 3.0</b>.
+    </div>
+</div>
+
+The following function helps creating log scopes by simply passing a value (like a variable) as parameter. The names of the values will be inferred via the [**System.Runtime.CompilerServices.CallerArgumentExpression**](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.callerargumentexpressionattribute?view=net-6.0) introduced in **C# 10**.
+
+
+```csharp
+IDisposable CreateScope(this ILogger logger, object? value[1...10], [CallerArgumentExpression("value1")] string? name[1...10] = default)
+```
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ffd200; background-color: #ffd20020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Advice</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		The current implementation allows for up to ten values to be added at a time to the scope. If more parameters are needed, the method must be called multiple times.
+    </div>
+</div>
+
+Example:
+
+```csharp
+var user = "John Doe";
+var action = "Delete";
+Microsoft.Extensions.Logging.ILogger logger = null;
+using (logger.CreateScope(user, action))
+{
+    logger.LogInformation("User {User} triggered {Action}.");
+}
+```
+
+Output:
+
+```json
+{
+  "@t": "2000-01-01T00:00:00.0000001Z",
+  "@mt": "User 'John Doe' triggered 'Delete'.",
+  "User": "John Doe",
+  "Action": "Delete"
+}
+```
 ___
 
 # Phoenix.Functionality.Logging.Extensions.Serilog
 
 |   .NET Framework   |     .NET Standard      |          .NET          |
 | :----------------: | :--------------------: | :--------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
 
 ## General Information
 

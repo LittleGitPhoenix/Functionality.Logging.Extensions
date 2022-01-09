@@ -3,69 +3,66 @@
 #endregion
 
 
-using System;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft
+namespace Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft;
+
+/// <summary>
+/// An <see cref="ILogEventEnricher"/> that enriches log events with scopes provided by <see cref="FrameworkLoggerScopes"/>.
+/// </summary>
+/// <remarks> Based on https://github.com/serilog/serilog-extensions-logging/blob/dev/src/Serilog.Extensions.Logging/Extensions/Logging/SerilogLoggerProvider.cs </remarks>
+[ProviderAlias("Serilog")]
+internal class FrameworkLoggerEnricher : ILogEventEnricher
 {
-	/// <summary>
-	/// An <see cref="ILogEventEnricher"/> that enriches log events with scopes provided by <see cref="FrameworkLoggerScopes"/>.
-	/// </summary>
-	/// <remarks> Based on https://github.com/serilog/serilog-extensions-logging/blob/dev/src/Serilog.Extensions.Logging/Extensions/Logging/SerilogLoggerProvider.cs </remarks>
-	[ProviderAlias("Serilog")]
-	internal class FrameworkLoggerEnricher : ILogEventEnricher
-	{
-		#region Delegates / Events
-		#endregion
+    #region Delegates / Events
+    #endregion
 
-		#region Constants
+    #region Constants
 
-		private const string ScopePropertyName = "Scope";
+    private const string ScopePropertyName = "Scope";
 
-		#endregion
+    #endregion
 
-		#region Fields
+    #region Fields
 
-		private readonly FrameworkLoggerScopes _scopes;
+    private readonly FrameworkLoggerScopes _scopes;
 
-		#endregion
+    #endregion
 
-		#region Properties
-		#endregion
+    #region Properties
+    #endregion
 
-		#region (De)Constructors
+    #region (De)Constructors
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="scopes"> The <see cref="FrameworkLoggerScopes"/> that enrich <see cref="LogEvent"/>s. </param>
-		public FrameworkLoggerEnricher(FrameworkLoggerScopes scopes)
-		{
-			// Save parameters.
-			_scopes = scopes;
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="scopes"> The <see cref="FrameworkLoggerScopes"/> that enrich <see cref="LogEvent"/>s. </param>
+    public FrameworkLoggerEnricher(FrameworkLoggerScopes scopes)
+    {
+        // Save parameters.
+        _scopes = scopes;
 
-			// Initialize fields.
-		}
+        // Initialize fields.
+    }
 
-		#endregion
+    #endregion
 
-		#region Methods
+    #region Methods
 
-		/// <inheritdoc />
-		public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
-		{
-			var scopeItems = _scopes
-				.CreateLogEventPropertyValues(logEvent, propertyFactory)
-				//.Reverse() //? Why is this reversed in Serilog.Extensions.Logging.SerilogLoggerProvider?
-				.ToArray()
-				;
+    /// <inheritdoc />
+    public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+    {
+        var scopeItems = _scopes
+            .CreateLogEventPropertyValues(logEvent, propertyFactory)
+            //.Reverse() //? Why is this reversed in Serilog.Extensions.Logging.SerilogLoggerProvider?
+            .ToArray()
+            ;
 
-			logEvent.AddPropertyIfAbsent(new LogEventProperty(ScopePropertyName, new SequenceValue(scopeItems)));
-		}
+        logEvent.AddPropertyIfAbsent(new LogEventProperty(ScopePropertyName, new SequenceValue(scopeItems)));
+    }
 
-		#endregion
-	}
+    #endregion
 }

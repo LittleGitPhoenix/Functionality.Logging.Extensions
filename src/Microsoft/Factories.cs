@@ -3,21 +3,19 @@
 #endregion
 
 
-using System;
 using Microsoft.Extensions.Logging;
 
-namespace Phoenix.Functionality.Logging.Extensions.Microsoft
-{
-	/// <summary>
-	/// Delegate returning an <see cref="ILogger"/>.
-	/// </summary>
-	/// <returns> A new <see cref="ILogger"/> instance. </returns>
-	public delegate ILogger LoggerFactory();
+namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
-	/// <summary>
-	/// Delegate returning an <see cref="ILogger"/> with a given <paramref name="name"/>.
-	/// </summary>
-	/// <param name="name"> The name to use for the new <see cref="ILogger"/>. </param>
-	/// <returns> A new <see cref="ILogger"/> instance. </returns>
-	public delegate ILogger NamedLoggerFactory(string name);
-}
+/// <summary>
+/// Delegate returning an <see cref="ILogger"/>.
+/// </summary>
+/// <returns> A new <see cref="ILogger"/> instance. </returns>
+public delegate ILogger LoggerFactory();
+
+/// <summary>
+/// Delegate returning an <see cref="ILogger"/> with a given <paramref name="name"/>.
+/// </summary>
+/// <param name="name"> The name to use for the new <see cref="ILogger"/>. </param>
+/// <returns> A new <see cref="ILogger"/> instance. </returns>
+public delegate ILogger NamedLoggerFactory(string name);

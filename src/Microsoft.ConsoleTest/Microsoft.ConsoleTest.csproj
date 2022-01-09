@@ -1,22 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
 		<OutputType>Exe</OutputType>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<Version>1.0.0</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
-		<Copyright>2021</Copyright>
+		<Copyright>2022</Copyright>
 		<AssemblyName>Microsoft.ConsoleTest</AssemblyName>
 		<RootNamespace>Microsoft.ConsoleTest</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Autofac" Version="6.3.0" />
-		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
 		<PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
 		<PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
