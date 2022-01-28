@@ -1,85 +1,85 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoFixture;
+﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using Moq;
 using NUnit.Framework;
 using Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 
-namespace Serilog.Seq.Test
+namespace Serilog.Seq.Test;
+
+public class SerilogSeqSinkHelperTest
 {
-	public class SerilogSeqSinkHelperTest
-	{
+	#region Setup
+
 #pragma warning disable 8618 // → Always initialized in the 'Setup' method before a test is run.
-		private IFixture _fixture;
+	private IFixture _fixture;
 #pragma warning restore 8618
 
-		[SetUp]
-		public void Setup()
-		{
-			_fixture = new Fixture().Customize(new AutoMoqCustomization());
-		}
+	[SetUp]
+	public void BeforeEachTest()
+	{
+		_fixture = new Fixture().Customize(new AutoMoqCustomization());
+	}
 
-		[Test]
-		public void Check_Get_SeqSink_Via_Reflection_Succeeds()
-		{
-			// Act
-			var success = SerilogSeqSinkHelper.TryGetSeqRequirements(out _, out _, SelfLogger.DefaultSelfLogger, "http://localhost");
+	#endregion
 
-			// Assert
-			Assert.True(success);
-		}
+	[Test]
+	public void Check_Get_SeqSink_Via_Reflection_Succeeds()
+	{
+		// Act
+		var success = SerilogSeqSinkHelper.TryGetSeqRequirements(out _, out _, SelfLogger.DefaultSelfLogger, "http://localhost");
 
-		[Test]
-		public void Check_SeqBufferSink_Is_Not_Returned_If_Application_Could_Be_Registered()
-		{
-			// Arrange
-			var seqHost = "http://nevermind";
-			_fixture.Inject(seqHost);
-			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-			var seqServer = seqServerMock.Object;
+		// Assert
+		Assert.True(success);
+	}
 
-			// Act
-			var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title");
+	[Test]
+	public void Check_SeqBufferSink_Is_Not_Returned_If_Application_Could_Be_Registered()
+	{
+		// Arrange
+		var seqHost = "http://nevermind";
+		_fixture.Inject(seqHost);
+		var seqServerMock = _fixture.Create<Mock<SeqServer>>();
+		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+		var seqServer = seqServerMock.Object;
 
-			// Assert
-			Assert.That(sink, Is.Not.TypeOf<SeqBufferSink>());
-		}
+		// Act
+		var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title");
 
-		[Test]
-		public void Check_SeqBufferSink_Is_Returned_If_Application_Could_Not_Be_Registered()
-		{
-			// Arrange
-			var seqHost = "http://nevermind";
-			_fixture.Inject(seqHost);
-			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
-			var seqServer = seqServerMock.Object;
+		// Assert
+		Assert.That(sink, Is.Not.TypeOf<SeqBufferSink>());
+	}
 
-			// Act
-			var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title");
+	[Test]
+	public void Check_SeqBufferSink_Is_Returned_If_Application_Could_Not_Be_Registered()
+	{
+		// Arrange
+		var seqHost = "http://nevermind";
+		_fixture.Inject(seqHost);
+		var seqServerMock = _fixture.Create<Mock<SeqServer>>();
+		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
+		var seqServer = seqServerMock.Object;
 
-			// Assert
-			Assert.That(sink, Is.TypeOf<SeqBufferSink>());
-		}
+		// Act
+		var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title");
 
-		[Test]
-		public void Check_Null_Is_Returned_If_Application_Could_Not_Be_Registered_And_Retry_Is_Disabled()
-		{
-			// Arrange
-			var seqHost = "http://nevermind";
-			_fixture.Inject(seqHost);
-			var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-			seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
-			var seqServer = seqServerMock.Object;
+		// Assert
+		Assert.That(sink, Is.TypeOf<SeqBufferSink>());
+	}
 
-			// Act
-			var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title", retryOnError: false);
+	[Test]
+	public void Check_Null_Is_Returned_If_Application_Could_Not_Be_Registered_And_Retry_Is_Disabled()
+	{
+		// Arrange
+		var seqHost = "http://nevermind";
+		_fixture.Inject(seqHost);
+		var seqServerMock = _fixture.Create<Mock<SeqServer>>();
+		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
+		var seqServer = seqServerMock.Object;
 
-			// Assert
-			Assert.Null(sink);
-		}
+		// Act
+		var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title", retryOnError: false);
+
+		// Assert
+		Assert.Null(sink);
 	}
 }

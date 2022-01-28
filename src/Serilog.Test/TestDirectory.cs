@@ -2,70 +2,72 @@ namespace Serilog.Test;
 
 sealed class TestDirectory : IDisposable
 {
-    #region Delegates / Events
-    #endregion
+	#region Delegates / Events
+	#endregion
 
-    #region Constants
-    #endregion
+	#region Constants
+	#endregion
 
-    #region Fields
+	#region Fields
 
-    #endregion
+	#endregion
 
-    #region Properties
+	#region Properties
 
-    public DirectoryInfo Directory { get; }
-		
-    #endregion
+	public DirectoryInfo Directory { get; }
 
-    #region (De)Constructors
+	#endregion
 
-    public TestDirectory()
-    {
-        // Save parameters.
+	#region (De)Constructors
 
-        // Initialize fields.
-        this.Directory = TestDirectory.CreateTempDirectory();
-    }
+	public TestDirectory()
+	{
+		// Save parameters.
 
-    private static DirectoryInfo CreateTempDirectory()
-    {
-        var directoryPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), $".temp_{Guid.NewGuid()}");
-        var directory = new DirectoryInfo(directoryPath);
-        directory.Create();
-        return directory;
-    }
+		// Initialize fields.
+		this.Directory = TestDirectory.CreateTempDirectory();
+	}
 
-    internal DirectoryInfo CreateDirectory(string name)
-    {
-        var directoryPath = Path.Combine(this.Directory.FullName, name);
-        var directory = new DirectoryInfo(directoryPath);
-        directory.Create();
-        return directory;
-    }
+	public static implicit operator DirectoryInfo(TestDirectory testDirectory) => testDirectory.Directory;
 
-    internal FileInfo CreateFile(string name, string content)
-    {
-        var filePath = Path.Combine(this.Directory.FullName, name);
-        var file = new FileInfo(filePath);
-        {
-            using var fileStream = file.Open(FileMode.Create, FileAccess.ReadWrite);
-            using var writer = new StreamWriter(fileStream);
-            writer.Write(content);
-        }
-        file.Refresh();
-        return file;
-    }
+	#endregion
 
-    #endregion
+	private static DirectoryInfo CreateTempDirectory()
+	{
+		var directoryPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), $".temp_{Guid.NewGuid()}");
+		var directory = new DirectoryInfo(directoryPath);
+		directory.Create();
+		return directory;
+	}
 
-    #region Methods
+	internal DirectoryInfo CreateDirectory(string name)
+	{
+		var directoryPath = Path.Combine(this.Directory.FullName, name);
+		var directory = new DirectoryInfo(directoryPath);
+		directory.Create();
+		return directory;
+	}
 
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        this.Directory?.Delete(true);
-    }
+	internal FileInfo CreateFile(string name, string content)
+	{
+		var filePath = Path.Combine(this.Directory.FullName, name);
+		var file = new FileInfo(filePath);
+		{
+			using var fileStream = file.Open(FileMode.Create, FileAccess.ReadWrite);
+			using var writer = new StreamWriter(fileStream);
+			writer.Write(content);
+		}
+		file.Refresh();
+		return file;
+	}
 
-    #endregion
+	#region Methods
+
+	/// <inheritdoc />
+	public void Dispose()
+	{
+		this.Directory?.Delete(true);
+	}
+
+	#endregion
 }

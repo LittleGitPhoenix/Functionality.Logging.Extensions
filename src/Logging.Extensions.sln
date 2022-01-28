@@ -1,8 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31019.35
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{31C21C2E-B1E8-4780-8C35-5020B4245F37}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog", "Serilog\Serilog.csproj", "{A01541F7-54A7-4996-9FA1-FDF8E9D6A22B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.ConsoleTest", "Serilog.ConsoleTest\Serilog.ConsoleTest.csproj", "{F475C26C-A681-41C0-9EDB-5662BB43D2BC}"
@@ -33,7 +38,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ConsoleTest", "Mi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Microsoft", "Serilog.Microsoft\Serilog.Microsoft.csproj", "{90A3EBB4-949E-4065-9F2D-E81E7A0A957B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Microsoft.Test", "Serilog.Microsoft.Test\Serilog.Microsoft.Test.csproj", "{48DCDD68-E9EA-4A03-BE75-1C1A47A4AE81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Microsoft.Test", "Serilog.Microsoft.Test\Serilog.Microsoft.Test.csproj", "{48DCDD68-E9EA-4A03-BE75-1C1A47A4AE81}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
