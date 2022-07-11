@@ -2,15 +2,15 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 /// <summary>
-/// Manages logger groups. Should typically not be used directly but implicitly via some extension methods of <see cref="ILogger"/>.
+/// Manages logger groups.
 /// </summary>
-public static class LoggerGroupManager
+internal static class LoggerGroupManager
 {
     #region Delegates / Events
 
@@ -22,7 +22,7 @@ public static class LoggerGroupManager
 
     #region Fields
 
-    internal static readonly Dictionary<IGroupIdentifier, HashSet<ILogger>> Cache;
+    internal static readonly ConcurrentDictionary<IGroupIdentifier, ILoggerGroup> Cache;
 
     #endregion
 
@@ -37,99 +37,117 @@ public static class LoggerGroupManager
         // Save parameters.
 
         // Initialize fields.
-        Cache = new Dictionary<IGroupIdentifier, HashSet<ILogger>>();
+        Cache = new ();
     }
 
-    #endregion
+	#endregion
 
-    #region Methods
+	#region Methods
 
-    /// <summary>
-    /// Adds the <paramref name="logger"/> to the internal cache using the <paramref name="groupIdentifier"/>.
-    /// </summary>
-    /// <param name="logger"> The <see cref="ILogger"/> to add. </param>
-    /// <param name="groupIdentifier"> The group identifier used when adding. </param>
-    /// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-    internal static ILogger AddLoggerToGroup<TIdentifier>(ILogger logger, TIdentifier groupIdentifier)
-        where TIdentifier : notnull
-    {
-        var identifier = (GroupIdentifier<TIdentifier>) groupIdentifier;
-        if (LoggerGroupManager.Cache.TryGetValue(identifier, out var loggerCollection))
-        {
-            loggerCollection.Add(logger);
-        }
-        else
-        {
-#if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
-				LoggerGroupManager.Cache.Add(identifier, new HashSet<ILogger>() {logger});
-#else
-            LoggerGroupManager.Cache.TryAdd(identifier, new HashSet<ILogger>() {logger});
-#endif
-        }
+	/// <inheritdoc cref="LoggerExtensions.AddToGroup{TIdentifier}"/>
+	internal static ILogger AddLoggerToGroup<TIdentifier>(ILogger logger, TIdentifier groupIdentifier, bool applyExistingScope = true)
+		where TIdentifier : notnull
+	{
+		var identifier = (GroupIdentifier<TIdentifier>) groupIdentifier;
 
-        return logger;
-    }
+		if (Cache.TryGetValue(identifier, out var loggerGroup))
+		{
+			loggerGroup.AddLogger(logger, applyExistingScope);
+		}
+		else
+		{
+			Cache.TryAdd(identifier, new LoggerGroup(logger));
+		}
 
-    /// <summary>
-    /// Returns all cached <see cref="ILogger"/>s for the given <paramref name="groupIdentifier"/>.
-    /// </summary>
-    /// <param name="groupIdentifier"> The group identifier of the cached loggers. </param>
-    /// <returns> A collection of <see cref="ILogger"/>s sharing the same group. </returns>
-    public static IReadOnlyCollection<ILogger> GetAllLoggers<TIdentifier>(TIdentifier groupIdentifier)
-        where TIdentifier : notnull
-    {
-        var identifier = (GroupIdentifier<TIdentifier>) groupIdentifier;
-        var loggerCollection = LoggerGroupManager
-            .GetAllGroups(group => identifier.Equals(group.GroupIdentifier))
-            .FirstOrDefault()
-            .LoggerCollection
-            ;
+		return logger;
+	}
 
-        return loggerCollection?.ToArray() ?? Array.Empty<ILogger>();
-    }
+	/// <inheritdoc cref="LoggerExtensions.RemoveFromGroup{TIdentifier}"/>
+	internal static ILogger RemoveLoggerFromGroup<TIdentifier>(ILogger logger, TIdentifier groupIdentifier)
+		where TIdentifier : notnull
+	{
+		var identifier = (GroupIdentifier<TIdentifier>) groupIdentifier;
+		if (Cache.TryGetValue(identifier, out var loggerGroup))
+		{
+			loggerGroup.RemoveLogger(logger);
+			TryRemoveLoggerGroup(loggerGroup, identifier);
+		}
+		return logger;
+	}
 
-    /// <summary>
-    /// Return all groups.
-    /// </summary>
-    /// <returns> A collection of all cached groups. </returns>
-    public static IReadOnlyCollection<(object GroupIdentifier, IReadOnlyCollection<ILogger> LoggerCollection)> GetAllGroups()
+	/// <inheritdoc cref="LoggerExtensions.RemoveFromAllGroups"/>
+	internal static ILogger RemoveFromAllGroups(ILogger logger)
+	{
+		var groups = GetMatchingGroups(tuple => tuple.LoggerGroup.Contains(logger));
+		foreach (var (identifier, loggerGroup) in groups)
+		{
+			loggerGroup.RemoveLogger(logger);
+			TryRemoveLoggerGroup(loggerGroup, identifier);
+		}
+		return logger;
+	}
+
+	/// <inheritdoc cref="LoggerExtensions.AsGroup{TIdentifier}"/>
+	internal static ILoggerGroup GetGroup<TIdentifier>(TIdentifier groupIdentifier)
+		where TIdentifier : notnull
+	{
+		var identifier = (GroupIdentifier<TIdentifier>) groupIdentifier;
+		var matchingGroups = LoggerGroupManager.GetMatchingGroups(group => identifier.Equals(group.GroupIdentifier)).Take(1).ToArray();
+		return matchingGroups.Any() ? matchingGroups.FirstOrDefault().LoggerGroup : new LoggerGroup();
+	}
+
+	/// <summary>
+	/// Return all groups.
+	/// </summary>
+	/// <returns> A collection of all cached groups. </returns>
+	internal static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetAllGroups()
+	{
+		return LoggerGroupManager
+			.GetMatchingGroups(_ => true)
+			.Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))
+			.ToArray()
+			;
+	}
+
+	/// <inheritdoc cref="LoggerExtensions.GetGroups"/>
+	internal static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetGroupsOfLogger(ILogger logger)
     {
         return LoggerGroupManager
-            .GetAllGroups(_ => true)
-            .Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerCollection))
+            .GetMatchingGroups(tuple => tuple.LoggerGroup.Contains(logger))
+            .Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))
             .ToArray()
             ;
     }
 
-    /// <summary>
-    /// Return all groups that the <paramref name="logger"/> is a part of.
-    /// </summary>
-    /// <param name="logger"> The <see cref="ILogger"/> whose groups to get.. </param>
-    /// <returns> A collection of groups, where the <paramref name="logger"/> is a part of. </returns>
-    public static IReadOnlyCollection<(object GroupIdentifier, IReadOnlyCollection<ILogger> LoggerCollection)> GetAllGroups(ILogger logger)
-    {
-        return LoggerGroupManager
-            .GetAllGroups(tuple => tuple.LoggerCollection.Contains(logger))
-            .Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerCollection))
-            .ToArray()
-            ;
-    }
+	/// <summary>
+	/// Remove the <paramref name="loggerGroup"/> from the internal <see cref="Cache"/> if it no longer contains any loggers.
+	/// </summary>
+	/// <param name="loggerGroup"> The <see cref="ILoggerGroup"/> to remove. </param>
+	/// <param name="identifier"> The <see cref="IGroupIdentifier"/> used for lookup in <see cref="Cache"/>. </param>
+	/// <returns> <b>True</b> on success, otherwise <b>false</b>. </returns>
+	private static bool TryRemoveLoggerGroup(ILoggerGroup loggerGroup, IGroupIdentifier identifier)
+	{
+		if (loggerGroup.Count != 0) return false;
+		var success = Cache.TryRemove(identifier, out var removedLoggerGroup);
+		removedLoggerGroup?.Dispose();
+		return success;
+	}
 
     /// <summary>
     /// Return all groups matching the <paramref name="predicate"/>.
     /// </summary>
     /// <param name="predicate"> The <see cref="Predicate{T}"/> to match. </param>
     /// <returns> A collection of groups, that match the <paramref name="predicate"/>. </returns>
-    private static IEnumerable<(IGroupIdentifier GroupIdentifier, IReadOnlyCollection<ILogger> LoggerCollection)> GetAllGroups(Predicate<(IGroupIdentifier GroupIdentifier, HashSet<ILogger> LoggerCollection)> predicate)
+    private static IEnumerable<(IGroupIdentifier GroupIdentifier, ILoggerGroup LoggerGroup)> GetMatchingGroups(Predicate<(IGroupIdentifier GroupIdentifier, ILoggerGroup LoggerGroup)> predicate)
     {
 #if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
-			foreach (var group in LoggerGroupManager.Cache)
-			{
-				var tuple = (group.Key, group.Value);
+		foreach (var group in Cache)
+		{
+			var tuple = (group.Key, group.Value);
 #else
-        foreach (var (groupIdentifier, loggerCollection) in LoggerGroupManager.Cache)
+        foreach (var (groupIdentifier, loggerGroup) in Cache)
         {
-            var tuple = (groupIdentifierHash: groupIdentifier, loggerCollection);
+            var tuple = (groupIdentifierHash: groupIdentifier, loggerGroup);
 #endif
             if (predicate.Invoke(tuple)) yield return tuple;
         }
@@ -251,56 +269,5 @@ public static class LoggerGroupManager
         #endregion
     }
 
-    internal sealed class Disposables : IDisposable
-    {
-        #region Delegates / Events
-
-        #endregion
-
-        #region Constants
-
-        #endregion
-
-        #region Fields
-
-        private readonly HashSet<IDisposable> _disposables;
-
-        #endregion
-
-        #region Properties
-
-        #endregion
-
-        #region (De)Constructors
-
-        public Disposables(IEnumerable<IDisposable> disposables)
-        {
-#if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
-				_disposables = new HashSet<IDisposable>(disposables);
-#else
-            _disposables = disposables.ToHashSet();
-#endif
-        }
-
-        #endregion
-
-        #region Methods
-
-        #region IDisposable
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            foreach (var disposable in _disposables)
-            {
-                disposable.Dispose();
-            }
-        }
-
-        #endregion
-
-        #endregion
-    }
-
-    #endregion
+	#endregion
 }

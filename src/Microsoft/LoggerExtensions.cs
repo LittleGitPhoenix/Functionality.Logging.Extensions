@@ -2,86 +2,464 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-
+using System.Globalization;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Resources;
 using Microsoft.Extensions.Logging;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
+
+class NoDisposable : IDisposable
+{
+	public static NoDisposable Instance => Lazy.Value;
+	private static readonly Lazy<NoDisposable> Lazy = new Lazy<NoDisposable>(() => new(), LazyThreadSafetyMode.ExecutionAndPublication);
+	
+	private NoDisposable() { }
+
+	/// <inheritdoc />
+	public void Dispose() { }
+}
 
 /// <summary>
 /// Provides extension methods for <see cref="ILogger"/>.
 /// </summary>
 public static partial class LoggerExtensions
 {
-	/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup{TIdentifier}"/>
-	public static ILogger AddToGroups<TIdentifier>(this ILogger logger, params TIdentifier[] groupIdentifiers)
+	#region Logging
+
+	/// <summary>
+	/// Logs the given <paramref name="logEvents"/>.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="logEvents"> A collection of <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>s. </param>
+	public static void Log(this ILogger logger, IEnumerable<LogEvent> logEvents)
+	{
+		foreach (var logEvent in logEvents) Log(logger, logEvent);
+	}
+
+	/// <summary>
+	/// Logs the given <paramref name="logEvent"/>.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="logEvent"> The <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>. </param>
+	public static void Log(this ILogger logger, LogEvent? logEvent)
+	{
+		if (logEvent is null) return;
+		Log(logger, (EventId) logEvent.EventId, logEvent.Exception, logEvent.LogLevel, logEvent.LogMessage, logEvent.Args);
+	}
+
+	/// <summary>
+	/// Logs an event with a given <paramref name="logMessage"/>.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+	/// <param name="logMessage"> The message to log. </param>
+	/// <param name="args"> Arguments passed to the log message. </param>
+	public static void Log(this ILogger logger, int eventId, LogLevel logLevel, string logMessage, params object?[] args)
+		=> Log(logger, (EventId) eventId, null, logLevel, logMessage, args);
+
+	/// <summary>
+	/// Logs an event with a given <paramref name="logMessage"/> and <paramref name="exception"/>.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="exception"> The <see cref="Exception"/> to log. </param>
+	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+	/// <param name="logMessage"> The message to log. </param>
+	/// <param name="args"> Arguments passed to the log message. </param>
+	public static void Log(this ILogger logger, int eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
+		=> Log(logger, (EventId) eventId, exception, logLevel, logMessage, args);
+	
+	/// <summary>
+	/// Logs an event with an automatically disposed scope.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="logs">
+	/// <para> A collection of <see cref="ValueTuple"/> each containing: </para>
+	/// <para> Scope (<see cref="LogScope"/>): The scope of the event. </para>
+	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
+	/// </param>
+	public static void Log(this ILogger logger, IEnumerable<(LogScope Scope, LogEvent Event)> logs)
+	{
+		foreach (var log in logs) Log(logger, log);
+	}
+	
+	/// <summary>
+	/// Logs an event with an automatically disposed scope.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="log">
+	/// <para> <see cref="ValueTuple"/> containing: </para>
+	/// <para> Scope (<see cref="LogScope"/>): The scope of the event. </para>
+	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
+	/// </param>
+	public static void Log(this ILogger logger, (LogScope Scope, LogEvent Event)? log)
+	{
+		if (log == null) return;
+		logger.Log(log.Value.Scope, log.Value.Event);
+	}
+
+	/// <summary>
+	/// Logs an event with an automatically disposed scope.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope of the event. </param>
+	/// <param name="logEvent"> The event to log. </param>
+	public static void Log(this ILogger logger, LogScope? scope, LogEvent? logEvent)
+		=> logger.CreateScopeAndLog(scope, logEvent).Dispose();
+
+	/// <summary>
+	/// Logs an event with a message resolved from a resource file and returns this message translated into the current ui culture (or its nearest fallback).
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="logEvent"> The <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogResourceEvent"/>. </param>
+	/// <returns> The translated log message or an empty string if <paramref name="logEvent"/> is <b>null</b>. </returns>
+	public static string Log(this ILogger logger, LogResourceEvent? logEvent)
+	{
+		if (logEvent is null) return String.Empty;
+		return LogEventFromResource(logger, (EventId) logEvent.EventId, logEvent.Exception, logEvent.LogLevel, logEvent.ResourceManager, logEvent.ResourceName, logEvent.LogArgs, logEvent.MessageArgs, logEvent.LogCulture);
+	}
+
+	/// <summary>
+	/// Logs an event with a message resolved from a resource file and returns this message translated into the current ui culture (or its nearest fallback).
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+	/// <param name="resourceManager"> The <see cref="ResourceManager"/>s that is queried to find the proper messages for <paramref name="resourceName"/>. </param>
+	/// <param name="resourceName"> The name of the resource that is the log message. </param>
+	/// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
+	/// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
+	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogCulture"/>. </param>
+	/// <returns> The translated log message. </returns>
+	public static string Log(this ILogger logger, int eventId, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
+		=> LogEventFromResource(logger, (EventId) eventId, null, logLevel, resourceManager, resourceName, logArgs, messageArgs, logCulture);
+
+	/// <summary>
+	/// Logs an event with a message resolved from a resource file together with an <paramref name="exception"/> and returns this message translated into the current ui culture (or its nearest fallback).
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="exception"> The <see cref="Exception"/> to log. </param>
+	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+	/// <param name="resourceManager"> The <see cref="ResourceManager"/>s that is queried to find the proper messages for <paramref name="resourceName"/>. </param>
+	/// <param name="resourceName"> The name of the resource that is the log message. </param>
+	/// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
+	/// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
+	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogCulture"/>. </param>
+	/// <returns> The translated log message. </returns>
+	public static string Log(this ILogger logger, int eventId, Exception exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
+		=> LogEventFromResource(logger, (EventId) eventId, exception, logLevel, resourceManager, resourceName, logArgs, messageArgs, logCulture);
+
+	#region Helper
+
+	/// <summary>
+	/// Logs messages while catching format exceptions.
+	/// </summary>
+	/// <param name="logger"> The <see cref="ILogger"/> to use. </param>
+	/// <param name="eventId"> The <see cref="EventId"/> of the event. </param>
+	/// <param name="exception"> An optional <see cref="Exception"/> to log. Default is null. </param>
+	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+	/// <param name="logMessage"> The message to log. </param>
+	/// <param name="args"> Arguments passed to the log message. </param>
+	internal static void Log(ILogger logger, EventId eventId, Exception? exception, LogLevel logLevel, string logMessage, params object?[] args)
+	{
+		try
+		{
+			logger.Log(logLevel, eventId, exception, logMessage, args);
+		}
+		catch (AggregateException ex) when (ex.Flatten().InnerExceptions.Select(e => e.GetType()).Contains(typeof(IndexOutOfRangeException)))
+		{
+			var arguments = args.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", args);
+			logger.Log(logLevel, eventId, exception, $"Could not format the message '{logMessage.Replace("{", "{{").Replace("}", "}}")}' because of a mismatch with the supplied arguments {arguments}.", args);
+		}
+		catch (Exception ex)
+		{
+			var arguments = args.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", args);
+			System.Diagnostics.Debug.WriteLine($"Could not write log for the message '{logMessage}' with arguments '{arguments}'.");
+		}
+	}
+
+	/// <summary>
+	/// Logs an event with a message resolved from a resource file and returns this message translated into the current ui culture (or its nearest fallback).
+	/// </summary>
+	/// <param name="logger"> The <see cref="ILogger"/> to use. </param>
+	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="exception"> An optional <see cref="Exception"/> to log. Default is null. </param>
+	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
+	/// <param name="resourceManager"> The <see cref="ResourceManager"/>s that is queried to find the proper messages for <paramref name="resourceName"/>. </param>
+	/// <param name="resourceName"> The name of the resource that is the log message. </param>
+	/// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
+	/// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
+	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogCulture"/>. </param>
+	/// <returns> The translated log message. </returns>
+	private static string LogEventFromResource(ILogger logger, EventId eventId, Exception? exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
+	{
+		logArgs ??= Array.Empty<object?>();
+		messageArgs ??= logArgs;
+		var (logMessage, unformattedOutput) = GetMessages(resourceManager, resourceName, logCulture ?? LogCulture, logArgs, messageArgs, eventId);
+
+		// Log
+		Log(logger, eventId, exception, logLevel, logMessage, logArgs);
+
+		// Format output message
+		try
+		{
+			return String.Format(unformattedOutput, messageArgs);
+		}
+		catch (FormatException)
+		{
+			var arguments = messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs);
+			return $"Could not format the message '{unformattedOutput}' because of a mismatch with the format arguments '{arguments}'.";
+		}
+	}
+	
+	/// <summary> The <see cref="CultureInfo"/> used for logging. </summary>
+	/// <remarks> Default value is the culture <b>lo</b>. </remarks>
+	public static CultureInfo LogCulture
+	{
+		get => InternalLogCulture;
+		set => InternalLogCulture = value ?? CultureInfo.CreateSpecificCulture("lo");
+	}
+	private static CultureInfo InternalLogCulture = CultureInfo.CreateSpecificCulture("lo");
+
+	/// <summary>
+	/// Obtains log- and output message from <paramref name="resourceManager"/> identified by <paramref name="resourceName"/>.
+	/// </summary>
+	/// <param name="resourceManager"> The <see cref="ResourceManager"/>s that is queried to find the proper messages for <paramref name="resourceName"/>. </param>
+	/// <param name="resourceName"> The name of the resource that represents the log message. </param>
+	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. </param>
+	/// <param name="logArgs"> Arguments passed to the log message. </param>
+	/// <param name="messageArgs"> Arguments merged into the returned output message. </param>
+	/// <param name="eventId"> The <see cref="EventId"/>. </param>
+	/// <returns>
+	/// <para> A <see cref="ValueTuple"/> containing: </para>
+	/// <para> • LogMessage (<see cref="string"/>): The message that is logged. </para>
+	/// <para> • OutputMessage (<see cref="string"/>): The message that is returned. </para>
+	/// </returns>
+	private static (string LogMessage, string OutputMessage) GetMessages(ResourceManager resourceManager, string resourceName, CultureInfo logCulture, object?[] logArgs, object?[] messageArgs, EventId eventId)
+	{
+		string? outputMessage = null;
+		var logMessage = resourceManager.GetString(resourceName, logCulture);
+		if (logMessage is not null)
+			outputMessage = resourceManager.GetString(resourceName);
+
+		logMessage ??= $"No log-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(logArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", logArgs))}";
+		outputMessage ??= $"No output-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs))}";
+
+		return new(logMessage!, outputMessage!);
+	}
+
+	/// <summary>
+	/// Obtains log- and output message from the first <see cref="ResourceManager"/> in <paramref name="resourceManagers"/> identified by <paramref name="resourceName"/>.
+	/// </summary>
+	/// <param name="resourceManagers"> A collection of <see cref="ResourceManager"/>s that are queried one by one to find the proper messages for <paramref name="resourceName"/>. </param>
+	/// <param name="resourceName"> The name of the resource that represents the log message. </param>
+	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. </param>
+	/// <param name="logArgs"> Arguments passed to the log message. </param>
+	/// <param name="messageArgs"> Arguments merged into the returned output message. </param>
+	/// <param name="eventId"> The <see cref="EventId"/>. </param>
+	/// <returns>
+	/// <para> A <see cref="ValueTuple"/> containing: </para>
+	/// <para> • LogMessage (<see cref="string"/>): The message that is logged. </para>
+	/// <para> • OutputMessage (<see cref="string"/>): The message that is returned. </para>
+	/// </returns>
+	internal static (string LogMessage, string OutputMessage) GetMessages(ICollection<ResourceManager> resourceManagers, string resourceName, CultureInfo? logCulture, object?[] logArgs, object?[] messageArgs, EventId eventId)
+	{
+		string? logMessage = null;
+		string? outputMessage = null;
+		foreach (var resourceManager in resourceManagers)
+		{
+			logMessage = resourceManager.GetString(resourceName, logCulture);
+			if (logMessage is not null)
+			{
+				outputMessage = resourceManager.GetString(resourceName);
+				break;
+			}
+		}
+		logMessage ??= $"No log-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(logArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", logArgs))}";
+		outputMessage ??= $"No output-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs))}";
+
+		return (logMessage!, outputMessage!);
+	}
+
+	#endregion
+
+	#endregion
+
+	#region Groups
+
+	/// <summary>
+	/// Adds the <paramref name="logger"/> to all groups identified by <paramref name="groupIdentifiers"/>.
+	/// </summary>
+	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifiers"/>. </typeparam>
+	/// <param name="logger"> The <see cref="ILogger"/> to add. </param>
+	/// <param name="applyExistingScope"> Should existing scopes be applied tho the <paramref name="logger"/>. Default is <b>true</b>. </param>
+	/// <param name="groupIdentifiers"> A collection of group identifiers. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger AddToGroups<TIdentifier>(this ILogger logger, bool applyExistingScope = true, params TIdentifier[] groupIdentifiers)
 		where TIdentifier : notnull
 	{
-		foreach (var groupIdentifier in groupIdentifiers)
-		{
-			LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier);
-		}
+		foreach (var groupIdentifier in groupIdentifiers) logger.AddToGroup(groupIdentifier, applyExistingScope);
 		return logger;
 	}
+	
+	/// <summary>
+	/// Adds the <paramref name="logger"/> to the group identified by <paramref name="groupIdentifier"/>.
+	/// </summary>
+	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifier"/>. </typeparam>
+	/// <param name="logger"> The <see cref="ILogger"/> to add. </param>
+	/// <param name="groupIdentifier"> The group identifier used when adding. </param>
+	/// <param name="applyExistingScope"> Should existing scopes be applied tho the <paramref name="logger"/>. Default is <b>true</b>. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger AddToGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier, bool applyExistingScope = true)
+		where TIdentifier : notnull
+		=> LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, applyExistingScope);
 
-	/// <inheritdoc cref="LoggerGroupManager.AddLoggerToGroup{TIdentifier}"/>
-	public static ILogger AddToGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
+	/// <summary>
+	/// Removes the <paramref name="logger"/> from the group identified by <paramref name="groupIdentifier"/>.
+	/// </summary>
+	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifier"/>. </typeparam>
+	/// <param name="logger"> The <see cref="ILogger"/> to remove. </param>
+	/// <param name="groupIdentifier"> The group identifier used when removing. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger RemoveFromGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
+		where TIdentifier : notnull
+		=> LoggerGroupManager.RemoveLoggerFromGroup(logger, groupIdentifier);
+
+	/// <summary>
+	/// Removes the <paramref name="logger"/> from all its groups.
+	/// </summary>
+	/// <param name="logger"> The <see cref="ILogger"/> to remove. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger RemoveFromAllGroups(this ILogger logger)
+		=> LoggerGroupManager.RemoveFromAllGroups(logger);
+
+	/// <summary>
+	/// Return all groups that the <paramref name="logger"/> is a part of.
+	/// </summary>
+	/// <param name="logger"> The <see cref="ILogger"/> whose groups to get.. </param>
+	/// <returns> A collection of groups, where the <paramref name="logger"/> is a part of. </returns>
+	public static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetGroups(this ILogger logger)
+		=> LoggerGroupManager.GetGroupsOfLogger(logger);
+
+	/// <summary>
+	/// Returns the <see cref="ILoggerGroup"/> for <paramref name="groupIdentifier"/>.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/> whose groups to get. </param>
+	/// <param name="groupIdentifier"> The group identifier of used to obtain the grouped loggers. </param>
+	/// <returns> The <see cref="ILoggerGroup"/> containing the grouped loggers or an empty group. </returns>
+	public static ILoggerGroup AsGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
+		where TIdentifier : notnull
+		=> LoggerGroupManager.GetGroup(groupIdentifier);
+
+	#endregion
+
+	#region Scoping
+
+	/// <summary>
+	/// Creates a new logging <paramref name="scope"/>.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScope(this ILogger logger, LogScope? scope)
+		=> scope == null ? NoDisposable.Instance : logger.BeginScope((IDictionary<string, object?>) scope);
+
+	/// <summary>
+	/// Creates a new logging <paramref name="scope"/> for a log group.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScope<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope)
+		where TIdentifier : notnull
+		=> scope == null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
+
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="log">
+	/// <para> <see cref="ValueTuple"/> containing: </para>
+	/// <para> Scope (<see cref="LogScope"/>): The scope to create. </para>
+	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
+	/// </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog(this ILogger logger, (LogScope Scope, LogEvent Event)? log)
+		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+
+	/// <summary>
+	/// Creates a new logging scope and writes log events afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvents"> A collection of <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>s. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog(this ILogger logger, LogScope? scope, IEnumerable<LogEvent> logEvents)
+	{
+		var disposable = scope is null ? NoDisposable.Instance : logger.BeginScope((IDictionary<string, object?>) scope);
+		Log(logger, logEvents);
+		return disposable;
+	}
+
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvent"> The event to log. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog(this ILogger logger, LogScope? scope, LogEvent? logEvent)
+	{
+		var disposable = scope is null ? NoDisposable.Instance : logger.BeginScope((IDictionary<string, object?>) scope);
+		logger.Log(logEvent);
+		return disposable;
+	}
+
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="log">
+	/// <para> <see cref="ValueTuple"/> containing: </para>
+	/// <para> Scope (<see cref="LogScope"/>): The scope to create. </para>
+	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
+	/// </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, (LogScope<TIdentifier> Scope, LogEvent Event)? log)
+		where TIdentifier : notnull
+		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+
+	/// <summary>
+	/// Creates a new logging scope and writes log events afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// /// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvents"> A collection of <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>s. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, IEnumerable<LogEvent> logEvents)
 		where TIdentifier : notnull
 	{
-		return LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier);
+		var disposable = scope is null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
+		Log(logger, logEvents);
+		return disposable;
 	}
 
-	/// <inheritdoc cref="LoggerGroupManager.GetAllGroups(ILogger)"/>
-	public static IReadOnlyCollection<(object GroupIdentifier, IReadOnlyCollection<ILogger> LoggerCollection)> GetGroups(this ILogger logger)
-	{
-		return LoggerGroupManager.GetAllGroups(logger).ToArray();
-	}
-
-	/// <inheritdoc cref="LoggerGroupManager.GetAllLoggers{TIdentifier}"/>
-	public static IReadOnlyCollection<ILogger> AsGroup<TIdentifier>(this ILogger _, TIdentifier groupIdentifier)
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvent"> The event to log. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, LogEvent? logEvent)
 		where TIdentifier : notnull
 	{
-		return LoggerGroupManager.GetAllLoggers(groupIdentifier).ToArray();
-	}
-
-	/// <summary>
-	/// Creates a new logging scope with named values.
-	/// </summary>
-	/// <param name="loggers"> The collection of <see cref="ILogger"/>s that will get the scope. </param>
-	/// <param name="scopedValues"> Collection of named values. </param>
-	/// <returns> A <see cref="IDisposable"/> that removes the scope from all <paramref name="loggers"/> upon disposal. </returns>
-	public static IDisposable CreateScope(this IReadOnlyCollection<ILogger> loggers, params (string Identifier, object? Value)[] scopedValues)
-	{
-		return loggers
-			.Select(logger => logger.CreateScope(scopedValues))
-			.ToSingleDisposable()
-			;
-	}
-
-	/// <summary>
-	/// Creates a new logging scope with named values extracted from the given <see cref="Expression"/>s.
-	/// </summary>
-	/// <param name="loggers"> The collection of <see cref="ILogger"/>s that will get the scope. </param>
-	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
-	/// <returns> A <see cref="IDisposable"/> that removes the scope from all <paramref name="loggers"/> upon disposal. </returns>
-	public static IDisposable CreateScope(this IReadOnlyCollection<ILogger> loggers, params Expression<Func<object>>[] scopedValues)
-	{
-		return loggers
-			.Select(logger => logger.CreateScope(scopedValues))
-			.ToSingleDisposable()
-			;
-	}
-
-	/// <summary>
-	/// "Squashes" the <paramref name="disposables"/> into a single one.
-	/// </summary>
-	/// <param name="disposables"> The <see cref="IDisposable"/>s that will be chained together as a single one. </param>
-	/// <returns> A new <see cref="IDisposable"/>. </returns>
-	private static IDisposable ToSingleDisposable(this IEnumerable<IDisposable> disposables)
-	{
-		return new LoggerGroupManager.Disposables(disposables);
+		var disposable = scope is null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
+		logger.Log(logEvent);
+		return disposable;
 	}
 
 	/// <summary>
@@ -92,22 +470,10 @@ public static partial class LoggerExtensions
 	/// <returns> The logging scope. </returns>
 	public static IDisposable CreateScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
 	{
-		var scopes = ConvertTuplesToDictionary(scopedValues);
+		var scopes = LogScopeBuilder.BuildScopeDictionary(scopedValues);
 		return logger.BeginScope(scopes);
 	}
-
-	internal static Dictionary<string, object?> ConvertTuplesToDictionary(params (string Identifier, object? Value)[] scopedValues)
-	{
-		var scopes = scopedValues
-			.ToDictionary
-			(
-				tuple => tuple.Identifier,
-				tuple => tuple.Value
-			)
-			;
-		return scopes;
-	}
-
+	
 	/// <summary>
 	/// Creates a new logging scope with named values extracted from the given <see cref="Expression"/>s.
 	/// </summary>
@@ -116,7 +482,7 @@ public static partial class LoggerExtensions
 	/// <returns> The logging scope. </returns>
 	public static IDisposable CreateScope(this ILogger logger, params Expression<Func<object>>[] scopedValues)
 	{
-		var scopes = ConvertExpressionsToDictionary(scopedValues);
+		var scopes = LogScopeBuilder.BuildScopeDictionary(scopedValues);
 		return logger.BeginScope(scopes);
 	}
 
@@ -146,6 +512,7 @@ public static partial class LoggerExtensions
 	/// <param name="name9"> See: <paramref name="value1"/>. </param>
 	/// <param name="value10"> See: <paramref name="name1"/>. </param>
 	/// <param name="name10"> See: <paramref name="value1"/>. </param>
+	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <b>true</b>. </param>
 	/// <returns> The logging scope. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained while its value is specified. </exception>
 	public static IDisposable CreateScope
@@ -170,184 +537,20 @@ public static partial class LoggerExtensions
 		[System.Runtime.CompilerServices.CallerArgumentExpression("value7")] string? name7 = default,
 		[System.Runtime.CompilerServices.CallerArgumentExpression("value8")] string? name8 = default,
 		[System.Runtime.CompilerServices.CallerArgumentExpression("value9")] string? name9 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = default
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = default,
+		bool cleanCallerArgument = true
 	)
 	{
-		var scopes = LoggerExtensions.BuildScopeDictionary
+		var scopes = LogScopeBuilder.BuildScopeDictionary
 		(
 			value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
-			name1, name2, name3, name4, name5, name6, name7, name8, name9, name10
+			name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+			cleanCallerArgument
 		);
 		return logger.BeginScope(scopes);
 	}
 
-	internal static Dictionary<string, object?> BuildScopeDictionary
-	(
-		object? value1,
-		object? value2 = default,
-		object? value3 = default,
-		object? value4 = default,
-		object? value5 = default,
-		object? value6 = default,
-		object? value7 = default,
-		object? value8 = default,
-		object? value9 = default,
-		object? value10 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value1")] string? name1 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value2")] string? name2 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value3")] string? name3 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value4")] string? name4 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value5")] string? name5 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value6")] string? name6 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value7")] string? name7 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value8")] string? name8 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value9")] string? name9 = default,
-		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = default
-	)
-	{
-		static void TryAdd(Dictionary<string, object?> collection, string name, object? value)
-		{
-			name = LoggerExtensions.ToPascalCase(name);
-			if (!collection.TryAdd(name, value)) collection[name] = value;
-		}
-
-		var scopes = new Dictionary<string, object?>();
-
-		if (name1 is not null) TryAdd(scopes, name1, value1);
-		if (name2 is not null) TryAdd(scopes, name2, value2);
-		if (name3 is not null) TryAdd(scopes, name3, value3);
-		if (name4 is not null) TryAdd(scopes, name4, value4);
-		if (name5 is not null) TryAdd(scopes, name5, value5);
-		if (name6 is not null) TryAdd(scopes, name6, value6);
-		if (name7 is not null) TryAdd(scopes, name7, value7);
-		if (name8 is not null) TryAdd(scopes, name8, value8);
-		if (name9 is not null) TryAdd(scopes, name9, value9);
-		if (name10 is not null) TryAdd(scopes, name10, value10);
-
-		return scopes;
-	}
-
 #endif
-
-
-	internal static Dictionary<string, object?> ConvertExpressionsToDictionary(params Expression<Func<object>>[] scopedValues)
-	{
-		var scopes = scopedValues
-			.Select(LoggerExtensions.GetExpressionData)
-			.ToDictionary
-			(
-				tuple => tuple.Name,
-				tuple => tuple.Value
-			)
-			;
-		return scopes;
-	}
-
-	#region Helper
-
-	/// <summary>
-	/// Gets the name and the value of <paramref name="scopedValue"/>.
-	/// </summary>
-	/// <param name="scopedValue"> The expression of the value. </param>
-	/// <returns>
-	/// <para> A <see cref="System.ValueTuple"/> with: </para>
-	/// <para> • The name of <paramref name="scopedValue"/> as <see cref="string"/>. </para>
-	/// <para> • The value of <paramref name="scopedValue"/> as <see cref="object"/>. </para>
-	/// </returns>
-	/// <remarks> https://stackoverflow.com/a/65110000 </remarks>
-	internal static (string Name, object? Value) GetExpressionData(Expression<Func<object>> scopedValue)
-	{
-		var lambda = scopedValue as LambdaExpression;
-		var expression = lambda.Body;
-
-		/*
-        This is for functions like:
-         • () => "Hello"	→ ("System.String", "Hello")
-         • () => 2			→ ("System.Int32", 2)
-         • () => 2 * 2		→ ("System.Int32", 4)
-        */
-		if (((expression as UnaryExpression)?.Operand ?? expression) is ConstantExpression constantExpression)
-		{
-			return (constantExpression.Type.ToString(), constantExpression.Value);
-		}
-
-		/*
-        This is for properties and members:
-         • () => _counter		→ ("Counter", 3)
-         • () => this.Counter	→ ("Counter", 3)
-         • () => _name			→ ("Name", "Bob")
-         • () => this.Name		→ ("Name", "Bob")
-         • () => this.User.Name	→ ("Name", "Bob")
-        */
-		MemberExpression memberExpression = (MemberExpression)((expression as UnaryExpression)?.Operand ?? expression);
-		var name = LoggerExtensions.ToPascalCase(memberExpression.Member.Name);
-
-		var dependencyChain = new List<MemberExpression>();
-		var pointingExpression = memberExpression;
-		while (pointingExpression != null)
-		{
-			dependencyChain.Add(pointingExpression);
-			pointingExpression = pointingExpression.Expression as MemberExpression;
-		}
-
-		// Expression may be null if the scoped value represents a static member.
-		var baseExpression = dependencyChain.Last().Expression as ConstantExpression;
-		var value = baseExpression?.Value;
-		for (var i = dependencyChain.Count; i > 0; i--)
-		{
-			var member = dependencyChain[i - 1].Member;
-			if (member is PropertyInfo propertyInfo)
-			{
-				var isStatic = propertyInfo.GetAccessors(nonPublic: true).Any(x => x.IsStatic);
-				if (!isStatic && value is null) break;
-
-				value = propertyInfo.GetValue(value);
-			}
-			else if (member is FieldInfo fieldInfo)
-			{
-				if (!fieldInfo.IsStatic && value is null) break;
-				value = fieldInfo.GetValue(value);
-			}
-		}
-		return (name, value);
-	}
-
-	private static readonly Regex InvalidCharsRegEx = new Regex("[^_a-zA-Z0-9]", RegexOptions.Compiled);
-
-	private static readonly Regex WhiteSpaceRegEx = new Regex(@"(?<=\s)", RegexOptions.Compiled);
-
-	private static readonly Regex StartsWithLowerCaseCharRegEx = new Regex("^[a-z]", RegexOptions.Compiled);
-
-	private static readonly Regex FirstCharFollowedByUpperCasesOnlyRegEx = new Regex("(?<=[A-Z])[A-Z0-9]+$", RegexOptions.Compiled);
-
-	private static readonly Regex LowerCaseNextToNumberRegEx = new Regex("(?<=[0-9])[a-z]", RegexOptions.Compiled);
-
-	private static readonly Regex UpperCaseInsideRegEx = new Regex("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))", RegexOptions.Compiled);
-
-	/// <summary>
-	/// Modifies <paramref name="value"/> into a pascal case string.
-	/// </summary>
-	/// <param name="value"> The string to manipulate. </param>
-	/// <returns> A new pascal case string. </returns>
-	/// <remarks> https://stackoverflow.com/a/46095771 </remarks>
-	internal static string ToPascalCase(string value)
-	{
-		// replace white spaces with underscore, then replace all invalid chars with empty string
-		var pascalCase = InvalidCharsRegEx.Replace(WhiteSpaceRegEx.Replace(value, "_"), string.Empty)
-			// split by underscores
-			.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries)
-			// set first letter to uppercase
-			.Select(w => StartsWithLowerCaseCharRegEx.Replace(w, m => m.Value.ToUpper()))
-			// replace second and all following upper case letters to lower if there is no next lower (ABC -> Abc)
-			.Select(w => FirstCharFollowedByUpperCasesOnlyRegEx.Replace(w, m => m.Value.ToLower()))
-			// set upper case the first lower case following a number (Ab9cd -> Ab9Cd)
-			.Select(w => LowerCaseNextToNumberRegEx.Replace(w, m => m.Value.ToUpper()))
-			// lower second and next upper case letters except the last if it follows by any lower (ABcDEf -> AbcDef)
-			.Select(w => UpperCaseInsideRegEx.Replace(w, m => m.Value.ToLower()))
-			;
-
-		return string.Concat(pascalCase);
-	}
 
 	#endregion
 }

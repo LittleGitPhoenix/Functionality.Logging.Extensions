@@ -2,18 +2,17 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-
 using Microsoft.Extensions.Logging;
-using ILogger = global::Microsoft.Extensions.Logging.ILogger;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 /// <summary>
 /// An <see cref="ILogger"/> decorator that logs messages along with an event id.
 /// </summary>
+/// <remarks> Consider not inheriting from this class anymore. Instead use the extension methods <b>LoggerExtensions.Log</b>. </remarks>
+//[Obsolete($"Do not inherit from this class anymore. Instead use the extension methods {nameof(LoggerExtensions.Log)}.")]
 public abstract class EventIdLogger : ILogger
 {
-
     #region Delegates / Events
     #endregion
 
@@ -25,15 +24,12 @@ public abstract class EventIdLogger : ILogger
     #endregion
 
     #region Fields
-    #endregion
+
+    private readonly ILogger _logger;
+    
+	#endregion
 
     #region Properties
-
-    /// <summary> The underlying <see cref="ILogger"/>. </summary>
-    [Obsolete("Do not use the internal ILogger directly anymore. This class itself is an ILogger and therefore can and should be used instead.")]
-    protected internal ILogger Logger => _logger;
-    private readonly ILogger _logger;
-
     #endregion
 
     #region (De)Constructors
@@ -70,7 +66,7 @@ public abstract class EventIdLogger : ILogger
     #region Implementation of ILogger
 
     /// <inheritdoc />
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         => _logger.Log(logLevel, eventId, state, exception, formatter);
 
     /// <inheritdoc />
@@ -81,61 +77,19 @@ public abstract class EventIdLogger : ILogger
     public IDisposable BeginScope<TState>(TState state)
         => _logger.BeginScope(state);
 
-    #endregion
+	#endregion
 
-    #region Log Functions
+	#region Log Functions
 
-    /// <summary>
-    /// Logs an event with a given <paramref name="logMessage"/>.
-    /// </summary>
-    /// <param name="eventId"> The id of the event. </param>
-    /// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
-    /// <param name="logMessage"> The message to log. </param>
-    /// <param name="args"> Arguments passed to the log message. </param>
-    protected internal void LogEvent(int eventId, LogLevel logLevel, string logMessage, params object[] args)
-        => this.LogEvent((EventId) eventId, null, logLevel, logMessage, args);
+	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, EventId, LogLevel, string, object?[])"/>
+	//[Obsolete($"Use the {nameof(ILogger)} extension method {nameof(LoggerExtensions.Log)} instead.")]
+	protected internal void LogEvent(int eventId, LogLevel logLevel, string logMessage, params object[] args)
+        => _logger.Log(eventId, logLevel, logMessage, args);
 
-    /// <summary>
-    /// Logs an event with a given <paramref name="logMessage"/> and <paramref name="exception"/>.
-    /// </summary>
-    /// <param name="eventId"> The id of the event. </param>
-    /// <param name="exception"> The <see cref="Exception"/> to log. </param>
-    /// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
-    /// <param name="logMessage"> The message to log. </param>
-    /// <param name="args"> Arguments passed to the log message. </param>
-    protected internal void LogEvent(int eventId, Exception exception, LogLevel logLevel, string logMessage, params object[] args)
-        => this.LogEvent((EventId) eventId, exception, logLevel, logMessage, args);
-
-    #endregion
-
-    #region Helper
-		
-    /// <summary>
-    /// Logs messages while catching format exceptions.
-    /// </summary>
-    /// <param name="eventId"> The <see cref="EventId"/> of the event. </param>
-    /// <param name="exception"> An optional <see cref="Exception"/> to log. Default is null. </param>
-    /// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
-    /// <param name="logMessage"> The message to log. </param>
-    /// <param name="args"> Arguments passed to the log message. </param>
-    private protected void LogEvent(EventId eventId, Exception? exception, LogLevel logLevel, string logMessage, params object[] args)
-    {
-        // Log
-        try
-        {
-            this.Log(logLevel, eventId, exception, logMessage, args);
-        }
-        catch (AggregateException ex) when (ex.Flatten().InnerExceptions.Select(exception => exception.GetType()).Contains(typeof(IndexOutOfRangeException)))
-        {
-            var arguments = args.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", args);
-            this.Log(logLevel, eventId, exception, $"Could not format the message '{logMessage.Replace("{", "{{").Replace("}", "}}")}' because of a mismatch with the supplied arguments {arguments}.", args);
-        }
-        catch (Exception ex)
-        {
-            var arguments = args.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", args);
-            System.Diagnostics.Debug.WriteLine($"Could not write log for the message '{logMessage}' with arguments '{arguments}'.");
-        }
-    }
+	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, EventId, Exception?, LogLevel, string, object?[])"/>
+	//[Obsolete($"Use the {nameof(ILogger)} extension method {nameof(LoggerExtensions.Log)} instead.")]
+	protected internal void LogEvent(int eventId, Exception exception, LogLevel logLevel, string logMessage, params object[] args)
+		=> _logger.Log(eventId, exception, logLevel, logMessage, args);
 
     #endregion
 		

@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Logging;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
+using Serilog.Core;
 
 namespace Microsoft.ConsoleTest
 {
 	class Program
 	{
-		static async Task Main(string[] args)
+		static async Task Main(string[] _)
 		{
 			Program.ChangeCulture();
 
@@ -19,30 +21,24 @@ namespace Microsoft.ConsoleTest
 			builder.RegisterModule<IocModule>();
 			var container = builder.Build();
 
-			//! Log events are only written to the debug window (and not to the console).
-			var msLogger = container.Resolve<ILogger>();
-			var logger = Logger.FromILogger(msLogger);
-			var msLogger2 = container.Resolve<ILogger>();
-			var logger2 = Logger.FromILogger(msLogger2);
+			//! Log events emitted from this class are only written to the debug window (and not to the console), because:
+			//! • The logger is not configured to log to the console.
+			//! • The logger functions are not returning anything that is then used to produce console output via Console.WriteLine.
+			var logger = container.Resolve<ILogger>();
 
-			if (Object.ReferenceEquals(msLogger, msLogger2))
-			{
-
-			}
-			
 			try
 			{
-				logger.LogApplicationStart();
+				logger.Log(Log.ApplicationStartEvent());
 				var executor = container.Resolve<ExecutionExample>();
 				await executor.StartWork();
-				logger.IterationsFinished();
+				logger.Log(Log.IterationsFinishedEvent());
 			}
 			finally
 			{
 				Console.WriteLine();
 				Console.WriteLine("Press any key to quit.");
 				Console.ReadKey();
-				logger.LogApplicationEnd();
+				logger.Log(Log.ApplicationEndEvent());
 			}
 		}
 
@@ -57,41 +53,29 @@ namespace Microsoft.ConsoleTest
 			CultureInfo.DefaultThreadCurrentCulture = culture;
 			CultureInfo.DefaultThreadCurrentUICulture = culture;
 		}
-
+		
 		#region Logging
 
-		private class Logger : EventIdLogger
+		static class Log
 		{
-			#region (De)Constructors
-
-			private Logger(Microsoft.Extensions.Logging.ILogger logger) : base(logger) { }
-
-			public static Logger FromILogger(Microsoft.Extensions.Logging.ILogger logger) => new Logger(logger);
-
-			#endregion
-
-			#region Log methods
-
-			internal void LogApplicationStart()
+			internal static LogEvent ApplicationStartEvent()
 			{
 				var entryAssembly = Assembly.GetEntryAssembly();
 				var fileVersion = new Version(entryAssembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0.0.0");
-				base.LogEvent(133887472, LogLevel.Information, "Application started. Version is {Version}.", fileVersion);
+				return new LogEvent(133887472, LogLevel.Information, "Application started. Version is {Version}.", fileVersion);
 			}
 
-			public void IterationsFinished()
+			public static LogEvent IterationsFinishedEvent()
 			{
-				base.LogEvent(1163052199, LogLevel.Information, "All iterations finished.");
+				return new LogEvent(1163052199, LogLevel.Information, "All iterations finished.");
 			}
 
-			internal void LogApplicationEnd()
+			internal static LogEvent ApplicationEndEvent()
 			{
 				using var process = Process.GetCurrentProcess();
 				var difference = DateTime.Now - process.StartTime;
-				base.LogEvent(555776364, LogLevel.Information, "Application closed. Was running for {Runtime}.", difference);
+				return new LogEvent(555776364, LogLevel.Information, "Application closed. Was running for {Runtime}.", difference);
 			}
-
-			#endregion
 		}
 
 		#endregion

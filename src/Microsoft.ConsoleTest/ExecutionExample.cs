@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.ConsoleTest.Localization;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace Microsoft.ConsoleTest
 
 		#region Fields
 
-		private readonly Logger _logger;
+		private readonly ILogger _logger;
 
 		#endregion
 
@@ -42,8 +43,8 @@ namespace Microsoft.ConsoleTest
 			// Save parameters.
 
 			// Initialize fields.
-			_logger = Logger.FromILogger(logger);
-			logger.CreateScope(("Scope", nameof(ExecutionExample)));
+			_logger = logger;
+			logger.CreateScope(Log.NameScope(nameof(ExecutionExample)));
 		}
 
 		#endregion
@@ -61,9 +62,9 @@ namespace Microsoft.ConsoleTest
 
 		private async Task Execute(int iteration)
 		{
-			using (_logger.CreateScope(() => iteration))
+			using (_logger.CreateScope(Log.IterationScope(iteration)))
 			{
-				Console.WriteLine(_logger.LogStart(iteration));
+				Console.WriteLine(_logger.Log(Log.StartEvent(iteration)));
 
 				var stopwatch = new Stopwatch();
 				stopwatch.Start();
@@ -72,7 +73,7 @@ namespace Microsoft.ConsoleTest
 				stopwatch.Stop();
 				
 				var result = Enum.Parse<ExecutionResult>(random.Next(0, 2).ToString());
-				Console.WriteLine(_logger.LogFinished(iteration, result, stopwatch.Elapsed));
+				Console.WriteLine(_logger.Log(Log.FinishedEvent(iteration, result, stopwatch.Elapsed)));
 			}
 		}
 
@@ -80,39 +81,30 @@ namespace Microsoft.ConsoleTest
 
 		#region Logging
 
-		private class Logger : EventIdResourceLogger
+		static class Log
 		{
-			#region (De)Constructors
+			internal static LogScope NameScope(string scope)
+			{
+				return new LogScope(scope);
+			}
+			internal static LogScope IterationScope(int iteration)
+			{
+				return new LogScope(iteration);
+			}
 
-			private Logger(Microsoft.Extensions.Logging.ILogger logger) : base(logger, new[] { l10n.ResourceManager }) { }
-
-			public static Logger FromILogger(Microsoft.Extensions.Logging.ILogger logger) => new Logger(logger);
-
-			#endregion
-
-			#region Log methods
-
-			internal string LogStart(int iteration)
+			internal static LogResourceEvent StartEvent(int iteration)
 			{
 				//! The 'iteration' argument can be omitted from the logArgs, as this method is always called from a log-scope that encapsulates this value.
-				return base.LogEventFromResource(1523340757, LogLevel.Debug, nameof(l10n.Start), messageArgs: new object[] { iteration });
+				return new LogResourceEvent(1523340757, LogLevel.Debug, l10n.ResourceManager, nameof(l10n.Start), messageArgs: new object[] { iteration });
 			}
-
-			internal void LogProgress(LogLevel logLevel)
-			{
-				using var process = Process.GetCurrentProcess();
-				base.LogEventFromResource(813784984, LogLevel.Debug, nameof(l10n.Progress), new object[] { process.WorkingSet64 });
-			}
-
-			internal string LogFinished(int iteration, ExecutionResult result, TimeSpan duration)
+			
+			internal static LogResourceEvent FinishedEvent(int iteration, ExecutionResult result, TimeSpan duration)
 			{
 				var logLevel = result == ExecutionResult.Valid ? LogLevel.Debug : LogLevel.Warning;
 
 				//! The 'iteration' argument cannot be omitted from the logArgs even if this method is always called from a log-scope that encapsulates this value, because other values will be provided too.
-				return base.LogEventFromResource(813784984, logLevel, nameof(l10n.Finished), new object[] { iteration, duration, result }, new object[] { iteration, duration.TotalMilliseconds, result });
+				return new LogResourceEvent(813784984, logLevel, l10n.ResourceManager, nameof(l10n.Finished), new object[] { iteration, duration, result }, new object[] { iteration, duration.TotalMilliseconds, result });
 			}
-
-			#endregion
 		}
 
 		#endregion

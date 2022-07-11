@@ -1,30 +1,67 @@
-﻿using AutoFixture;
+﻿using System.Collections.Concurrent;
+using AutoFixture;
 using AutoFixture.AutoMoq;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 namespace Microsoft.Test;
 
 public class LoggerGroupManagerTest
 {
-    #region Data
+	#region Setup
 
 #pragma warning disable 8618 // → Always initialized in the 'Setup' method before a test is run.
-    private IFixture _fixture;
+	private IFixture _fixture;
 #pragma warning restore 8618
-		
-    [SetUp]
-    public void Setup()
-    {
-        _fixture = new Fixture().Customize(new AutoMoqCustomization());
-        LoggerGroupManager.Cache.Clear();
-    }
 
-    #endregion
+	[OneTimeSetUp]
+	public void BeforeAllTests() { }
 
-    [Test]
-    public void Check_Loggers_Are_Added()
+	[SetUp]
+	public void BeforeEachTest()
+	{
+		_fixture = new Fixture().Customize(new AutoMoqCustomization());
+		LoggerGroupManager.Cache.Clear();
+	}
+
+	[TearDown]
+	public void AfterEachTest() { }
+
+	[OneTimeTearDown]
+	public void AfterAllTests() { }
+
+	#endregion
+
+	#region Tests
+
+	#region Add Logger
+
+	/// <summary>
+	/// Checks that <see cref="ILogger"/>s with the same group identifier share the same group.
+	/// </summary>
+	[Test]
+	public void LoggersWithSameIdentifierShareGroup()
+	{
+		// Arrange
+		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		var groupIdentifier = _fixture.Create<string>();
+			
+		// Act
+		foreach (var logger in loggers)
+		{
+			logger.AddToGroup(groupIdentifier);
+		}
+			
+		// Assert
+		Assert.That(LoggerGroupManager.GetAllGroups(), Has.Length.EqualTo(1));
+		Assert.That(LoggerGroupManager.GetGroup(groupIdentifier), Has.Length.EqualTo(loggers.Length));
+	}
+
+	[Test]
+    public void LoggersAreAddedToGroup()
     {
         // Arrange
         var loggers = _fixture.CreateMany<ILogger>(count: 6).ToArray();
@@ -39,13 +76,13 @@ public class LoggerGroupManagerTest
             if (index == 5)
             {
                 //! Last logger will be in both groups.
-                LoggerGroupManager.AddLoggerToGroup(logger, evenGroupIdentifier);
+                LoggerGroupManager.AddLoggerToGroup(logger, evenGroupIdentifier, true);
                 logger.AddToGroup(unevenGroupIdentifier);
             }
             else if (index % 2 == 0)
             {
                 //! Even loggers will be in even-group.
-                LoggerGroupManager.AddLoggerToGroup(logger, evenGroupIdentifier);
+                LoggerGroupManager.AddLoggerToGroup(logger, evenGroupIdentifier, true);
             }
             else
             {
@@ -56,94 +93,321 @@ public class LoggerGroupManagerTest
 
         // Assert
         Assert.That(LoggerGroupManager.GetAllGroups(), Has.Length.EqualTo(2));
-        Assert.That(LoggerGroupManager.GetAllLoggers(evenGroupIdentifier), Has.Length.EqualTo(4));
+        Assert.That(LoggerGroupManager.GetGroup(evenGroupIdentifier), Has.Length.EqualTo(4));
         Assert.That(firstUnevenLogger.AsGroup(unevenGroupIdentifier), Has.Length.EqualTo(3));
-        for (var index = 0; index < loggers.Length; index++)
-        {
-            var logger = loggers[index];
-            if (index == 5)
-            {
-                Assert.That(LoggerGroupManager.GetAllGroups(logger), Has.Length.EqualTo(2));
-            }
-            else
-            {
-                Assert.That(logger.GetGroups(), Has.Length.EqualTo(1));
-            }
-        }
-    }
+		Assert.Multiple
+		(
+			() =>
+			{
+				for (var index = 0; index < loggers.Length; index++)
+				{
+					var logger = loggers[index];
+					if (index == 5)
+					{
+						Assert.That(LoggerGroupManager.GetGroupsOfLogger(logger), Has.Length.EqualTo(2));
+					}
+					else
+					{
+						Assert.That(logger.GetGroups(), Has.Length.EqualTo(1));
+					}
+				}
+			}
+		);
+	}
 
-    /// <summary>
-    /// Checks that <see cref="ILogger"/>s with the same group identifier share the same group.
-    /// </summary>
-    [Test]
-    public void Check_Loggers_Share_Group()
-    {
-        // Arrange
-        var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
-        var groupIdentifier = _fixture.Create<string>();
-			
-        // Act
-        foreach (var logger in loggers)
-        {
-            logger.AddToGroup(groupIdentifier);
-        }
-			
-        // Assert
-        Assert.That(LoggerGroupManager.GetAllGroups(), Has.Length.EqualTo(1));
-        Assert.That(LoggerGroupManager.GetAllLoggers(groupIdentifier), Has.Length.EqualTo(loggers.Length));
-    }
+	#endregion
 
-    /// <summary>
-    /// Checks that <see cref="LoggerGroupManager.GetAllLoggers"/> does not throw if no loggers where found and instead returns an empty <see cref="ILogger"/> collection.
-    /// </summary>
-    [Test]
-    public void Check_Get_Loggers_From_Group_Identifier_Returns_Empty()
-    {
-        // Arrange
-        var groupIdentifier = Guid.NewGuid();
+	#region Remove Loggers
 
-        // Act
-        var loggers = LoggerGroupManager.GetAllLoggers(groupIdentifier);
-			
-        // Assert
-        Assert.IsEmpty(loggers);
-    }
+	[Test]
+	public void LoggersAreRemovedFromGroup()
+	{
+		// Arrange
+		var loggers = _fixture.CreateMany<ILogger>(count: 6).ToArray();
+		var firstLogger = loggers.First();
+		var groupIdentifier = _fixture.Create<string>();
+		foreach (var logger in loggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
+		var loggerGroup = LoggerGroupManager.GetGroup(groupIdentifier);
+		var originalAmount = loggerGroup.Count;
+
+		// Act
+		firstLogger.RemoveFromGroup(groupIdentifier);
 		
-    /// <summary>
-    /// Checks that <see cref="LoggerGroupManager.GetAllGroups"/> does not throw if no groups where found and instead returns an empty collection.
-    /// </summary>
-    [Test]
-    public void Check_Get_All_Groups_Returns_Empty()
-    {
-        // Arrange
-			
-        // Act
-        var groups = LoggerGroupManager.GetAllGroups();
-			
-        // Assert
-        Assert.IsEmpty(groups);
-    }
+		// Assert
+		Assert.That(originalAmount, Is.EqualTo(loggers.Length));
+		Assert.That(loggerGroup, Has.Length.EqualTo(loggers.Length - 1));
+		Assert.False(loggerGroup.Contains(firstLogger));
+	}
 
-    /// <summary>
-    /// Checks that <see cref="LoggerGroupManager.GetAllGroups(Microsoft.Extensions.Logging.ILogger)"/> does not throw if no groups where found and instead returns an empty collection.
-    /// </summary>
-    [Test]
-    public void Check_Get_All_Groups_For_Logger_Returns_Empty()
-    {
-        // Arrange
-        var logger = _fixture.Create<ILogger>();
-			
-        // Act
-        var groups = LoggerGroupManager.GetAllGroups(logger);
-			
-        // Assert
-        Assert.IsEmpty(groups);
-    }
+	[Test]
+	public void GroupIsRemovedIfAllLoggersAreRemoved()
+	{
+		// Arrange
+		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		var groupIdentifier = _fixture.Create<string>();
+		foreach (var logger in loggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
+		
+		// Act + Assert
+		Assert.IsNotEmpty(LoggerGroupManager.Cache);
+		foreach (var logger in loggers) LoggerGroupManager.RemoveLoggerFromGroup(logger, groupIdentifier);
+		Assert.IsEmpty(LoggerGroupManager.Cache);
+	}
 
-    #region GroupIdentifier
+	#endregion
+
+	#region Scoping
+
+	/// <summary>
+	/// Checks that all loggers of a <see cref="ILoggerGroup"/> will get the same scope.
+	/// </summary>
+	[Test]
+	public void ScopeIsAppliedToAllLoggers()
+	{
+		// Arrange
+		var loggerScopes = new ConcurrentDictionary<ILogger, List<(string Key, object Value)>>();
+		var groupIdentifier = _fixture.Create<string>();
+
+		var firstLogger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(firstLogger)
+			.Setup(mock => mock.BeginScope(It.IsAny<object>()))
+			.Callback
+			(
+				(object value) =>
+				{
+					var pair = (value as Dictionary<string, object?>)!.Single();
+					var internalScopes = loggerScopes.GetOrAdd(firstLogger, new List<(string Key, object Value)>());
+					internalScopes.Add((pair.Key, pair.Value!));
+				}
+			)
+			.Returns(_fixture.Create<IDisposable>())
+			.Verifiable()
+			;
+		firstLogger.AddToGroup(groupIdentifier);
+		
+		var secondLogger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(secondLogger)
+			.Setup(mock => mock.BeginScope(It.IsAny<object>()))
+			.Callback
+			(
+				(object value) =>
+				{
+					var pair = (value as Dictionary<string, object?>)!.Single();
+					var internalScopes = loggerScopes.GetOrAdd(secondLogger, new List<(string Key, object Value)>());
+					internalScopes.Add((pair.Key, pair.Value!));
+				}
+			)
+			.Returns(_fixture.Create<IDisposable>())
+			.Verifiable()
+			;
+		secondLogger.AddToGroup(groupIdentifier);
+		
+		// Act
+		firstLogger.AsGroup(groupIdentifier).CreateScope(("First", 1));
+		secondLogger.AsGroup(groupIdentifier).CreateScope(("Second", 2));
+		
+		// Assert
+		Mock.Get(firstLogger).Verify(mock => mock.BeginScope(It.IsAny<object>()), Times.Exactly(2));
+		Mock.Get(secondLogger).Verify(mock => mock.BeginScope(It.IsAny<object>()), Times.Exactly(2));
+		loggerScopes.TryGetValue(firstLogger, out var firstScopes);
+		loggerScopes.TryGetValue(secondLogger, out var secondScopes);
+		Assert.That(firstScopes, Has.Count.EqualTo(2));
+		Assert.That(firstScopes, Has.Count.EqualTo(secondScopes!.Count));
+		Assert.Multiple
+		(
+			() =>
+			{
+				for (var index = 0; index < firstScopes!.Count; index++)
+				{
+					Assert.That(firstScopes[index].Key, Is.EqualTo(secondScopes[index].Key));
+					Assert.That(firstScopes[index].Value, Is.EqualTo(secondScopes[index].Value));
+				}
+			}
+		);
+	}
+
+	/// <summary>
+	/// Checks that any existing log-scope of a <see cref="ILoggerGroup"/> is applied to new loggers.
+	/// </summary>
+	[Test]
+	public void ScopeIsAppliedToNewLogger()
+	{
+		// Arrange
+		var loggerScopes = new ConcurrentDictionary<ILogger, List<(string Key, object Value)>>();
+		var groupIdentifier = _fixture.Create<string>();
+		var existingLoggers = _fixture.CreateMany<ILogger>(count: 6).ToArray();
+		foreach (var logger in existingLoggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
+		var loggerGroup = LoggerGroupManager.GetGroup(groupIdentifier);
+		loggerGroup.CreateScope(("Key", "Value"));
+
+		var newLogger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(newLogger)
+			.Setup(mock => mock.BeginScope(It.IsAny<object>()))
+			.Callback
+			(
+				(object value) =>
+				{
+					var pair = (value as Dictionary<string, object?>)!.Single();
+					var internalScopes = loggerScopes.GetOrAdd(newLogger, new List<(string Key, object Value)>());
+					internalScopes.Add((pair.Key, pair.Value!));
+				}
+			)
+			.Returns(_fixture.Create<IDisposable>())
+			.Verifiable()
+			;
+
+		// Act
+		newLogger.AddToGroup(groupIdentifier, applyExistingScope: true);
+
+		// Assert
+		Mock.Get(newLogger).Verify(mock => mock.BeginScope(It.IsAny<object>()), Times.Once);
+		loggerScopes.TryGetValue(newLogger, out var scopes);
+		Assert.NotNull(scopes);
+		Assert.Multiple
+		(
+			() =>
+			{
+				Assert.That(scopes!.Single().Key, Is.EqualTo("Key"));
+				Assert.That(scopes!.Single().Value, Is.EqualTo("Value"));
+			}
+		);
+	}
+
+	//# Move to LoggerGroupScopeTest
+	/// <summary>
+	/// Checks that the dispose callback is invoked if a <see cref="LoggerGroupScope"/> is disposed. Additionally checks, that dispose is only executed once.
+	/// </summary>
+	[Test]
+	public void DisposingLoggerGroupScopeInvokesCallback()
+	{
+		// Arrange
+		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		var scopes = _fixture.Create<Dictionary<string, object?>>();
+		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
+		Mock.Get(disposedCallback).Setup(_ => _(It.IsAny<LoggerGroupScope>())).Verifiable();
+		var loggerGroupScope = new LoggerGroupScope(loggers, scopes, disposedCallback);
+		
+		// Act
+		loggerGroupScope.Dispose();
+		loggerGroupScope.Dispose();
+		loggerGroupScope.Dispose();
+		
+		// Assert
+		Mock.Get(disposedCallback).Verify(_ => _(It.IsAny<LoggerGroupScope>()), Times.Once);
+		Assert.IsEmpty(loggerGroupScope._scopes);
+		Assert.IsEmpty(loggerGroupScope._disposables);
+	}
+
+	//# Move to LoggerGroupScopeTest
+	/// <summary>
+	/// Checks that removing a logger from <see cref="LoggerGroupScope"/> implicitly disposes its scopes.
+	/// </summary>
+	[Test]
+	public void RemovingLoggerDisposesScopes()
+	{
+		// Arrange
+		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		var scopes = new Dictionary<string, object?>(_fixture.CreateMany<KeyValuePair<string, object?>>(4));
+		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
+		var loggerGroupScope = new LoggerGroupScope(loggers, scopes, disposedCallback);
+		var originalScopesAmount = loggerGroupScope._scopes.Count;
+		var originalDisposableAmount = loggerGroupScope._disposables.Count;
+
+		// Act
+		loggerGroupScope.RemoveLogger(loggers.First());
+		
+		// Assert
+		Assert.That(originalScopesAmount, Is.EqualTo(scopes.Count));            //* One scope per...well...scope.
+		Assert.That(loggerGroupScope._scopes, Has.Count.EqualTo(scopes.Count)); //! Should be the same, as the scopes still exist, while one disposable was removed.
+		
+		Assert.That(originalDisposableAmount, Is.EqualTo(loggers.Length));                 //* One disposable per logger.
+		Assert.That(loggerGroupScope._disposables, Has.Count.EqualTo(loggers.Length - 1)); //! Should be one less as before, because the logger was removed.
+	}
+
+	//# Move to LoggerGroupTest
+	/// <summary>
+	/// Checks that <see cref="ILogger"/> instances are not kept alive when they are cached by a <see cref="ILoggerGroup"/>.
+	/// </summary>
+	[Test]
+	public void LoggersAreNotKeptAliveByGroup()
+	{
+		// Arrange
+		var logger = _fixture.Create<ILogger>();
+		var loggerGroup = new LoggerGroup(logger);
+
+		void AddMoreLoggers()
+		{
+			var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+			foreach (var otherLogger in loggers) loggerGroup.AddLogger(otherLogger, false);
+
+			Assert.That(loggerGroup, Has.Count.EqualTo(4));
+		}
+
+		// Act
+		AddMoreLoggers();
+		GC.Collect();
+		
+		// Assert
+		Assert.That(loggerGroup, Has.Count.EqualTo(1));
+		Assert.That(loggerGroup.Single(), Is.EqualTo(logger));
+	}
+
+	#endregion
+
+	#region Group Retrieval
+
+	/// <summary>
+	/// Checks that <see cref="LoggerGroupManager.GetAllGroups"/> does not throw if no groups where found and instead returns an empty collection.
+	/// </summary>
+	[Test]
+	public void GetAllGroupsReturnsEmpty()
+	{
+		// Arrange
+
+		// Act
+		var groups = LoggerGroupManager.GetAllGroups();
+
+		// Assert
+		Assert.IsEmpty(groups);
+	}
+
+	/// <summary>
+	/// Checks that <see cref="LoggerGroupManager.GetGroup{TIdentifier}"/> does not throw if no loggers where found and instead returns a null <see cref="ILoggerGroup"/> instance.
+	/// </summary>
+	[Test]
+	public void GetGroupOfLoggerReturnsEmpty()
+	{
+		// Arrange
+		var groupIdentifier = Guid.NewGuid();
+
+		// Act
+		var loggerGroup = LoggerGroupManager.GetGroup(groupIdentifier);
+			
+		// Assert
+		Assert.IsEmpty(loggerGroup);
+	}
+
+	/// <summary>
+	/// Checks that <see cref="LoggerGroupManager.GetGroupsOfLogger"/> does not throw if no groups where found and instead returns an empty collection.
+	/// </summary>
+	[Test]
+	public void GetGroupsOfLoggerReturnsEmpty()
+	{
+		// Arrange
+		var logger = _fixture.Create<ILogger>();
+			
+		// Act
+		var groups = LoggerGroupManager.GetGroupsOfLogger(logger);
+			
+		// Assert
+		Assert.IsEmpty(groups);
+	}
+
+	#endregion
+
+	#region GroupIdentifier
 
     [Test]
-    public void Check_GroupIdentifier_Is_Same_For_Same_Value_Type()
+    public void GroupIdentifierIsSameForSameValueType()
     {
         // Arrange
         var groupIdentifier = Guid.NewGuid();
@@ -158,7 +422,7 @@ public class LoggerGroupManagerTest
     }
 
     [Test]
-    public void Check_GroupIdentifier_Is_Same_For_Equal_Value_Type()
+    public void GroupIdentifierIsSameForEqualValueType()
     {
         // Arrange
         var groupIdentifier1 = 10;
@@ -174,7 +438,7 @@ public class LoggerGroupManagerTest
     }
 
     [Test]
-    public void Check_GroupIdentifier_Is_Same_For_Same_Reference_Type()
+    public void GroupIdentifierIsSameForSameReferenceType()
     {
         // Arrange
         var groupIdentifier = new object();
@@ -189,7 +453,7 @@ public class LoggerGroupManagerTest
     }
 
     [Test]
-    public void Check_GroupIdentifier_Is_Same_For_Equal_Reference_Type()
+    public void GroupIdentifierIsSameForEqualReferenceType()
     {
         // Arrange
         var groupIdentifier1 = "Equal";
@@ -205,7 +469,7 @@ public class LoggerGroupManagerTest
     }
 
     [Test]
-    public void Check_GroupIdentifier_Is_Not_Same_For_Value_Type()
+    public void GroupIdentifierIsNotSameForValueType()
     {
         // Arrange
         var groupIdentifier1 = Guid.NewGuid();
@@ -221,7 +485,7 @@ public class LoggerGroupManagerTest
     }
 
     [Test]
-    public void Check_GroupIdentifier_Is_Not_Same_For_Reference_Type()
+    public void GroupIdentifierIsNotSameForReferenceType()
     {
         // Arrange
         var groupIdentifier1 = new object();
@@ -236,5 +500,7 @@ public class LoggerGroupManagerTest
         Assert.AreNotSame(identifier1, identifier2);
     }
 
-    #endregion
+	#endregion
+
+	#endregion
 }

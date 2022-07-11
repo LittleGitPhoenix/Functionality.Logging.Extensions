@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Extensions.Logging;
+
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Microsoft.ConsoleTest
@@ -23,8 +22,6 @@ namespace Microsoft.ConsoleTest
 
 		private static void RegisterLogging(ContainerBuilder builder)
 		{
-			//var applicationTitle = "Phoenix.LogEmitter";
-
 			// Setup Serilog self logging.
 			global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.WriteLine(message));
 			global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
@@ -46,11 +43,7 @@ namespace Microsoft.ConsoleTest
 			
 			// Create the logger.
 			var logger = configuration.CreateLogger();
-
-			// Obsolete options.
-			////IocModule.RegisterLoggersViaServiceCollection(builder);
-			////IocModule.RegisterLoggersWithILoggerFactory(builder, logger);
-
+			
 			// Register the logger factories.
 			IocModule.RegisterLoggerFactories(builder, logger);
 
@@ -82,49 +75,7 @@ namespace Microsoft.ConsoleTest
 			// Integrate the service collection into the autofac container.
 			builder.Populate(serviceCollection);
 		}
-
-		/// <summary>
-		/// Use the <paramref name="logger"/> instance to register a <see cref="Microsoft.Extensions.Logging.ILoggerFactory"/> that then is used to get <see cref="Microsoft.Extensions.Logging.ILogger"/>s at runtime.
-		/// </summary>
-		/// <remarks> This options seems to lead to all created <see cref="Microsoft.Extensions.Logging.ILogger"/>s to share their log-scope. </remarks>
-		[Obsolete("This should not be used, as all created ILoggers seem to share a common log-scope.")]
-		private static void RegisterLoggersWithILoggerFactory(ContainerBuilder builder, Logger logger)
-		{
-			builder
-				.Register
-				(
-					handler => LoggerFactory.Create
-					(
-						loggingBuilder =>
-						{
-							loggingBuilder.ClearProviders();
-							loggingBuilder.SetMinimumLevel(LogLevel.Trace);
-							//loggingBuilder.AddProvider(new Serilog.Extensions.Logging.SerilogLoggerProvider(logger, true)); //! Same as 'AddSerilog' extension method.
-							loggingBuilder.AddSerilog(logger, dispose: true);
-						}
-					)
-				)
-				.As<Microsoft.Extensions.Logging.ILoggerFactory>()
-				.SingleInstance()
-				;
-
-			// Register generic and un-generic ILoggers.
-			builder.RegisterGeneric(typeof(Logger<>)).As(typeof(Microsoft.Extensions.Logging.ILogger<>));
-			builder
-				.Register
-				(
-					context =>
-					{
-						var loggerFactory = context.Resolve<Microsoft.Extensions.Logging.ILoggerFactory>();
-						//var logger = loggerFactory.CreateLogger(String.Empty);
-						var logger = loggerFactory.CreateLogger(Guid.NewGuid().ToString());
-						return logger;
-					}
-				)
-				.As<Microsoft.Extensions.Logging.ILogger>()
-				;
-		}
-
+		
 		/// <summary>
 		/// Directly use the <paramref name="logger"/> instance to register <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LoggerFactory"/> and <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory"/>.
 		/// </summary>
@@ -176,7 +127,6 @@ namespace Microsoft.ConsoleTest
 			builder
 				.Register(context => context.Resolve<Phoenix.Functionality.Logging.Extensions.Microsoft.NamedLoggerFactory>().Invoke("MyLogger"))
 				.Named<Microsoft.Extensions.Logging.ILogger>("MyLogger")
-				.SingleInstance()
 				;
 		}
 	}

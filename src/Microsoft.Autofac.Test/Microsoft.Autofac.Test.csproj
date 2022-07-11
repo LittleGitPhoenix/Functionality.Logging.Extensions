@@ -18,22 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Microsoft\Microsoft.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Localization\l10n.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>l10n.resx</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <EmbeddedResource Update="Localization\l10n.resx">
-	    <Generator>ResXFileCodeGenerator</Generator>
-	    <LastGenOutput>l10n.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
+	  <ProjectReference Include="..\Microsoft.Autofac\Microsoft.Autofac.csproj" />
 	</ItemGroup>
 
 </Project>

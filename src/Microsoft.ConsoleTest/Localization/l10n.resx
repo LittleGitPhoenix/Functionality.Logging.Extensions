@@ -100,10 +100,7 @@
   <data name="Start" xml:space="preserve">
     <value>Iteration {0} has been started.</value>
   </data>
-  <data name="Progress" xml:space="preserve">
-    <value></value>
-  </data>
   <data name="Finished" xml:space="preserve">
-    <value>Iteration {0} completed in {1}ms with result {0}.</value>
+    <value>Iteration {0} completed in {1}ms with result {2}.</value>
   </data>
 </root>

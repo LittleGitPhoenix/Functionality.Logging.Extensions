@@ -2,8 +2,6 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-
-using System.Collections.Concurrent;
 using System.Globalization;
 using System.Resources;
 using Microsoft.Extensions.Logging;
@@ -13,6 +11,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 /// <summary>
 /// A <see cref="EventIdLogger"/> that can resolve messages from resource files.
 /// </summary>
+/// <remarks> Consider not inheriting from this class anymore. Instead use the extension methods <b>LoggerExtensions.Log</b>. </remarks>
+//[Obsolete($"Do not inherit from this class anymore. Instead use the extension methods {nameof(LoggerExtensions.Log)}.")]
 public abstract class EventIdResourceLogger : EventIdLogger
 {
     #region Delegates / Events
@@ -28,10 +28,7 @@ public abstract class EventIdResourceLogger : EventIdLogger
 
     /// <summary> The <see cref="CultureInfo"/> used for logging. </summary>
     private readonly CultureInfo _logCulture;
-
-    /// <summary> Cache for already resolved messages. </summary>
-    private readonly ConcurrentDictionary<EventId, LogData> _cache;
-
+	
     #endregion
 
     #region Properties
@@ -44,7 +41,7 @@ public abstract class EventIdResourceLogger : EventIdLogger
     /// </summary>
     /// <param name="logger"> The underlying <see cref="ILogger"/>. </param>
     /// <param name="resourceManagers"> A collection of <see cref="ResourceManager"/>s that are used to resolve log messages. </param>
-    /// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from <paramref name="resourceManagers"/>. Default value is the culture 'lo'. </param>
+    /// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from <paramref name="resourceManagers"/>. Default value is the culture <b>lo</b>. </param>
     protected EventIdResourceLogger(ILogger logger, ICollection<ResourceManager> resourceManagers, CultureInfo? logCulture = null)
         : base (logger)
     {
@@ -53,7 +50,6 @@ public abstract class EventIdResourceLogger : EventIdLogger
         _logCulture = logCulture ?? CultureInfo.CreateSpecificCulture("lo");
 
         // Initialize fields.
-        _cache = new ConcurrentDictionary<EventId, LogData>();
     }
 
     /// <summary>
@@ -62,9 +58,9 @@ public abstract class EventIdResourceLogger : EventIdLogger
     /// <param name="logger"> The underlying <see cref="ILogger"/>. </param>
     /// <param name="name"> The name of the logger. Will be added as scope with the property name <paramref name="propertyName"/>. </param>
     /// <param name="resourceManagers"> A collection of <see cref="ResourceManager"/>s that are used to resolve log messages. </param>
-    /// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from <paramref name="resourceManagers"/>. Default value is the culture 'lo'. </param>
+    /// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from <paramref name="resourceManagers"/>. Default value is the culture <b>lo</b>. </param>
     /// <param name="propertyName"> The name of the property under which the logger <paramref name="name"/> will be scoped. Default is <see cref="EventIdLogger.LoggerNameProperty"/>. </param>
-    protected EventIdResourceLogger(ILogger logger, string name, ICollection<ResourceManager> resourceManagers, CultureInfo? logCulture = null, string propertyName = EventIdLogger.LoggerNameProperty)
+    protected EventIdResourceLogger(ILogger logger, string name, ICollection<ResourceManager> resourceManagers, CultureInfo? logCulture = null, string propertyName = LoggerNameProperty)
         : base (logger, name, propertyName)
     {
         // Save parameters.
@@ -72,62 +68,25 @@ public abstract class EventIdResourceLogger : EventIdLogger
         _logCulture = logCulture ?? CultureInfo.CreateSpecificCulture("lo");
 
         // Initialize fields.
-        _cache = new ConcurrentDictionary<EventId, LogData>();
     }
 
-    #endregion
+	#endregion
 
-    #region Methods
+	#region Methods
 
-    #region Log Functions
-		
-    /// <summary>
-    /// Logs an event with a message resolved from a resource file and returns this message translated into the current ui culture (or its nearest fallback).
-    /// </summary>
-    /// <param name="eventId"> The id of the event. </param>
-    /// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
-    /// <param name="resourceName"> The name of the resource that is the log message. </param>
-    /// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
-    /// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
-    /// <returns> The translated log message. </returns>
-    protected internal string LogEventFromResource(int eventId, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
+	#region Log Functions
+	
+	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, int, LogLevel, ResourceManager, string, object[], object[], CultureInfo)"/>
+	//[Obsolete($"Use the {nameof(ILogger)} extension method {nameof(LoggerExtensions.LogEventFromResource)} instead.")]
+	protected internal string LogEventFromResource(int eventId, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
         => this.LogEventFromResource((EventId) eventId, null, logLevel, resourceName, logArgs, messageArgs);
-    //{
-    //	logArgs ??= Array.Empty<object>();
-    //	messageArgs ??= logArgs;
 
-    //	var @event = (EventId)eventId;
-    //	var (logMessage, unformattedOutput) = this.GetLogData(@event, resourceName, logArgs, messageArgs);
-
-    //	// Log
-    //	base.LogEvent(@event, null, logLevel, logMessage, logArgs);
-
-    //	// Format output message
-    //	try
-    //	{
-    //		return String.Format(unformattedOutput, messageArgs);
-    //	}
-    //	catch (FormatException)
-    //	{
-    //		var arguments = messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs);
-    //		return $"Could not format the message '{unformattedOutput}' because of a mismatch with the format arguments '{arguments}'.";
-    //	}
-    //}
-		
-    /// <summary>
-    /// Logs an event with a message resolved from a resource file together with an <paramref name="exception"/> and returns this message translated into the current ui culture (or its nearest fallback).
-    /// </summary>
-    /// <param name="eventId"> The id of the event. </param>
-    /// <param name="exception"> The <see cref="Exception"/> to log. </param>
-    /// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
-    /// <param name="resourceName"> The name of the resource that is the log message. </param>
-    /// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
-    /// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
-    /// <returns> The translated log message. </returns>
-    protected internal string LogEventFromResource(int eventId, Exception exception, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
+	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, int, Exception, LogLevel, ResourceManager, string, object[], object[], CultureInfo)"/>
+	//[Obsolete($"Use the {nameof(ILogger)} extension method {nameof(LoggerExtensions.LogEventFromResource)} instead.")]
+	protected internal string LogEventFromResource(int eventId, Exception exception, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
         => this.LogEventFromResource((EventId) eventId, exception, logLevel, resourceName, logArgs, messageArgs);
 
-    #endregion
+	#endregion
 
     #region Helper
 
@@ -143,15 +102,15 @@ public abstract class EventIdResourceLogger : EventIdLogger
     /// <returns> The translated log message. </returns>
     private string LogEventFromResource(EventId eventId, Exception? exception, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
     {
-        logArgs ??= Array.Empty<object>();
+		logArgs ??= Array.Empty<object>();
         messageArgs ??= logArgs;
-        var (logMessage, unformattedOutput) = this.GetLogData(eventId, resourceName, logArgs, messageArgs);
+        var (logMessage, unformattedOutput) = LoggerExtensions.GetMessages(_resourceManagers, resourceName, _logCulture, logArgs, messageArgs, eventId);
 
         // Log
-        base.LogEvent(eventId, exception, logLevel, logMessage, logArgs);
+        LoggerExtensions.Log(this, eventId, exception, logLevel, logMessage, logArgs);
 
-        // Format output message
-        try
+		// Format output message
+		try
         {
             return String.Format(unformattedOutput, messageArgs);
         }
@@ -160,49 +119,6 @@ public abstract class EventIdResourceLogger : EventIdLogger
             var arguments = messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs);
             return $"Could not format the message '{unformattedOutput}' because of a mismatch with the format arguments '{arguments}'.";
         }
-    }
-
-    /// <summary>
-    /// Gets the <see cref="LogData"/> from the internal cache or creates a new instance.
-    /// </summary>
-    /// <param name="eventId"> The <see cref="EventId"/>. </param>
-    /// <param name="resourceName"> The name of the resource that represents the log message. </param>
-    /// <param name="logArgs"> Arguments passed to the log message. </param>
-    /// <param name="messageArgs"> Arguments merged into the returned output message. </param>
-    /// <returns></returns>
-    private LogData GetLogData(EventId eventId, string resourceName, object[] logArgs, object[] messageArgs)
-    {
-        return _cache.GetOrAdd(eventId, _ => EventIdResourceLogger.BuildLogData(eventId, _resourceManagers, resourceName, logArgs, messageArgs, _logCulture));
-    }
-
-    /// <summary>
-    /// Creates <see cref="LogData"/>.
-    /// </summary>
-    /// <param name="eventId"> The <see cref="EventId"/>. </param>
-    /// <param name="resourceManagers"> A collection of <see cref="ResourceManager"/>s that are queried one by one to find the proper messages for <paramref name="resourceName"/>. </param>
-    /// <param name="resourceName"> The name of the resource that represents the log message. </param>
-    /// <param name="logArgs"> Arguments passed to the log message. </param>
-    /// <param name="messageArgs"> Arguments merged into the returned output message. </param>
-    /// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is the culture 'lo'. </param>
-    /// <returns> A new <see cref="LogData"/> object. </returns>
-    private static LogData BuildLogData(EventId eventId, ICollection<ResourceManager> resourceManagers, string resourceName, object[] logArgs, object[] messageArgs, CultureInfo? logCulture = null)
-    {
-        logCulture ??= CultureInfo.CreateSpecificCulture("lo");
-        string? logMessage = null;
-        string? outputMessage = null;
-        foreach (var resourceManager in resourceManagers)
-        {
-            logMessage = resourceManager.GetString(resourceName, logCulture);
-            if (logMessage is not null)
-            {
-                outputMessage = resourceManager.GetString(resourceName);
-                break;
-            }
-        }
-        logMessage ??= $"No log-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(logArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", logArgs))}";
-        outputMessage ??= $"No output-message found for resource '{resourceName}' of event id {eventId}. Check if the resource manager containing this resource has been passed as constructor parameter. Arguments where: {(messageArgs.Length == 0 ? "<NO ARGUMENTS>" : String.Join(",", messageArgs))}";
-
-        return new LogData(eventId, logMessage!, outputMessage!);
     }
 
     #endregion

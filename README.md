@@ -21,186 +21,123 @@ This package contains different helper classes that can be used when logging wit
 
 ## Logging with event ids
 
-It is always good practice to add an unique id to each distinct log message. Using such an id has some benefits:
+It is always good practice to add a unique id to each distinct log message. Using such an id has some benefits:
 - Changing log messages (e.g. in case of misspelling) does not lead to not being able to find messages during error analysis anymore, since the id is a constant.
 - Mostly no need to specify origin information like class name, function name and line number for a log entry.
 - Log entries can be translated into different languages even after they have been written to a specific target without the need to apply complex regular expressions.
 
-### Classes
-
-This package provides the following classes that help with writing logs along with an id. All those classes are abstract and also decorators of a **Microsoft.Extensions.ILogger**.
-
-- Since those classes are abstract, using them requires creating specific implementations. More on this is explained in the [concept](#Concept).
-- Creating instances requires at least a **Microsoft.Extensions.ILogger** to be passed as constructor parameter. 
-
-#### `EventIdLogger`
-
-The abstract `EventIdLogger` has to be inherited by a custom logger class to be used. It is the base class of all other logger classes.
-
-```csharp
-private class MyLogger : EventIdLogger
-{
-	// Pass the Microsoft.Extensions.Logging.ILogger to the base class for internal usage.
-	public MyLogger(Microsoft.Extensions.Logging.ILogger logger) : base(logger) { }
-}
-```
-
-It provides just a single method, that basically just passes its parameter on to the underlying **Microsoft.Extensions.ILogger**.
-
-```csharp
-void LogEvent(int eventId, LogLevel logLevel, string logMessage, params object[] args)
-```
-
-#### `EventIdResourceLogger`
-
-The `EventIdResourceLogger` is a descendent of [`EventIdLogger`](#EventIdLogger). It too is an abstract class and has to be inherited by a custom logger class to be used. A typical use case for this class is logging to a backend while simultaneously showing messages to the user (e.g. in a console application or via message boxes). The **log messages** in the backend should be readable by the application developer, as to easily understand application state in case of errors. The user on the other hand should only see **output messages** in a language native to him. To get the different **log**- and **output messages**, the `EventIdResourceLogger` requires a collection of **System.Resources.ResourceManager**s that it can use to resolve the messages.
-
-- **Log messages** are by default resolved from resource of the culture **lo**. _Sorry to you guys in Lao._
-- **Output messages** are resolved from resources matching the current applications culture.
-
-```csharp
-private class MyLogger : EventIdResourceLogger
-{
-	// Don't forget to pass ALL required System.Resources.ResourceManagers to the base class.
-	public MyLogger(Microsoft.Extensions.Logging.ILogger logger) : base(logger, new[] { l10n.ResourceManager }) { }
-}
-```
-
-When using the `LogEventFromResource` function, the appropriate **log message** resolved from the `resourceName` parameter is directly passed to the decorated **Microsoft.Extensions.ILogger** and the **output message** will be returned by the function for further use.
-
-```csharp
-string LogEventFromResource(int eventId, LogLevel logLevel, string resourceName, object[]? logArgs = null, object[]? messageArgs = null)
-```
-
-Here a more complete example:
-
-```csharp
-class MyLogger : EventIdResourceLogger
-{
-	#region (De)Constructors
-
-	public MyLogger(Microsoft.Extensions.Logging.ILogger logger)
-		: base(logger, new[] { Resources.l10n.ResourceManager }) { }
-
-	#endregion
-
-	#region Log methods
-
-	internal string LogProgress(decimal progress)
-	{
-		// This will log the progress to the backend system with a log message that will be
-		// resolved from the 'Resources\l10n.lo.resx' resource files 'Progress' entry.
-		var outputMessage = base.LogEventFromResource
-		(
-			eventId: 1523340757,
-			logLevel: LogLevel.Debug,
-			resourceName: nameof(Resources.l10n.Progress),
-			logArgs: new object[] { progress },
-			messageArgs: new object[] { progress }
-		);
-
-		// This is the output message that was resolved from the
-		// resource file matching the current threads CultureInfo.
-		return outputMessage;
-	}
-
-	#endregion
-}
-```
-
-
-
-### Concept
-
-The concept of how logging should be implemented, is shown in the `Microsoft.ConsoleTest` project. Basically each class that produces log output, should have its own nested `Logger` class that inherits from either of the available classes mentioned [here](#Classes). Since this logger class is nested and additionally just a decorator for a **Microsoft.Extensions.ILogger**, the class producing the log output only requires such a **Microsoft.Extensions.ILogger** instance, making its public interface independent of the specific logger class.
-
-```csharp
-class MyClass
-{
-	private readonly Logger _logger;
-
-    // The public interface (here the constructor) only requires a Microsoft.Extensions.Logging.ILogger.
-    // This makes the class independent from the specific nested logger.
-	public MyClass(Microsoft.Extensions.Logging.ILogger logger)
-	{
-		// Create the nested logger by passing the Microsoft.Extensions.Logging.ILogger to it.
-		_logger = Logger.FromILogger(logger);
-	}
-
-	#region Logging
-
-	// Nested logger
-	private class Logger : EventIdLogger
-	{
-		// Pass the Microsoft.Extensions.Logging.ILogger to the base class for internal usage.
-		private Logger(Microsoft.Extensions.Logging.ILogger logger) : base(logger) { }
-
-		public static Logger FromILogger(Microsoft.Extensions.Logging.ILogger logger) => new Logger(logger);
-	}
-
-	#endregion
-}
-```
-
-Emitting log messages should now **no longer** be done **directly** from the actual, but rather from the nested `Logger`class. For each distinct log message a separate method in the nested `Logger` should to be created. This method defines the unique and constant event id that identifies the message. Creating the id has to be done manually or with the help of the [**AutoHotkey**](#Creating-an-event-id) script.
-
-```csharp
-class MyClass
-{
-	private readonly Logger _logger;
-
-	public MyClass(Microsoft.Extensions.Logging.ILogger logger)
-	{
-		_logger = Logger.FromILogger(logger);
-		_logger.LogConstructed();
-	}
-
-	#region Logging
-
-	private class Logger : EventIdLogger
-	{
-		private Logger(Microsoft.Extensions.Logging.ILogger logger) : base(logger) { }
-
-		public static Logger FromILogger(Microsoft.Extensions.Logging.ILogger logger) => new Logger(logger);
-
-		#region Log methods
-
-		internal void LogConstructed()
-		{
-			base.LogEvent
-			(
-				eventId: 686462161,
-				logLevel: LogLevel.Information,
-				logMessage: "A new instance of {Instance} was created.",
-				args: nameof(MyClass)
-			);
-		}
-		
-		#endregion
-	}
-
-	#endregion
-}
-```
-
 ### Creating an event id
 
-This script for [**AutoHotkey**](https://www.autohotkey.com) creates a random number in the range from **0** to **2147483647** when **AltGr** + **i** is pressed. This number can be used as an event id.
+Below script for [**AutoHotkey**](https://www.autohotkey.com) creates a random number in the range from **0** to **2147483647** when **AltGr** + **i** is pressed. This number can be used as an event id.
 
-```
+```shell
 ; Create log event id
 <^>!i:: ; ALTGR+I
 Random, logIdentifier, 0, 2147483647
 Send, %logIdentifier%
 return
 ```
+
+## Concept
+
+The concept of how logging should be implemented, is shown in the `Microsoft.ConsoleTest` project. Basically each class that produces log output, should have a _static_ nested `Log` class that helps separates logging from business logic. This class is responsible for creating `LogScope`s and `LogEvent`s that can then be used with any regular **Microsoft.Extensions.ILogger** via the extension methods described [here](#Extensions).
+
+The `LogScope` class encapsules all necessary data that are required to create a log scope, whereas the `LogEvent` class encapsules all necessary data that are required for emitting a log event.
+
+```csharp
+class MyClass
+{
+	private readonly ILogger _logger;
+
+	public MyClass(Microsoft.Extensions.Logging.ILogger logger)
+	{
+		_logger = logger;
+	}
+
+	public void DoSomething(object data, int userId)
+	{
+		_logger.Log(Log.MessageScopeEvent(data, userId));
+	}
+
+	#region Logging
+
+		static class Log
+		{
+			// Create log events and/or scopes that can be used with an ILogger.
+			internal static (LogScope, LogEvent) MessageScopeEvent(object data, int userId)
+			{
+				return
+				(
+					new LogScope(userId),
+					new LogEvent(0, LogLevel.Information, "New data available {Data}.", data)
+				);
+			}
+		}
+
+	#endregion
+}
+```
+
+## Logging with resources
+
+A typical scenario when logging (especially exceptions) is writing the error to the log while simultaneously showing a message to the user (e.g. in a console application or via message boxes). The **log messages** in the backend should be readable by the application developer, to easily understand application state in case of errors. The user on the other hand should only see **output messages** in a language native to him. To get different **log**- and **output messages**, the special `LogResourceEvent` is available, that can be used to resolve those messages.
+
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Log messages</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		Are by default resolved from resource of the culture <b>lo</b>. <i>Sorry to you guys in Lao.</i>
+    </div>
+</div>
+
+
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Output messages</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		Are resolved from resources matching the current applications culture.
+    </div>
+</div>
+
+When using the appropriate `Log` extension method, the **log message** resolved from the `resourceName` parameter is directly passed to the decorated **Microsoft.Extensions.ILogger** and the **output message** will be returned by the function for further use.
+
+```csharp
+// Given a .resx file named "l10n.resx" containing a resource named 'Introduction':
+var firstName = "Foo";
+var lastName = "Bar";
+var age = 99;
+var logEvent = new LogResourceEvent
+(
+	1523340757,
+	LogLevel.Debug,
+	resourceManager: l10n.ResourceManager,
+	resourceName: nameof(l10n.Introduction),
+	logArgs: new object[] { firstName, lastName }
+	messageArgs: new object[] { firstName, lastName, age }
+);
+var outputMessage = logger.Log(logEvent); // My name is {For} {Bar}.
+Console.WriteLine(outputMessage); // Mein Name ist For Bar. Ich bin 99 Jahre alt.
+```
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Information</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		As shown above, the format parameters can differ between what is used for logging and what is used to build the output message.
+    </div>
+</div>
 ## Logger groups
 
-Logger groups is the concept of grouping multiple **Microsoft.Extensions.ILogger**s together, identifiable via a custom group identifier. The goal is to use those groups to apply certain methods to all the loggers belonging to it. Currently the groups only purpose is to easily apply log scopes to **different** logger instances. For example if having a central module in an application, that triggers a complex workflow utilizing many classes based on some external criteria, it would be of great help, that every logger instance used throughout the workflow logs the criteria that originally triggered execution. To be more precise, the workflow could be processing a web request and the external criteria a request id. If the logger instance is **not** shared between all classes, then creating a log scope at the root of the workflow will only output the criteria for log messages emitted from the entry module. Logger groups allow to create a scope at the root level, that will automatically be applied to all other logger that share the same group. As a result the trigger criteria would be logged even if all loggers are different instances, as long as they have been registered as a group member.
+Logger groups is the concept of grouping multiple **Microsoft.Extensions.ILogger**s together, identifiable via a custom group identifier. The goal is to use those groups to apply certain methods to all the loggers belonging to it. Currently the groups only purpose is to easily apply log scopes to **different** logger instances. For example, if having a central module in an application, that triggers a complex workflow utilizing many classes based on some external criteria, it would be of great help, that every logger instance used throughout the workflow logs the criteria that originally triggered execution. To be more precise, the workflow could be processing a web request and the external criteria a request id. If the logger instance is **not** shared between all classes and processing is handled by different tasks that ignore the **SynchronizationContext**, then creating a log scope at the root of the workflow will only output the criteria for log messages emitted from the entry module. Logger groups allow to create a scope at the root level, that will automatically be applied to all other loggers that share the same group. As a result the trigger criteria would be logged even if all loggers are different instances, as long as they were registered as a group member.
 
 ### Usage
 
-The static `LoggerGroupManager` class handles the different logger groups, but should typically not be used directly but implicitly via the below listed extension method of **Microsoft.Extensions.ILogger**.
+The static `LoggerGroupManager` class handles the different logger groups, but should typically not be used directly but implicitly via the below listed extension methods of **Microsoft.Extensions.ILogger**.
 
 **Add logger to group**
 
@@ -240,7 +177,7 @@ IReadOnlyCollection<ILogger> AsGroup(this ILogger _, object groupIdentifier)
 
 Example:
 
-```csharp
+```c#
 delegate ILogger LoggerFactory();
 LoggerFactory factory = () => { ... };
 ILogger logger = factory.Invoke().AddToGroups("SomeGroupIdentifier", "AnotherGroupIdentifier");
@@ -259,7 +196,7 @@ using (logger.AsGroup("AnotherGroupIdentifier").CreateScope(("Action", action)))
 ```
 ### Complete Example
 
-Below shows how three different classes, all belonging to a group identified via the enumeration `LoggerGroup.Event`, "share" a common logging scope. The main class `EventEmitter` creates a scope for this group that contains an **event id**. The logger instances of the helper classes `EventHandler` and `EventHandlerHelper` will implicitly use that **event id** with every log output they produce.
+Below shows how three different classes, all belonging to a group identified via the enumeration `LoggerGroup.Event`, share a common logging scope. The main class `EventEmitter` creates a scope for this group that contains an **event id**. The logger instances of the helper classes `EventHandler` and `EventHandlerHelper` will implicitly use that **event id** with every log output they produce.
 
 ```csharp
 // Custom enumeration defining all available groups.
@@ -341,14 +278,54 @@ class EventHandlerHelper
 
 ## Extensions
 
-The `Phoenix.Functionality.Logging.Extensions.Microsoft` package also provides some extension methods to the original **Microsoft.Extensions.ILogger**.
+The `Phoenix.Functionality.Logging.Extensions.Microsoft` package also provides some extension methods for the original **Microsoft.Extensions.ILogger** that help with creating scopes, groups and writing logs.
 
-### Groups
+### Logging
 
-Groups are explained [here](#Logger-groups).
+Below are some examples of the extension methods that can be used to emit log events.
+
+- Directly logging `LogEvents`
+
+```c#
+// Single event.
+var logEvent = new LogEvent(1163052199, LogLevel.Information, "All done.");
+logger.Log(logEvent);
+```
+```c#
+// Multiple events.
+var logEvents = Enumerable
+	.Range(0, 10)
+	.Select(number => new LogEvent(546124364, LogLevel.Trace, "Number is {number}.", number))
+	;
+logger.Log(logEvents);
+```
+
+- Logging with single parameters
+
+```c#
+logger.Log(1732634211, LogLevel.Trace, "Finished");
+```
+```c#
+var message = "All done";
+logger.Log(1732634211, LogLevel.Trace, "Message {message} received.", message);
+```
+```c#
+var ex = new Exception("Total disaster.");
+logger.Log(1732634211, ex, LogLevel.Error, "An unexpected error occurred.");
+```
 
 ### Scoping
 
+Below are some examples of the extension methods that can be used to create log scopes.
+
+```c#
+var userId = 0;
+var logScope = new LogScope(userId);
+using (logger.CreateScope(logScope))
+{
+    // All logs emitted from within this scope will contain the user id.
+}
+```
 **Scopes from Tuples**
 
 The following function helps creating log scopes by specifying the scope values as **ValueTuple**.
@@ -459,6 +436,10 @@ Output:
   "Action": "Delete"
 }
 ```
+
+### Groups
+
+Groups are explained [here](#Logger-groups).
 ___
 
 # Phoenix.Functionality.Logging.Extensions.Serilog
@@ -824,4 +805,4 @@ ___
 
 # Authors
 
-* **Felix Leistner**: _v1.x_
+* **Felix Leistner**: _v1.x_ - _v2.x_
