@@ -23,8 +23,9 @@ public class SeqServerHelperTest
 
 		_title = Guid.NewGuid().ToString();
 		_apiKey = Guid.NewGuid().ToString().Replace("-", String.Empty);
-		_seqHost = "http://localhost";
-		_seqPort = (ushort) 5341;
+		//_seqHost = "http://localhost";
+		_seqHost = "http://seq2022.hyper.home";
+		_seqPort = (ushort) 80;
 	}
 
 	#endregion

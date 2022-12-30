@@ -122,6 +122,7 @@ public class SeqBufferSinkTest
 	}
 
 	[Test]
+	[Retry(2)]
 	public async Task Check_Log_Events_Are_Flushed_When_Application_Was_Registered()
 	{
 		// Arrange
@@ -170,11 +171,11 @@ public class SeqBufferSinkTest
 
 		// Act
 		// Wait for flush to complete.
-		await Task.Delay(500, CancellationToken.None);
+		await Task.Delay(1000, CancellationToken.None);
 
 		// Assert
 		Assert.That(bufferSink.QueuedEvents, Is.Empty);
-		Mock.Get(mockSink).Verify(sink => sink.Emit(It.IsAny<LogEvent>()), Times.Exactly(emittedLogEventCount));
+		Mock.Get(mockSink).Verify(sink => sink.Emit(It.IsAny<LogEvent>()), Times.Exactly(emittedLogEventCount), "Maybe the wait time for flushing did not suffice.");
 	}
 
 	[Test]

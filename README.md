@@ -9,7 +9,7 @@ ___
 [toc]
 ___
 
-# Phoenix.Functionality.Logging.Extensions.Microsoft
+# Logging.Extensions.Microsoft
 
 |   .NET Framework   |     .NET Standard      |                     .NET                      |
 | :----------------: | :--------------------: | :-------------------------------------------: |
@@ -275,7 +275,6 @@ class EventHandlerHelper
 ```
 
 
-
 ## Extensions
 
 The `Phoenix.Functionality.Logging.Extensions.Microsoft` package also provides some extension methods for the original **Microsoft.Extensions.ILogger** that help with creating scopes, groups and writing logs.
@@ -442,7 +441,63 @@ Output:
 Groups are explained [here](#Logger-groups).
 ___
 
-# Phoenix.Functionality.Logging.Extensions.Serilog
+# Logging.Extensions.Microsoft.Autofac
+
+|   .NET Framework   |     .NET Standard      |                     .NET                      |
+| :----------------: | :--------------------: | :-------------------------------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+
+## General Information
+
+This package contains helper functionality that can be used when registering components in [**Autofac**](https://autofac.org) along with a specific **Microsoft.Extensions.Logging.ILogger** instance.
+
+## Extensions
+
+Register a component that uses a named **ILogger** instance.
+
+```c#
+var builder = new ContainerBuilder();
+var loggerName = "MyLogger";
+var logger = _fixture.Create<ILogger>();
+
+// Register the named logger.
+builder.RegisterInstance(logger).As<ILogger>().Named<ILogger>(loggerName);
+
+// Register some component that uses that named logger instance.
+builder.RegisterType<MyClass>().WithLogger(loggerName).AsSelf();
+```
+
+Register a component with an **ILogger** that is manipulated before the component is resolved.
+
+```c#
+var builder = new ContainerBuilder();
+var logger = _fixture.Create<ILogger>();
+
+// Register the logger instance.
+builder.RegisterInstance(logger).As<ILogger>();
+
+// Register some component that uses a logger instance that is added to a logger group.
+builder.RegisterType<MyClass>().WithLogger(l => l.AddToGroup("MyGroup")).AsSelf();
+```
+
+Register a component with an **ILogger** that allows that the resolved logger instance can be replaced. This can be used if the resolved logger needs to be wrapped in a [decorator](https://en.wikipedia.org/wiki/Decorator_pattern).
+
+```c#
+var builder = new ContainerBuilder();
+var logger = _fixture.Create<ILogger>();
+
+// Register the logger instance.
+builder.RegisterInstance(logger).As<ILogger>();
+
+// Register some component that uses a different logger than the one that was resolved.
+builder.RegisterType<MyClass>().WithLogger(l => new DecoratedLogger(l)).AsSelf();
+```
+
+
+
+___
+
+# Logging.Extensions.Serilog
 
 |   .NET Framework   |     .NET Standard      |          .NET          |
 | :----------------: | :--------------------: | :--------------------: |

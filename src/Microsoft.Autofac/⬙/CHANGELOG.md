@@ -7,7 +7,7 @@ ___
 
 ## 2.0.0
 
-:calendar: _2022-12-01_
+:calendar: _2022-12-30_
 
 Initial release.
 
