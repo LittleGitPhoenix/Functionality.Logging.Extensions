@@ -2,7 +2,6 @@ using System.Linq.Expressions;
 using System.Text;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using Moq;
 using NUnit.Framework;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
 

@@ -439,6 +439,25 @@ Output:
 ### Groups
 
 Groups are explained [here](#Logger-groups).
+
+## NoLogger
+
+The `Phoenix.Functionality.Logging.Extensions.Microsoft.NoLogger` is a simple null-object that can be accessed via the static `NoLogger.Instance` property and can be used to better implement nullable reference types.
+
+## TraceLogger
+
+The `Phoenix.Functionality.Logging.Extensions.Microsoft.TraceLogger` is a simple **ILogger** implementation that writes its log events to **System.Diagnostics.Trace** and - if available - to the console output. It can be instantiated or directly used via the static `TraceLogger.Instance` property.
+
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ffd200; background-color: #ffd20020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Advice</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		It does not support <b>log scopes</b> at all
+    </div>
+</div>
+
 ___
 
 # Logging.Extensions.Microsoft.Autofac
