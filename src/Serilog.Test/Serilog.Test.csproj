@@ -9,17 +9,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AutoFixture.AutoMoq" Version="4.17.0" />
-		<PackageReference Include="FluentAssertions" Version="6.8.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-		<PackageReference Include="Moq" Version="4.18.2" />
-		<PackageReference Include="morelinq" Version="3.3.2" />
+		<PackageReference Include="AutoFixture.AutoMoq" Version="4.18.0" />
+		<PackageReference Include="FluentAssertions" Version="6.10.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+		<PackageReference Include="Moq" Version="4.18.4" />
+		<PackageReference Include="morelinq" Version="3.4.1" />
 		<PackageReference Include="NUnit" Version="3.13.3" />
-		<PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
 		<PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
-		<PackageReference Include="Serilog.Sinks.InMemory" Version="0.6.0" />
-		<PackageReference Include="Serilog.Sinks.InMemory.Assertions" Version="0.9.0" />
+		<PackageReference Include="Serilog.Sinks.InMemory" Version="0.11.0" />
+		<PackageReference Include="Serilog.Sinks.InMemory.Assertions" Version="0.11.0" />
 	</ItemGroup>
 
 	<ItemGroup>
