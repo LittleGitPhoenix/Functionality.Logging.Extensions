@@ -564,15 +564,14 @@ var logger = configuration.CreateLogger();
 
 #### `ApplicationIdentifierEnricher`
 
-An **ILogEventEnricher** that adds a unique application identifier to log events. The property name of the enriched application identifier will be `ApplicationIdentifier`. Creating the enricher can be done via one of the following constructors, which uses different approaches to creating the unique identifier.
+An **ILogEventEnricher** that adds a unique application identifier to log events. The property name of the enriched application identifier will be **ApplicationIdentifier**. Creating the enricher can be done via one of the following constructors, which uses different approaches to creating the unique identifier.
 
 ```csharp
 // Manually create the identifier.
 var identifier = Guid.NewGuid().ToString();
-var logger = Log.Logger = new LoggerConfiguration()
+var configuration = new LoggerConfiguration()
 	.Enrich.WithApplicationIdentifier(identifier)
 	.WriteTo.Debug()
-	.CreateLogger()
 	;
 ```
 
@@ -581,13 +580,30 @@ var logger = Log.Logger = new LoggerConfiguration()
 var entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
 var applicationName = entryAssembly.GetName().Name;
 var applicationVersion = entryAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-LoggerConfiguration? t = new LoggerConfiguration()
+var configuration = new LoggerConfiguration()
 	.Enrich.WithApplicationIdentifier(applicationName, applicationVersion)
 	.WriteTo.Debug()
 	;
 ```
 
+### `ApplicationVersionEnricher`
 
+An **ILogEventEnricher** that adds the application version to log events. The property name of the enriched application identifier will be **ApplicationVersion**. The enricher can be added as follows:
+
+```csharp
+var configuration = new LoggerConfiguration()
+	.Enrich.WithApplicationVersion(ApplicationVersionEnricher.VersionType.InformationalVersion)
+	.WriteTo.Debug()
+	;
+```
+
+The type of the version that is used can be selected between the following options of the `ApplicationVersionEnricher.VersionType` enumeration:
+
+- [`AssemblyVersion`](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-version)
+- [`FileVersion`](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-file-version)
+- [`InformationalVersion`](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-informational-version)
+
+Additionally an optional callback can be specified in the `WithApplicationVersion` extension method that allows the obtained version to be modified. This can be used to pretty-print the version (e.g **1.0.0-beta1** could be rewritten into **1.0.0 Beta 1** via string or regex replacements).
 
 ## Serilog.File
 

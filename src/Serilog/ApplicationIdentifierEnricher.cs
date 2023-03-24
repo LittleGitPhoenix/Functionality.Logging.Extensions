@@ -69,7 +69,7 @@ public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
 /// <summary>
 /// Provides extension methods for <see cref="LoggerEnrichmentConfiguration"/>.
 /// </summary>
-public static class LoggerEnrichmentConfigurationExtensions
+public static partial class LoggerEnrichmentConfigurationExtensions
 {
     /// <summary>
     /// Adds a unique <paramref name="applicationIdentifier"/> to log events.
