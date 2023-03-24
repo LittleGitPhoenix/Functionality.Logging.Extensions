@@ -25,6 +25,7 @@ public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
     #endregion
 
     #region Fields
+
     private readonly LogEventProperty _logEventProperty;
 
     #endregion
