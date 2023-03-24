@@ -315,6 +315,17 @@ logger.Log(1732634211, ex, LogLevel.Error, "An unexpected error occurred.");
 
 ### Scoping
 
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Information</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		There are two types of extension methods that create scopes. The ones starting with <b>Create...</b> will return an <i>IDisposable</i> that can be used to remove the scope. The ones starting with <b>Pin...</b> will also create a scope, but will return the <i>ILogger</i> instance for chaining, thus making it impossible to remove the scope. Those extenion methods can be used when initially setting up logger instances.<br><br>The following examples will only contain the <b>Create...</b> methods, as the <b>Pin...</b> methods are only counterparts.
+    </div>
+</div>
+
+
 Below are some examples of the extension methods that can be used to create log scopes.
 
 ```c#
