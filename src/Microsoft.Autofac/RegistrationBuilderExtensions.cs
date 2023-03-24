@@ -69,6 +69,34 @@ public static class RegistrationBuilderExtensions
 	}
 
 	/// <summary>
+	/// Configures the usage of a named and configurable <see cref="ILogger"/> parameter.
+	/// </summary>
+	/// <typeparam name="TLimit"> Registration limit type. </typeparam>
+	/// <typeparam name="TReflectionActivatorData"> Activator data type. </typeparam>
+	/// <typeparam name="TStyle"> Registration style. </typeparam>
+	/// <param name="registration"> Registration to set parameter on. </param>
+	/// <param name="loggerName"> The name of the previously registered <see cref="ILogger"/> service. </param>
+	/// <param name="loggerModificationCallback"> Callback to use for modifying the resolved <see cref="ILogger"/> instance. </param>
+	/// <returns> A registration builder allowing further configuration of the component. </returns>
+	public static IRegistrationBuilder<TLimit, TReflectionActivatorData, TStyle> WithLogger<TLimit, TReflectionActivatorData, TStyle>(this IRegistrationBuilder<TLimit, TReflectionActivatorData, TStyle> registration, string loggerName, Action<ILogger> loggerModificationCallback)
+		where TReflectionActivatorData : ReflectionActivatorData
+	{
+		return registration.WithParameter
+		(
+			new global::Autofac.Core.ResolvedParameter
+			(
+				(pi, context) => pi.ParameterType == typeof(ILogger),
+				(pi, context) =>
+				{
+					var logger = context.ResolveNamed<ILogger>(loggerName);
+					loggerModificationCallback.Invoke(logger);
+					return logger;
+				}
+			)
+		);
+	}
+
+	/// <summary>
 	/// Configures the usage of a configurable and swappable <see cref="ILogger"/> parameter.
 	/// </summary>
 	/// <typeparam name="TLimit"> Registration limit type. </typeparam>
