@@ -379,91 +379,6 @@ public static partial class LoggerExtensions
 		=> scope == null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
 
 	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
-	/// </summary>
-	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="log">
-	/// <para> <see cref="ValueTuple"/> containing: </para>
-	/// <para> Scope (<see cref="LogScope"/>): The scope to create. </para>
-	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
-	/// </param>
-	/// <returns> The logging scope. </returns>
-	public static IDisposable CreateScopeAndLog(this ILogger logger, (LogScope Scope, LogEvent Event)? log)
-		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
-
-	/// <summary>
-	/// Creates a new logging scope and writes log events afterwards.
-	/// </summary>
-	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="scope"> The scope to apply. </param>
-	/// <param name="logEvents"> A collection of <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>s. </param>
-	/// <returns> The logging scope. </returns>
-	public static IDisposable CreateScopeAndLog(this ILogger logger, LogScope? scope, IEnumerable<LogEvent> logEvents)
-	{
-		var disposable = scope is null ? NoDisposable.Instance : logger.BeginScope((IDictionary<string, object?>) scope);
-		Log(logger, logEvents);
-		return disposable;
-	}
-
-	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
-	/// </summary>
-	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="scope"> The scope to apply. </param>
-	/// <param name="logEvent"> The event to log. </param>
-	/// <returns> The logging scope. </returns>
-	public static IDisposable CreateScopeAndLog(this ILogger logger, LogScope? scope, LogEvent? logEvent)
-	{
-		var disposable = scope is null ? NoDisposable.Instance : logger.BeginScope((IDictionary<string, object?>) scope);
-		logger.Log(logEvent);
-		return disposable;
-	}
-
-	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
-	/// </summary>
-	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="log">
-	/// <para> <see cref="ValueTuple"/> containing: </para>
-	/// <para> Scope (<see cref="LogScope"/>): The scope to create. </para>
-	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
-	/// </param>
-	/// <returns> The logging scope. </returns>
-	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, (LogScope<TIdentifier> Scope, LogEvent Event)? log)
-		where TIdentifier : notnull
-		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
-
-	/// <summary>
-	/// Creates a new logging scope and writes log events afterwards.
-	/// </summary>
-	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// /// <param name="scope"> The scope to apply. </param>
-	/// <param name="logEvents"> A collection of <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>s. </param>
-	/// <returns> The logging scope. </returns>
-	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, IEnumerable<LogEvent> logEvents)
-		where TIdentifier : notnull
-	{
-		var disposable = scope is null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
-		Log(logger, logEvents);
-		return disposable;
-	}
-
-	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
-	/// </summary>
-	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="scope"> The scope to apply. </param>
-	/// <param name="logEvent"> The event to log. </param>
-	/// <returns> The logging scope. </returns>
-	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, LogEvent? logEvent)
-		where TIdentifier : notnull
-	{
-		var disposable = scope is null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
-		logger.Log(logEvent);
-		return disposable;
-	}
-
-	/// <summary>
 	/// Creates a new logging scope with named values.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
@@ -474,7 +389,7 @@ public static partial class LoggerExtensions
 		var scopes = LogScopeBuilder.BuildScopeDictionary(scopedValues);
 		return logger.BeginScope(scopes);
 	}
-	
+
 	/// <summary>
 	/// Creates a new logging scope with named values extracted from the given <see cref="Expression"/>s.
 	/// </summary>
@@ -658,6 +573,91 @@ public static partial class LoggerExtensions
 	}
 
 #endif
+
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="log">
+	/// <para> <see cref="ValueTuple"/> containing: </para>
+	/// <para> Scope (<see cref="LogScope"/>): The scope to create. </para>
+	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
+	/// </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog(this ILogger logger, (LogScope Scope, LogEvent Event)? log)
+		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+
+	/// <summary>
+	/// Creates a new logging scope and writes log events afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvents"> A collection of <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>s. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog(this ILogger logger, LogScope? scope, IEnumerable<LogEvent> logEvents)
+	{
+		var disposable = scope is null ? NoDisposable.Instance : logger.BeginScope((IDictionary<string, object?>) scope);
+		Log(logger, logEvents);
+		return disposable;
+	}
+
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvent"> The event to log. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog(this ILogger logger, LogScope? scope, LogEvent? logEvent)
+	{
+		var disposable = scope is null ? NoDisposable.Instance : logger.BeginScope((IDictionary<string, object?>) scope);
+		logger.Log(logEvent);
+		return disposable;
+	}
+
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="log">
+	/// <para> <see cref="ValueTuple"/> containing: </para>
+	/// <para> Scope (<see cref="LogScope"/>): The scope to create. </para>
+	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
+	/// </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, (LogScope<TIdentifier> Scope, LogEvent Event)? log)
+		where TIdentifier : notnull
+		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+
+	/// <summary>
+	/// Creates a new logging scope and writes log events afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// /// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvents"> A collection of <see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>s. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, IEnumerable<LogEvent> logEvents)
+		where TIdentifier : notnull
+	{
+		var disposable = scope is null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
+		Log(logger, logEvents);
+		return disposable;
+	}
+
+	/// <summary>
+	/// Creates a new logging scope and writes a log event afterwards.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="scope"> The scope to apply. </param>
+	/// <param name="logEvent"> The event to log. </param>
+	/// <returns> The logging scope. </returns>
+	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, LogEvent? logEvent)
+		where TIdentifier : notnull
+	{
+		var disposable = scope is null ? NoDisposable.Instance : logger.AsGroup(scope.Identifier).CreateScope(scope);
+		logger.Log(logEvent);
+		return disposable;
+	}
 
 	#endregion
 }
