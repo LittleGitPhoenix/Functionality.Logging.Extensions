@@ -1,3 +1,7 @@
+#region LICENSE NOTICE
+//! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
+#endregion
+
 using Microsoft.Extensions.Logging;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;

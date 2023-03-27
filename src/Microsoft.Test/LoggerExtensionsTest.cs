@@ -102,5 +102,43 @@ public class LoggerExtensionsTest
 		Assert.That(outputMessage, Is.EqualTo(targetOutputMessage));
 	}
 
+	[Test]
+	public void CreateScopeAndLogOverloadForGroupsIsReflected()
+	{
+		Assert.That(LoggerExtensions.CreateScopeForGroupsAndLogMethod, Is.Not.Null);
+	}
+
+	[Test]
+	public void CreateScopeAndLogRespectsGenericScope()
+	{
+		// Arrange
+		var logScope = new LogScope<string>("MyGroup", ("Property", "Value"));
+		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message");
+		var log = (logScope, logEvent);
+		var instanceWrapper = _fixture.Create<Mock<InstanceWrapper>>().Object;
+
+		// Act
+		//! Since automatic type inference does not work if the generic type parameter is inside a ValueTuple, below call will currently invoke the log method that does not apply the scope to the group identified by the generic parameter.
+		instanceWrapper.CreateScopeAndLog(log);
+
+		// Assert
+		Mock.Get(instanceWrapper).Verify(mock => mock.CreateScopeAndLog(It.IsAny<(LogScope, LogEvent)>()), Times.Once);
+		Mock.Get(instanceWrapper).Verify(mock => mock.CreateScopeAndLog<string>(It.IsAny<(LogScope<string>, LogEvent)>()), Times.Never);
+	}
+
+	public class InstanceWrapper
+	{
+		private readonly ILogger _logger;
+
+		public InstanceWrapper(ILogger logger)
+		{
+			_logger = logger;
+		}
+
+		public virtual IDisposable CreateScopeAndLog((LogScope Scope, LogEvent Event)? log) => _logger.CreateScopeAndLog(log);
+		
+		public virtual IDisposable CreateScopeAndLog<TIdentifier>((LogScope<TIdentifier> Scope, LogEvent Event)? log) where TIdentifier : notnull => _logger.CreateScopeAndLog(log);
+	}
+
 	#endregion
 }

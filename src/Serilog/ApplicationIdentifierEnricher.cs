@@ -2,7 +2,6 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
@@ -26,6 +25,7 @@ public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
     #endregion
 
     #region Fields
+
     private readonly LogEventProperty _logEventProperty;
 
     #endregion
@@ -69,7 +69,7 @@ public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
 /// <summary>
 /// Provides extension methods for <see cref="LoggerEnrichmentConfiguration"/>.
 /// </summary>
-public static class LoggerEnrichmentConfigurationExtensions
+public static partial class LoggerEnrichmentConfigurationExtensions
 {
     /// <summary>
     /// Adds a unique <paramref name="applicationIdentifier"/> to log events.

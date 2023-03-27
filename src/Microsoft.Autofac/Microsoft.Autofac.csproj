@@ -7,10 +7,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Microsoft.Autofac</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Microsoft.Autofac</RootNamespace>
-		<Version>2.0.0</Version>
+		<Version>2.1.0</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
-		<Copyright>2022</Copyright>
+		<Copyright>2023</Copyright>
 		<Description>Containes helper functionality for using Microsoft.Extensions.Logging alongside Autofac.</Description>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>

@@ -2,7 +2,6 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-
 namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 
 /// <summary>
@@ -14,13 +13,6 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 public record SeqServerConnectionData(string Host, ushort? Port, string? ApiKey)
 {
     /// <summary> A combination of <see cref="Host"/> and <see cref="Port"/>. </summary>
-    public string Url
-    {
-        get
-        {
-            
-            return _url ??= SeqServerHelper.BuildSeqUrl(this.Host, this.Port);
-        }
-    }
-    private string? _url;
+    public string Url => _url ??= SeqServerHelper.BuildSeqUrl(this.Host, this.Port);
+	private string? _url;
 }
