@@ -2,8 +2,10 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Resources;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +27,42 @@ class NoDisposable : IDisposable
 /// </summary>
 public static partial class LoggerExtensions
 {
+	internal static readonly ConcurrentDictionary<Type, MethodInfo> CreateScopeForGroupsAndLogMethodCache;
+
+	internal static readonly MethodInfo? CreateScopeForGroupsAndLogMethod;
+
+	static LoggerExtensions()
+	{
+		CreateScopeForGroupsAndLogMethodCache = new();
+		CreateScopeForGroupsAndLogMethod = typeof(LoggerExtensions)
+			.GetMethods(BindingFlags.Public | BindingFlags.Static)
+			.Where(m => m.Name == nameof(CreateScopeAndLog))
+			.Select(m => new { Method = m, Parameters = m.GetParameters(), GenericParameters = m.GetGenericArguments() })
+			.Where
+			(
+				tuple =>
+				{
+					if (tuple.GenericParameters.Length != 1 || tuple.Parameters.Length != 3) return false;
+
+					// First parameter must be an ILogger.
+					var firstParameterType = tuple.Parameters[0].ParameterType;
+					if (firstParameterType != typeof(ILogger)) return false;
+
+					// Second parameter must be a generic log scope.
+					var secondParameterType = tuple.Parameters[1].ParameterType.GetGenericTypeDefinition();
+					if (secondParameterType != typeof(LogScope<>)) return false;
+
+					var thirdParameterType = tuple.Parameters[2].ParameterType;
+					if (thirdParameterType != typeof(LogEvent)) return false;
+
+					return true;
+				}
+			)
+			.Select(tuple => tuple.Method)
+			.FirstOrDefault()
+			;
+	}
+
 	#region Logging
 
 	/// <summary>
@@ -585,7 +623,24 @@ public static partial class LoggerExtensions
 	/// </param>
 	/// <returns> The logging scope. </returns>
 	public static IDisposable CreateScopeAndLog(this ILogger logger, (LogScope Scope, LogEvent Event)? log)
-		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+	{
+		if (log is null) return NoDisposable.Instance;
+
+		/*
+		//! Bellow check if the log scope is generic is needed because automatic type inference does not work if the generic type parameter is inside a ValueTuple.
+		//! So, instead the 'CreateScopeAndLog<TIdentifier>(this ILogger logger, (LogScope<TIdentifier> Scope, LogEvent Event)? log)' overload getting invoked that should be called if the log scope is generic, this overload is invoked.
+		//! This leads to unexpected behavior. Therefor the log scope is checked and the correct method is invoked if it is generic.
+		*/
+		var logScope = log.Value.Scope;
+		var logScopeType = logScope.GetType();
+		if (logScopeType.IsGenericType && CreateScopeForGroupsAndLogMethod is not null)
+		{
+			var genericType = logScopeType.GenericTypeArguments.First();
+			var genericMethod = CreateScopeForGroupsAndLogMethodCache.GetOrAdd(genericType, _ => CreateScopeForGroupsAndLogMethod.MakeGenericMethod(genericType));
+			genericMethod.Invoke(null, parameters: new object[] { logger, logScope, log.Value.Event });
+		}
+		return logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+	}
 
 	/// <summary>
 	/// Creates a new logging scope and writes log events afterwards.
@@ -628,7 +683,7 @@ public static partial class LoggerExtensions
 	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, (LogScope<TIdentifier> Scope, LogEvent Event)? log)
 		where TIdentifier : notnull
 		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
-
+		
 	/// <summary>
 	/// Creates a new logging scope and writes log events afterwards.
 	/// </summary>

@@ -12,6 +12,11 @@ ___
 ### Added
 
 - New `ILogger` extension methods `PinScope` that create log scopes that are not removable and return the same `ILogger` instance for chaining. This can be used when initially setting up logger instances.
+
+### Fixed
+
+- Due to **automatic type inference** not working if the **generic type** parameter is inside a **ValueTuple**, calls to `CreateScopeAndLog` having a generic `LogScope<>` as parameter was invoking the wrong method. This cannot be prevented in a reasonable way by just changing method signatures. Therefor the falsely called method now checks if its log scope parameter is generic and then forwards the call to the correct method.
+
 ___
 
 ## 2.1.0
