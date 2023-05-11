@@ -7,6 +7,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 /// <summary>
 /// <see cref="SeqServerApplicationInformation"/> builder.
 /// </summary>
+[Obsolete("If possible use 'SerilogApplicationInformationBuilder' from the 'Phoenix.Functionality.Logging.Extensions.Serilog' package.")]
 public class SeqServerApplicationInformationBuilder
 	: ISeqServerApplicationInformationBuilder,
 		ISeqServerApplicationAuxiliaryInformationBuilder,
@@ -129,6 +130,7 @@ public class SeqServerApplicationInformationBuilder
 /// <summary>
 /// Partial builder interface for <see cref="SeqServerApplicationInformation"/>.
 /// </summary>
+[Obsolete("If possible use 'ISerilogApplicationInformationBuilder' from the 'Phoenix.Functionality.Logging.Extensions.Serilog' package.")]
 public interface ISeqServerApplicationInformationBuilder
 {
 	/// <summary>
@@ -146,6 +148,7 @@ public interface ISeqServerApplicationInformationBuilder
 /// <summary>
 /// Partial builder interface for <see cref="SeqServerApplicationInformation"/>.
 /// </summary>
+[Obsolete("If possible use 'ISerilogApplicationAuxiliaryInformationBuilder' from the 'Phoenix.Functionality.Logging.Extensions.Serilog' package.")]
 public interface ISeqServerApplicationAuxiliaryInformationBuilder
 {
 	/// <summary>
@@ -178,6 +181,7 @@ public interface ISeqServerApplicationAuxiliaryInformationBuilder
 /// <summary>
 /// Partial builder interface for <see cref="SeqServerApplicationInformation"/>.
 /// </summary>
+[Obsolete("If possible use 'ISerilogApplicationInformationCreator' from the 'Phoenix.Functionality.Logging.Extensions.Serilog' package.")]
 public interface ISeqServerApplicationInformationCreator
 {
 	/// <summary>

@@ -100,7 +100,7 @@ public class SeqServer
     /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
     public virtual string RegisterApplication(SeqServerApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
     {
-        var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationInformation.Identifier);
+		var apiKey = LogApplicationInformation.Create().StartingWith(applicationInformation.Identifier).Build().AlphanumericIdentifier;
         this.RegisterApplication(applicationInformation, apiKey, cancellationToken);
         return apiKey;
     }
@@ -184,7 +184,7 @@ public class SeqServer
     /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
     public virtual async Task<string> RegisterApplicationAsync(SeqServerApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
     {
-        var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationInformation.Identifier);
+        var apiKey = LogApplicationInformation.Create().StartingWith(applicationInformation.Identifier).Build().AlphanumericIdentifier;
         await this.RegisterApplicationAsync(applicationInformation, apiKey, cancellationToken).ConfigureAwait(false);
         return apiKey;
     }
@@ -290,7 +290,7 @@ public class SeqServer
     /// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
     public virtual async Task SendLogFileAsync(SeqServerApplicationInformation applicationInformation, FileInfo logFile, CancellationToken cancellationToken = default)
     {
-        var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationInformation.Identifier);
+        var apiKey = LogApplicationInformation.Create().StartingWith(applicationInformation.Identifier).Build().AlphanumericIdentifier;
         var connection = SeqServerHelper.ConnectToSeq(this.ConnectionData.Host, this.ConnectionData.Port, this.ConnectionData.ApiKey);
         try
         {

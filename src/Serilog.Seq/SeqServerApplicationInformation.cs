@@ -10,6 +10,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 /// Contains information used to register an application with a seq server.
 /// </summary>
 /// <param name="Identifier"> The identifier of the application that will be used to registering the application with the seq server and create an new api key. </param>
+[Obsolete("If possible use 'SerilogApplicationInformation' from the 'Phoenix.Functionality.Logging.Extensions.Serilog' package.", false)]
 public record SeqServerApplicationInformation(string Identifier)
 {
 	/// <summary>
