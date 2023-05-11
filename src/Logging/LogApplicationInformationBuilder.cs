@@ -120,7 +120,7 @@ public class LogApplicationInformationBuilder
 	{
 		var name = _identifierBuilder.ToString();
 		var (numericIdentifier, alphanumericIdentifier) = IdentifierBuilder.BuildNumericAndAlphanumericIdentifier(name);
-		return new LogApplicationInformation(name, alphanumericIdentifier, numericIdentifier);
+		return new LogApplicationInformation(name, numericIdentifier, alphanumericIdentifier);
 	}
 
 	#endregion
