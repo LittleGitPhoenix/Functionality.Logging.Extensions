@@ -10,8 +10,9 @@ using Serilog.Events;
 namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 
 /// <summary>
-/// <see cref="ILogEventEnricher"/> that adds a unique application identifier to log events.
+/// <see cref="ILogEventEnricher"/> that adds a unique alpha-numeric application identifier as property <b>ApplicationIdentifier</b> to log events.
 /// </summary>
+[Obsolete("Use 'ApplicationInformationEnricher' instead.")]
 public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
 {
     #region Delegates / Events
@@ -28,20 +29,20 @@ public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
 
     private readonly LogEventProperty _logEventProperty;
 
-    #endregion
+	#endregion
 
-    #region Properties
-    #endregion
+	#region Properties
+	#endregion
 
-    #region (De)Constructors
-		
-    /// <summary>
-    /// Constructor
-    /// </summary>
-    /// <param name="values"> A collection of strings from which a unique identifier is created via <see cref="BuildAlphanumericIdentifier"/>. </param>
-    /// <remarks> The order of the values is not relevant for building the identifier. </remarks>
-    public ApplicationIdentifierEnricher(params string[] values)
-        : this(IdentifierBuilder.BuildAlphanumericIdentifier(values))
+	#region (De)Constructors
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="values"> A collection of strings from which a unique identifier is created via <see cref="IdentifierBuilder.BuildAlphanumericIdentifier"/>. </param>
+	/// <remarks> The order of the values is not relevant for building the identifier. </remarks>
+	public ApplicationIdentifierEnricher(params string[] values)
+		: this(LogApplicationInformation.Create().StartingWith(String.Join(String.Empty, values.OrderBy(value => value))).Build().AlphanumericIdentifier)
     { }
 
     /// <summary>
@@ -71,25 +72,27 @@ public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
 /// </summary>
 public static partial class LoggerEnrichmentConfigurationExtensions
 {
-    /// <summary>
-    /// Adds a unique <paramref name="applicationIdentifier"/> to log events.
-    /// </summary>
-    /// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
-    /// <param name="applicationIdentifier"> The unique identifier. </param>
-    /// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
-    public static LoggerConfiguration WithApplicationIdentifier(this LoggerEnrichmentConfiguration enrich, string applicationIdentifier)
+	/// <summary>
+	/// Adds a unique <paramref name="applicationIdentifier"/> as property <b>ApplicationIdentifier</b> to log events.
+	/// </summary>
+	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
+	/// <param name="applicationIdentifier"> The unique identifier. </param>
+	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
+	[Obsolete("Use 'WithApplicationInformation' instead.")]
+	public static LoggerConfiguration WithApplicationIdentifier(this LoggerEnrichmentConfiguration enrich, string applicationIdentifier)
     {
         if (enrich is null) throw new ArgumentNullException(nameof(enrich));
         return enrich.With(new ApplicationIdentifierEnricher(applicationIdentifier));
     }
 
-    /// <summary>
-    /// Adds a unique alphanumeric to log events that is created from <paramref name="values"/>.
-    /// </summary>
-    /// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
-    /// <param name="values"> A collection of strings from which an unique alphanumeric identifier is created. The order of the values is not relevant for building the identifier. </param>
-    /// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
-    public static LoggerConfiguration WithApplicationIdentifier(this LoggerEnrichmentConfiguration enrich, params string[] values)
+	/// <summary>
+	/// Adds a unique alphanumeric identifier that is created from <paramref name="values"/> as property <b>ApplicationIdentifier</b> to log events.
+	/// </summary>
+	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
+	/// <param name="values"> A collection of strings from which an unique alphanumeric identifier is created. The order of the values is not relevant for building the identifier. </param>
+	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
+	[Obsolete("Use 'WithApplicationInformation' instead.")]
+	public static LoggerConfiguration WithApplicationIdentifier(this LoggerEnrichmentConfiguration enrich, params string[] values)
     {
         if (enrich is null) throw new ArgumentNullException(nameof(enrich));
         return enrich.With(new ApplicationIdentifierEnricher(values));

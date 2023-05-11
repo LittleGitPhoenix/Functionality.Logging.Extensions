@@ -7,7 +7,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog</RootNamespace>
-		<Version>1.3.0</Version>
+		<Version>1.4.0-beta.3</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2023</Copyright>
@@ -32,6 +32,10 @@
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
 	  <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Logging\Logging.csproj" />
 	</ItemGroup>
 
 	<!-- Move the created NuGet packages into another folder. -->
