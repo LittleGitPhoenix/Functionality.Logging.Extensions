@@ -90,7 +90,7 @@ public class FrameworkLogger : IFrameworkLogger
     }
 
     /// <inheritdoc />
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception, string> formatter)
     {
         var level = LogLevelConverter.ToSerilogLevel(logLevel);
         if (!_serilogLogger.IsEnabled(level))
@@ -100,7 +100,7 @@ public class FrameworkLogger : IFrameworkLogger
 
         try
         {
-            Write(level, eventId, state, exception, formatter);
+            this.Write(level, eventId, state, exception, formatter);
         }
         catch (Exception ex)
         {
@@ -112,7 +112,7 @@ public class FrameworkLogger : IFrameworkLogger
 
     #region Helper
 
-    private void Write<TState>(LogEventLevel level, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    private void Write<TState>(LogEventLevel level, EventId eventId, TState state, Exception? exception, Func<TState, Exception, string> formatter)
     {
         var logger = _serilogLogger;
         string messageTemplate = null;
@@ -158,28 +158,26 @@ public class FrameworkLogger : IFrameworkLogger
         if (messageTemplate == null)
         {
             string propertyName = null;
-            if (state != null)
+            if (state is not null)
             {
                 propertyName = "State";
                 messageTemplate = "{State:l}";
             }
-            else if (formatter != null)
+            else if (formatter is not null)
             {
                 propertyName = "Message";
                 messageTemplate = "{Message:l}";
             }
 
-            if (propertyName != null)
+            if (propertyName is not null)
             {
 #pragma warning disable 8604
-                if (logger.BindProperty(propertyName, AsLoggableValue(state, formatter), false, out var property))
+                if (logger.BindProperty(propertyName, AsLoggableValue(state, formatter), false, out var property)) properties.Add(property);
 #pragma warning restore 8604
-                    properties.Add(property);
-            }
+			}
         }
 
-        if (eventId.Id != 0 || eventId.Name != null)
-            properties.Add(CreateEventIdProperty(eventId));
+        if (eventId.Id != 0 || eventId.Name is not null) properties.Add(CreateEventIdProperty(eventId));
 
         var parsedTemplate = MessageTemplateParser.Parse(messageTemplate ?? "");
         var evt = new LogEvent(DateTimeOffset.Now, level, exception, parsedTemplate, properties);
@@ -189,8 +187,7 @@ public class FrameworkLogger : IFrameworkLogger
     private static object AsLoggableValue<TState>(TState state, Func<TState, Exception, string> formatter)
     {
         object sobj = state;
-        if (formatter != null)
-            sobj = formatter(state, null);
+        if (formatter is not null) sobj = formatter(state, null);
         return sobj;
     }
 
