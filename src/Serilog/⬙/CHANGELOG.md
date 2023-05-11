@@ -19,7 +19,7 @@ ___
 
 ### References
 
-:white_circle: Phoenix.Functionality.Logging **1.0.0**
+:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**
 ___
 
 ## 1.3.0

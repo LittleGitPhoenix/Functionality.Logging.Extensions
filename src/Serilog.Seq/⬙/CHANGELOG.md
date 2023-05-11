@@ -10,16 +10,16 @@ ___
 
 ### Added
 
-- The `SeqServer` now fully uses the new base assembly **Phoenix.Functionality.Logging** and its `LogApplicationInformation` class.
+- The `SeqServer` now fully uses the new base assembly **Phoenix.Functionality.Logging.Base** and its `LogApplicationInformation` class.
 
 ### Removed
 
-- `SeqServerApplicationInformation` (along with its `SeqServerApplicationInformationBuilder`) has been removed, because the new base package **Phoenix.Functionality.Logging** provides a superior implementation named `LogApplicationInformation`.
+- `SeqServerApplicationInformation` (along with its `SeqServerApplicationInformationBuilder`) has been removed, because the new base package **Phoenix.Functionality.Logging.Base** provides a superior implementation named `LogApplicationInformation`.
 - All functions in `SeqServer` that utilized `SeqServerApplicationInformation` have been replaced by matching counterparts now using `LogApplicationInformation`. This is the reason, why this is a **breaking change**. It would have been possible to keep the old function signatures, but that would have made the `SeqServer` class too confusing. This decision makes a clean cut. 
 
 ### References
 
-:white_circle: Phoenix.Functionality.Logging **1.0.0**
+:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**
 
 ___
 

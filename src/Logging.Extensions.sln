@@ -8,7 +8,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging", "Logging\Logging.csproj", "{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging.Base", "Logging.Base\Logging.Base.csproj", "{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging.Base.Test", "Logging.Base.Test\Logging.Base.Test.csproj", "{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog", "Serilog\Serilog.csproj", "{A01541F7-54A7-4996-9FA1-FDF8E9D6A22B}"
 EndProject
@@ -45,8 +47,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Autofac", "Microsoft.Autofac\Microsoft.Autofac.csproj", "{E0A64D63-DA73-4A5C-BF60-23B8F7091D91}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Autofac.Test", "Microsoft.Autofac.Test\Microsoft.Autofac.Test.csproj", "{E0037D71-DA67-42EC-A087-7975ADB8F6E2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging.Test", "Logging.Test\Logging.Test.csproj", "{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2E285F25-20DE-4F7B-ABB9-D393C7808C36}"
 EndProject

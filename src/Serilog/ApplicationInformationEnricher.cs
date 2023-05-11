@@ -1,8 +1,13 @@
-﻿using Serilog.Configuration;
+﻿#region LICENSE NOTICE
+//! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
+#endregion
+
+using Serilog.Configuration;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using System.Reflection;
+using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 

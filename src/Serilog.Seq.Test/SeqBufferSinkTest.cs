@@ -4,7 +4,7 @@ using AutoFixture.AutoMoq;
 using AutoFixture.Kernel;
 using Moq;
 using NUnit.Framework;
-using Phoenix.Functionality.Logging;
+using Phoenix.Functionality.Logging.Base;
 using Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 using Serilog.Core;
 using Serilog.Events;

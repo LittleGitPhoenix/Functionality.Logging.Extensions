@@ -2,7 +2,7 @@
 using AutoFixture.AutoMoq;
 using Moq;
 using NUnit.Framework;
-using Phoenix.Functionality.Logging;
+using Phoenix.Functionality.Logging.Base;
 using Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 
 namespace Serilog.Seq.Test;

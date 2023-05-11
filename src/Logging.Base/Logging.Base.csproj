@@ -5,8 +5,8 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<AssemblyName>Phoenix.Functionality.Logging</AssemblyName>
-		<RootNamespace>Phoenix.Functionality.Logging</RootNamespace>
+		<AssemblyName>Phoenix.Functionality.Logging.Base</AssemblyName>
+		<RootNamespace>Phoenix.Functionality.Logging.Base</RootNamespace>
 		<Version>1.0.0-beta.1</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>

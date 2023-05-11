@@ -1,8 +1,8 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
-using Phoenix.Functionality.Logging;
+using Phoenix.Functionality.Logging.Base;
 
-namespace Logging.Test;
+namespace Logging.Base.Test;
 
 public class IdentifierBuilderTest
 {
