@@ -79,7 +79,7 @@ public class FrameworkLogger : IFrameworkLogger
     /// <inheritdoc />
     public bool IsEnabled(LogLevel logLevel)
     {
-        return _serilogLogger.IsEnabled(LogLevelConverter.ToSerilogLevel(logLevel));
+        return _serilogLogger.IsEnabled(SerilogToMicrosoftLogLevelConverter.ToSerilogLevel(logLevel));
     }
 
     /// <inheritdoc />
@@ -92,7 +92,7 @@ public class FrameworkLogger : IFrameworkLogger
     /// <inheritdoc />
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception, string> formatter)
     {
-        var level = LogLevelConverter.ToSerilogLevel(logLevel);
+        var level = SerilogToMicrosoftLogLevelConverter.ToSerilogLevel(logLevel);
         if (!_serilogLogger.IsEnabled(level))
         {
             return;

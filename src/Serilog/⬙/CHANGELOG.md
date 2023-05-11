@@ -12,6 +12,7 @@ ___
 ### Added
 
 - The new `ApplicationInformationEnricher` that allows logs to be enriched by a selectable information about an application like **name**, **version**, etc.
+- Added `SerilogLogLevelConverter`, an `INoLogLevelConverter` for **Serilog.Events.LogEventLevel**.
 
 ### Deprecated
 

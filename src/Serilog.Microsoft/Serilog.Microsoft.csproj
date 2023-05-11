@@ -7,7 +7,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft</RootNamespace>
-		<Version>1.1.0</Version>
+		<Version>1.2.0-beta.3</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2022</Copyright>
@@ -27,6 +27,10 @@
 		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="" Link="⬙\LICENSE.md" />
 		<None Include="..\..\COPYING" Pack="true" PackagePath="" Link="⬙\COPYING" />
 		<None Include="..\..\COPYING.LESSER" Pack="true" PackagePath="" Link="⬙\COPYING.LESSER" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Logging.Base\Logging.Base.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
