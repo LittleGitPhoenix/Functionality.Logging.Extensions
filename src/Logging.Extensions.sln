@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging", "Logging\Logging.csproj", "{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog", "Serilog\Serilog.csproj", "{A01541F7-54A7-4996-9FA1-FDF8E9D6A22B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.ConsoleTest", "Serilog.ConsoleTest\Serilog.ConsoleTest.csproj", "{F475C26C-A681-41C0-9EDB-5662BB43D2BC}"
@@ -40,9 +42,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Microsoft", "Serilo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Microsoft.Test", "Serilog.Microsoft.Test\Serilog.Microsoft.Test.csproj", "{48DCDD68-E9EA-4A03-BE75-1C1A47A4AE81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Autofac", "Microsoft.Autofac\Microsoft.Autofac.csproj", "{E0A64D63-DA73-4A5C-BF60-23B8F7091D91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Autofac", "Microsoft.Autofac\Microsoft.Autofac.csproj", "{E0A64D63-DA73-4A5C-BF60-23B8F7091D91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Autofac.Test", "Microsoft.Autofac.Test\Microsoft.Autofac.Test.csproj", "{E0037D71-DA67-42EC-A087-7975ADB8F6E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Autofac.Test", "Microsoft.Autofac.Test\Microsoft.Autofac.Test.csproj", "{E0037D71-DA67-42EC-A087-7975ADB8F6E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging.Test", "Logging.Test\Logging.Test.csproj", "{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2E285F25-20DE-4F7B-ABB9-D393C7808C36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +56,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A01541F7-54A7-4996-9FA1-FDF8E9D6A22B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A01541F7-54A7-4996-9FA1-FDF8E9D6A22B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A01541F7-54A7-4996-9FA1-FDF8E9D6A22B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -106,6 +116,10 @@ Global
 		{E0037D71-DA67-42EC-A087-7975ADB8F6E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E0037D71-DA67-42EC-A087-7975ADB8F6E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0037D71-DA67-42EC-A087-7975ADB8F6E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +141,7 @@ Global
 		{48DCDD68-E9EA-4A03-BE75-1C1A47A4AE81} = {5FA6D0C4-C0F8-4487-916B-C14C036E9A87}
 		{E0A64D63-DA73-4A5C-BF60-23B8F7091D91} = {67010671-F9D6-4441-A3BB-D3E61521B6E7}
 		{E0037D71-DA67-42EC-A087-7975ADB8F6E2} = {DD740BFF-6756-485A-881A-97B5CAB7EC6F}
+		{62BF88D5-95DA-40D8-B404-A3EA4FFF53AD} = {2E285F25-20DE-4F7B-ABB9-D393C7808C36}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {09B3A735-03F6-4F7B-9609-10F3E51502B5}
