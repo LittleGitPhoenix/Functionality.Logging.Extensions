@@ -2,6 +2,7 @@
 using AutoFixture.AutoMoq;
 using Moq;
 using NUnit.Framework;
+using Phoenix.Functionality.Logging;
 using Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 
 namespace Serilog.Seq.Test;
@@ -39,7 +40,7 @@ public class SerilogSeqSinkHelperTest
 		var seqHost = "http://nevermind";
 		_fixture.Inject(seqHost);
 		var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<LogApplicationInformation>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 		var seqServer = seqServerMock.Object;
 
 		// Act
@@ -56,7 +57,7 @@ public class SerilogSeqSinkHelperTest
 		var seqHost = "http://nevermind";
 		_fixture.Inject(seqHost);
 		var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
+		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<LogApplicationInformation>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 		var seqServer = seqServerMock.Object;
 
 		// Act
@@ -73,7 +74,7 @@ public class SerilogSeqSinkHelperTest
 		var seqHost = "http://nevermind";
 		_fixture.Inject(seqHost);
 		var seqServerMock = _fixture.Create<Mock<SeqServer>>();
-		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<SeqServerApplicationInformation>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
+		seqServerMock.Setup(server => server.RegisterApplicationAsync(It.IsAny<LogApplicationInformation>(), It.IsAny<CancellationToken>())).Throws(_fixture.Create<SeqServerApplicationRegisterException>());
 		var seqServer = seqServerMock.Object;
 
 		// Act
