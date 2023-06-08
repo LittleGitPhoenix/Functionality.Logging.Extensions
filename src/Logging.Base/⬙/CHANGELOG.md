@@ -7,6 +7,6 @@ ___
 
 ## 1.0.0
 
-:calendar: _2023-05-??_
+:calendar: _2023-06-08_
 
 Initial release.
