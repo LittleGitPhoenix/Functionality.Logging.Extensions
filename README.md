@@ -69,6 +69,8 @@ Currently the following specific implementations are available:
 | ----------------------------------- | ------------------------------------ | ------------------------------------------------ |
 | SerilogToMicrosoftLogLevelConverter | Serilog :left_right_arrow: Microsoft | Phoenix.Functionality.Logging.Extensions.Serilog |
 
+___
+
 # Logging.Extensions.Microsoft
 
 |   .NET Framework   |     .NET Standard      |                     .NET                      |
@@ -474,7 +476,6 @@ Output:
 
 The following function helps creating log scopes by simply passing a value (like a variable) as parameter. The names of the values will be inferred via the [**System.Runtime.CompilerServices.CallerArgumentExpression**](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.callerargumentexpressionattribute?view=net-6.0) introduced in **C# 10**.
 
-
 ```csharp
 IDisposable CreateScope(this ILogger logger, object? value[1...10], [CallerArgumentExpression("value1")] string? name[1...10] = default)
 ```
@@ -630,24 +631,19 @@ builder
     .AsSelf()
     ;
 ```
-
-
-
 ___
 
 # Logging.Extensions.Serilog
 
 |   .NET Framework   |     .NET Standard      |          .NET          |
 | :----------------: | :--------------------: | :--------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
 
 ## General Information
 
 This package contains different helper classes that can be used when logging with [**Serilog**](https://serilog.net).
 
-## Serilog
-
-### Settings
+## Settings
 
 With some extension methods of **LoggerSettingsConfiguration** creating a new **LoggerConfiguration** and thus a new **Logger** from a json file is pretty simple.
 
@@ -668,11 +664,11 @@ var configuration = new LoggerConfiguration()
 var logger = configuration.CreateLogger();
 ```
 
-### Enrichers
+## Enrichers
 
 The package provides some **ILogEventEnricher** that help adding data to log events. More information about log enrichment in general can be found [here](https://github.com/serilog/serilog/wiki/Enrichment).
 
-#### `ApplicationInformationEnricher`
+### `ApplicationInformationEnricher`
 
 An **ILogEventEnricher** that adds configurable information about an application via [`LogApplicationInformation`](#LogApplicationInformation) to log events. What information will be used can be specified via the `ApplicationInformationEnricher.LogApplicationInformationParts` flags-enumeration during setup of the enricher. The enricher itself is accessible via an the `WithApplicationInformation` extension method of **Serilog.Configuration.LoggerEnrichmentConfiguration**.
 
@@ -702,7 +698,7 @@ var configuration = new LoggerConfiguration()
 
 All overloads of `WithApplicationInformation` have an optional callback parameter that allows the used version to be modified. This can be used to pretty-print the version (e.g **1.0.0-beta1** could be rewritten into **1.0.0 Beta 1** or a custom string could be returned in cases the inferred version is **null**).
 
-#### `ApplicationIdentifierEnricher`
+### `ApplicationIdentifierEnricher`
 
 <div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ff0000; background-color: #ff000020' >
 	<span style='margin-left:1em; text-align:left'>
@@ -736,7 +732,7 @@ var configuration = new LoggerConfiguration()
 	;
 ```
 
-#### `ApplicationVersionEnricher`
+### `ApplicationVersionEnricher`
 
 <div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ff0000; background-color: #ff000020' >
 	<span style='margin-left:1em; text-align:left'>
@@ -763,10 +759,15 @@ The type of the version that is used can be selected between the following optio
 - [`InformationalVersion`](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-informational-version)
 
 Additionally an optional callback can be specified in the `WithApplicationVersion` extension method that allows the obtained version to be modified. This can be used to pretty-print the version (e.g **1.0.0-beta1** could be rewritten into **1.0.0 Beta 1** via string or regex replacements).
+___
 
-## Serilog.File
+# Logging.Extensions.Serilog.File
 
-### `ArchiveHook`
+|   .NET Framework   |     .NET Standard      |                     .NET                      |
+| :----------------: | :--------------------: | :-------------------------------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+
+## `ArchiveHook`
 
 This is a special [**FileLifecycleHooks**](https://github.com/serilog/serilog-sinks-file/blob/dev/src/Serilog.Sinks.File/Sinks/File/FileLifecycleHooks.cs) for the [serilog file sink](https://github.com/serilog/serilog-sinks-file), that compresses log files into zip archives and also only keeps a configurable amount of archived files. It lets you configure the following parameters:
 
@@ -845,14 +846,19 @@ namespace MyApp.Logging
 ```json
 "hooks": "MyApp.Logging.SerilogHooks::MyArchiveHook, MyApp"
 ```
+___
 
-## Serilog.Microsoft
+# Logging.Extensions.Serilog.Microsoft
+
+|   .NET Framework   |     .NET Standard      |          .NET          |
+| :----------------: | :--------------------: | :--------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
 
 This package provides an adapater for **Microsoft.Extensions.Logging.ILogger** named `FrameworkLogger` that forwards log events to a **Serilog.ILogger**. Most of the implementation is taken from the existing package [**Serilog.Extensions.Logging**](https://github.com/serilog/serilog-extensions-logging/) with one key difference: 
 
 Whereas **Serilog.Extensions.Logging** uses **System.ThreadingAsyncLocal\<T\>** to add scope to its loggers in a seemingly magical way, this package only uses a simple collection of objects `FrameworkLoggerScopes` that stores the scope. This collection is an internal member of each logger instance and cannot be shared. When using the `FrameworkLogger`  within an application, controlling which logger shares the same scope is now all about which loggers are the same instance and no longer about the execution context of the loggers. Together with the [**logger groups**](#Logger-groups) feature, handling scope becomes more transparent. Additionally it no longer matters in which order scope is added to or removed from a `FrameworkLogger`. Each scope value can be removed from the internal collection at any time.
 
-### IoC (Autofac)
+## IoC (Autofac)
 
 Below is an example on how to register an **Microsoft.Extensions.ILogger** backed by **Serilog** using `FrameworkLogger` with **Autofac**.
 
@@ -945,8 +951,13 @@ class LoggerModule : Autofac.Module
 	}
 }
 ```
+___
 
-## Serilog.Seq
+# Logging.Extensions.Serilog.Seq
+
+|   .NET Framework   |     .NET Standard      |          .NET          |
+| :----------------: | :--------------------: | :--------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
 
 If using [**Seq**](https://datalust.co/seq) as a sink for **Serilog** it is good practice to use an separate **Api Key** for each application forwarding logs to the **Seq Server** so that authentication and filtering can be handled by the server. Normally those **Api Keys** are manually created via the web frontend of the **Seq Server** and then hard-coded into the application.
 
@@ -1040,7 +1051,7 @@ global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.Wri
 global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
 ```
 
-### `SeqServer`
+## `SeqServer`
 
 This class for interacting with a given **Seq Server** provides the following helper functionality:
 

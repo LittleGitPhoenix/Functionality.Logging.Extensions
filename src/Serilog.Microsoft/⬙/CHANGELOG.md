@@ -9,6 +9,10 @@ ___
 
 :calendar: _2023-06-08_
 
+|   .NET Framework   |     .NET Standard      |                     .NET                      |
+| :----------------: | :--------------------: | :-------------------------------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
+
 ### Added
 
 - The log level converter `SerilogToMicrosoftLogLevelConverter` now implements the `Phoenix.Functionality.Logging.Base.ILogLevelConverter<TSourceLogLevel, TTargetLogLevel>` interface and is public.
