@@ -23,9 +23,7 @@ public sealed class ApplicationInformationEnricher : ILogEventEnricher
 	#endregion
 
 	#region Fields
-
-	private static readonly LogApplicationInformation NoLogApplicationInformation;
-
+	
 	private readonly LogEventProperty[] _logEventProperties;
 
 	#endregion
@@ -49,72 +47,55 @@ public sealed class ApplicationInformationEnricher : ILogEventEnricher
 		NumericIdentifier = 0b000_0010,
 		/// <summary> Enriches log events with the <see cref="LogApplicationInformation.AlphanumericIdentifier"/> as <b>ApplicationIdentifier</b> property. </summary>
 		AlphanumericIdentifier = 0b000_0100,
-	}
-
-	/// <summary>
-	/// Defines different version types that will enrich log events as <b>ApplicationVersion</b> property.
-	/// </summary>
-	public enum VersionType
-	{
-		/// <summary> Used if application version should not enrich log events. </summary>
-		None,
-		/// <summary> https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-version </summary>
-		AssemblyVersion,
-		/// <summary> https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-file-version </summary>
-		FileVersion,
-		/// <summary> https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-informational-version </summary>
-		InformationalVersion
+		/// <summary> Enriches log events with the <see cref="LogApplicationInformation.AssemblyVersion"/> as <b>ApplicationVersion</b> property. </summary>
+		/// <remarks> Even though this is a flags enumeration, only one of the <b>Version flags</b> may be used. In case multiple such flags are defined, always the lowest will be used. </remarks>
+		AssemblyVersion = 0b000_1000,
+		/// <summary> Enriches log events with the <see cref="LogApplicationInformation.FileVersion"/> as <b>ApplicationVersion</b> property. </summary>
+		/// <remarks> Even though this is a flags enumeration, only one of the <b>Version flags</b> may be used. In case multiple such flags are defined, always the lowest will be used. </remarks>
+		FileVersion = 0b001_0000,
+		/// <summary> Enriches log events with the <see cref="LogApplicationInformation.InformationalVersion"/> as <b>ApplicationVersion</b> property. </summary>
+		/// <remarks> Even though this is a flags enumeration, only one of the <b>Version flags</b> may be used. In case multiple such flags are defined, always the lowest will be used. </remarks>
+		InformationalVersion = 0b010_0000,
 	}
 
 	#endregion
 
 	#region (De)Constructors
-
-	static ApplicationInformationEnricher()
-	{
-		NoLogApplicationInformation = new LogApplicationInformation(String.Empty, 0, String.Empty);
-	}
-
+	
 	/// <summary>
 	/// Constructor
 	/// </summary>
 	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> used to enrich log events. </param>
 	/// <param name="propertiesToLog"> The properties of <paramref name="applicationInformation"/> that should enrich log events. </param>
-	public ApplicationInformationEnricher(LogApplicationInformation applicationInformation, LogApplicationInformationParts propertiesToLog)
-		: this(applicationInformation, propertiesToLog, VersionType.None) { }
-
-	/// <summary>
-	/// Constructor
-	/// </summary>
-	/// <param name="versionToLog"> The <see cref="VersionType"/> to use for enriching log events. </param>
 	/// <param name="versionModificationCallback"> An optional callback that can be used to modify the obtained version. </param>
-	public ApplicationInformationEnricher(VersionType versionToLog, Func<string?, string?>? versionModificationCallback = null)
-		: this(NoLogApplicationInformation, LogApplicationInformationParts.None, versionToLog, versionModificationCallback) { }
-
-	/// <summary>
-	/// Constructor
-	/// </summary>
-	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> used to enrich log events. </param>
-	/// <param name="propertiesToLog"> The properties of <paramref name="applicationInformation"/> that should enrich log events. </param>
-	/// <param name="versionToLog"> The <see cref="VersionType"/> to use for enriching log events. </param>
-	/// <param name="versionModificationCallback"> An optional callback that can be used to modify the obtained version. </param>
-	public ApplicationInformationEnricher(LogApplicationInformation applicationInformation, LogApplicationInformationParts propertiesToLog, VersionType versionToLog, Func<string?, string?>? versionModificationCallback = null)
+	public ApplicationInformationEnricher(LogApplicationInformation applicationInformation, LogApplicationInformationParts propertiesToLog, Func<string?, string?>? versionModificationCallback = null)
 	{
 		IEnumerable<LogEventProperty> BuildLogEventProperties()
 		{
 			if (propertiesToLog.HasFlag(LogApplicationInformationParts.Name)) yield return new LogEventProperty("ApplicationName", new ScalarValue(applicationInformation.Name));
 			if (propertiesToLog.HasFlag(LogApplicationInformationParts.NumericIdentifier)) yield return new LogEventProperty("ApplicationId", new ScalarValue(applicationInformation.NumericIdentifier));
 			if (propertiesToLog.HasFlag(LogApplicationInformationParts.AlphanumericIdentifier)) yield return new LogEventProperty("ApplicationIdentifier", new ScalarValue(applicationInformation.AlphanumericIdentifier));
-			if (versionToLog != VersionType.None)
+			if
+			(
+				propertiesToLog.HasFlag(LogApplicationInformationParts.AssemblyVersion)
+				|| propertiesToLog.HasFlag(LogApplicationInformationParts.FileVersion)
+				|| propertiesToLog.HasFlag(LogApplicationInformationParts.InformationalVersion)
+			)
 			{
-				var version = versionToLog switch
+				string? version = null;
+				if (propertiesToLog.HasFlag(LogApplicationInformationParts.AssemblyVersion))
 				{
-					VersionType.AssemblyVersion => GetAssemblyVersion()?.ToString(),
-					VersionType.FileVersion => GetFileVersion()?.ToString(),
-					VersionType.InformationalVersion => GetInformationalVersion(),
-					_ => GetFileVersion()?.ToString()
-				};
-
+					version = applicationInformation.AssemblyVersion?.ToString();
+				}
+				else if (propertiesToLog.HasFlag(LogApplicationInformationParts.FileVersion))
+				{
+					version = applicationInformation.FileVersion?.ToString();
+				}
+				else if (propertiesToLog.HasFlag(LogApplicationInformationParts.InformationalVersion))
+				{
+					version = applicationInformation.InformationalVersion;
+				}
+				
 				if (versionModificationCallback is not null) version = versionModificationCallback.Invoke(version);
 				yield return new LogEventProperty("ApplicationVersion", new ScalarValue(version ?? "unknown"));
 			}
@@ -132,54 +113,7 @@ public sealed class ApplicationInformationEnricher : ILogEventEnricher
 	{
 		foreach (var eventProperty in _logEventProperties) logEvent.AddPropertyIfAbsent(eventProperty);
 	}
-
-	#region Helper
-
-	/// <summary>
-	/// Gets the assembly version of the running executable, which is specified in the project file as 'AssemblyVersion'.
-	/// </summary>
-	/// <returns> The assembly <see cref="Version"/> or null. </returns>
-	internal static Version? GetAssemblyVersion()
-	{
-		var entryAssembly = Assembly.GetEntryAssembly();
-		var assemblyVersion = entryAssembly?.GetName().Version ?? new Version();
-		return assemblyVersion;
-	}
-
-	/// <summary>
-	/// Gets the file version of the running executable, which is specified in the project file as 'FileVersion'.
-	/// </summary>
-	/// <returns> The file <see cref="Version"/> or null. </returns>
-	internal static Version? GetFileVersion()
-	{
-		var entryAssembly = Assembly.GetEntryAssembly();
-		var fileVersionString = entryAssembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-		if (String.IsNullOrWhiteSpace(fileVersionString))
-			return null;
-		try
-		{
-			var fileVersion = new Version(fileVersionString);
-			return fileVersion;
-		}
-		catch (Exception)
-		{
-			return null;
-		}
-	}
-
-	/// <summary>
-	/// Gets the informational version of the running executable, which is specified in the project file as 'InformationalVersion'.
-	/// </summary>
-	/// <returns> The informational <see cref="Version"/> or null. </returns>
-	internal static string? GetInformationalVersion()
-	{
-		var entryAssembly = Assembly.GetEntryAssembly();
-		var informationalVersion = entryAssembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-		return String.IsNullOrWhiteSpace(informationalVersion) ? null : informationalVersion;
-	}
 	
-	#endregion
-
 	#endregion
 }
 
@@ -189,43 +123,26 @@ public sealed class ApplicationInformationEnricher : ILogEventEnricher
 public static partial class LoggerEnrichmentConfigurationExtensions
 {
 	/// <summary>
-	/// Adds application information to log events.
+	/// Adds application information to log events using <see cref="LogApplicationInformation.Default"/>.
 	/// </summary>
 	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
-	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> used to enrich log events. </param>
-	/// <param name="propertiesToLog"> The properties of <paramref name="applicationInformation"/> that should enrich log events. </param>
+	/// <param name="propertiesToLog"> The properties of the default <see cref="LogApplicationInformation"/> instance that should enrich log events. </param>
+	/// <param name="versionModificationCallback"> An optional callback that can be used to modify the obtained version. </param>
 	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
-	public static LoggerConfiguration WithApplicationInformation(this LoggerEnrichmentConfiguration enrich, LogApplicationInformation applicationInformation, ApplicationInformationEnricher.LogApplicationInformationParts propertiesToLog)
-	{
-		if (enrich is null) throw new ArgumentNullException(nameof(enrich));
-		return enrich.With(new ApplicationInformationEnricher(applicationInformation, propertiesToLog));
-	}
+	public static LoggerConfiguration WithApplicationInformation(this LoggerEnrichmentConfiguration enrich, ApplicationInformationEnricher.LogApplicationInformationParts propertiesToLog, Func<string?, string?>? versionModificationCallback = null)
+		=> enrich.WithApplicationInformation(LogApplicationInformation.Default, propertiesToLog, versionModificationCallback);
 
 	/// <summary>
 	/// Adds application information to log events.
 	/// </summary>
 	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
-	/// <param name="versionToLog"> The <see cref="ApplicationInformationEnricher.VersionType"/> to use for enriching log events. </param>
-	/// <param name="versionModificationCallback"> An optional callback that can be used to modify the obtained version. </param>
-	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
-	public static LoggerConfiguration WithApplicationInformation(this LoggerEnrichmentConfiguration enrich, ApplicationInformationEnricher.VersionType versionToLog, Func<string?, string?>? versionModificationCallback = null)
-	{
-		if (enrich is null) throw new ArgumentNullException(nameof(enrich));
-		return enrich.With(new ApplicationInformationEnricher(versionToLog, versionModificationCallback));
-	}
-
-	/// <summary>
-	/// Adds application information to log events.
-	/// </summary>
-	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
-	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> used to enrich log events. </param>
+	/// <param name="applicationInformation"> Custom <see cref="LogApplicationInformation"/> used to enrich log events. </param>
 	/// <param name="propertiesToLog"> The properties of <paramref name="applicationInformation"/> that should enrich log events. </param>
-	/// <param name="versionToLog"> The <see cref="ApplicationInformationEnricher.VersionType"/> to use for enriching log events. </param>
 	/// <param name="versionModificationCallback"> An optional callback that can be used to modify the obtained version. </param>
 	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
-	public static LoggerConfiguration WithApplicationInformation(this LoggerEnrichmentConfiguration enrich, LogApplicationInformation applicationInformation, ApplicationInformationEnricher.LogApplicationInformationParts propertiesToLog, ApplicationInformationEnricher.VersionType versionToLog, Func<string?, string?>? versionModificationCallback = null)
+	public static LoggerConfiguration WithApplicationInformation(this LoggerEnrichmentConfiguration enrich, LogApplicationInformation applicationInformation, ApplicationInformationEnricher.LogApplicationInformationParts propertiesToLog, Func<string?, string?>? versionModificationCallback = null)
 	{
 		if (enrich is null) throw new ArgumentNullException(nameof(enrich));
-		return enrich.With(new ApplicationInformationEnricher(applicationInformation, propertiesToLog, versionToLog, versionModificationCallback));
+		return enrich.With(new ApplicationInformationEnricher(applicationInformation, propertiesToLog, versionModificationCallback));
 	}
 }

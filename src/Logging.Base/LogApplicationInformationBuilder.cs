@@ -119,8 +119,7 @@ public class LogApplicationInformationBuilder
 	public LogApplicationInformation Build()
 	{
 		var name = _identifierBuilder.ToString();
-		var (numericIdentifier, alphanumericIdentifier) = IdentifierBuilder.BuildNumericAndAlphanumericIdentifier(name);
-		return new LogApplicationInformation(name, numericIdentifier, alphanumericIdentifier);
+		return new LogApplicationInformation(name);
 	}
 
 	#endregion

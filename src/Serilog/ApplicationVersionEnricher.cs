@@ -2,6 +2,7 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
+using Phoenix.Functionality.Logging.Base;
 using Serilog.Configuration;
 using Serilog;
 using Serilog.Core;
@@ -62,10 +63,10 @@ public sealed class ApplicationVersionEnricher : ILogEventEnricher
 	{
 		var version = versionType switch
 		{
-			VersionType.AssemblyVersion => ApplicationInformationEnricher.GetAssemblyVersion()?.ToString(),
-			VersionType.FileVersion => ApplicationInformationEnricher.GetFileVersion()?.ToString(),
-			VersionType.InformationalVersion => ApplicationInformationEnricher.GetInformationalVersion(),
-			_ => ApplicationInformationEnricher.GetFileVersion()?.ToString()
+			VersionType.AssemblyVersion => LogApplicationInformation.Default.AssemblyVersion?.ToString(),
+			VersionType.FileVersion => LogApplicationInformation.Default.FileVersion?.ToString(),
+			VersionType.InformationalVersion => LogApplicationInformation.Default.InformationalVersion,
+			_ => LogApplicationInformation.Default.FileVersion?.ToString()
 		};
 
 		if (versionModificationCallback is not null) version = versionModificationCallback.Invoke(version);
