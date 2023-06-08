@@ -7,7 +7,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</RootNamespace>
-		<Version>2.0.0-beta.2</Version>
+		<Version>2.0.0-beta.3</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2023</Copyright>
@@ -35,7 +35,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
-		<PackageReference Include="Seq.Api" Version="2022.1.0" />
+		<PackageReference Include="Seq.Api" Version="2023.1.0" />
 	</ItemGroup>
 
 	<!-- Move the created NuGet packages into another folder. -->
