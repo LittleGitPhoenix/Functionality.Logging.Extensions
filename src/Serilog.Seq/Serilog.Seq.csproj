@@ -7,7 +7,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</RootNamespace>
-		<Version>2.0.0-beta.3</Version>
+		<Version>2.0.0</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2023</Copyright>
