@@ -50,7 +50,7 @@ public class RegistrationBuilderExtensionsTest
 	#region Tests
 
 	[Test]
-	public void UsingNamedLoggerSucceeds()
+	public void UsingNamedLogger()
 	{
 		// Arrange
 		var loggerName = "MyLogger";
@@ -70,7 +70,7 @@ public class RegistrationBuilderExtensionsTest
 	}
 
 	[Test]
-	public void UsingModifiedLoggerSucceeds()
+	public void UsingModifiedLogger()
 	{
 		// Arrange
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
@@ -88,7 +88,27 @@ public class RegistrationBuilderExtensionsTest
 	}
 
 	[Test]
-	public void UsingSwappedLoggerSucceeds()
+	public void UsingNamedAndModifiedLogger()
+	{
+		// Arrange
+		var loggerName = "MyLogger";
+		var logger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(logger).Setup(mock => mock.BeginScope(It.IsAny<object>())).Verifiable();
+		var builder = new ContainerBuilder();
+		builder.RegisterInstance(logger).As<ILogger>().Named<ILogger>(loggerName);
+		builder.RegisterType<MyClass>().WithLogger(loggerName, l => l.BeginScope(new object())).AsSelf();
+		var container = builder.Build();
+
+		// Act
+		var service = container.Resolve<MyClass>();
+
+		// Assert
+		Assert.AreEqual(logger, service.Logger);
+		Mock.Get(logger).Verify(mock => mock.BeginScope(It.IsAny<object>()), Times.Once);
+	}
+
+	[Test]
+	public void UsingSwappedLogger()
 	{
 		// Arrange
 		var logger = _fixture.Create<ILogger>();

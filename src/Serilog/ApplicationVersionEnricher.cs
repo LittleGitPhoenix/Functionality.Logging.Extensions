@@ -2,7 +2,7 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-using System.Reflection;
+using Phoenix.Functionality.Logging.Base;
 using Serilog.Configuration;
 using Serilog;
 using Serilog.Core;
@@ -11,8 +11,9 @@ using Serilog.Events;
 namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 
 /// <summary>
-/// <see cref="ILogEventEnricher"/> that adds an application version to log events.
+/// <see cref="ILogEventEnricher"/> that adds the application version as property <b>ApplicationVersion</b> to log events.
 /// </summary>
+[Obsolete("Use 'ApplicationInformationEnricher' instead.")]
 public sealed class ApplicationVersionEnricher : ILogEventEnricher
 {
 	#region Delegates / Events
@@ -62,10 +63,10 @@ public sealed class ApplicationVersionEnricher : ILogEventEnricher
 	{
 		var version = versionType switch
 		{
-			VersionType.AssemblyVersion => GetAssemblyVersion()?.ToString(),
-			VersionType.FileVersion => GetFileVersion()?.ToString(),
-			VersionType.InformationalVersion => GetInformationalVersion(),
-			_ => GetFileVersion()?.ToString()
+			VersionType.AssemblyVersion => LogApplicationInformation.Default.AssemblyVersion?.ToString(),
+			VersionType.FileVersion => LogApplicationInformation.Default.FileVersion?.ToString(),
+			VersionType.InformationalVersion => LogApplicationInformation.Default.InformationalVersion,
+			_ => LogApplicationInformation.Default.FileVersion?.ToString()
 		};
 
 		if (versionModificationCallback is not null) version = versionModificationCallback.Invoke(version);
@@ -81,48 +82,6 @@ public sealed class ApplicationVersionEnricher : ILogEventEnricher
 	{
 		logEvent.AddPropertyIfAbsent(_logEventProperty);
 	}
-	
-	/// <summary>
-	/// Gets the assembly version of the running executable, which is specified in the project file as 'AssemblyVersion'.
-	/// </summary>
-	/// <returns> The assembly <see cref="Version"/> or null. </returns>
-	private static Version? GetAssemblyVersion()
-	{
-		var entryAssembly = Assembly.GetEntryAssembly();
-		var assemblyVersion = entryAssembly?.GetName().Version ?? new Version();
-		return assemblyVersion;
-	}
-
-	/// <summary>
-	/// Gets the file version of the running executable, which is specified in the project file as 'FileVersion'.
-	/// </summary>
-	/// <returns> The file <see cref="Version"/> or null. </returns>
-	private static Version? GetFileVersion()
-	{
-		var entryAssembly = Assembly.GetEntryAssembly();
-		var fileVersionString = entryAssembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-		if (String.IsNullOrWhiteSpace(fileVersionString)) return null;
-		try
-		{
-			var fileVersion = new Version(fileVersionString);
-			return fileVersion;
-		}
-		catch (Exception)
-		{
-			return null;
-		}
-	}
-
-	/// <summary>
-	/// Gets the informational version of the running executable, which is specified in the project file as 'InformationalVersion'.
-	/// </summary>
-	/// <returns> The informational <see cref="Version"/> or null. </returns>
-	private static string? GetInformationalVersion()
-	{
-		var entryAssembly = Assembly.GetEntryAssembly();
-		var informationalVersion = entryAssembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-		return String.IsNullOrWhiteSpace(informationalVersion) ? null : informationalVersion;
-	}
 
 	#endregion
 }
@@ -133,12 +92,13 @@ public sealed class ApplicationVersionEnricher : ILogEventEnricher
 public static partial class LoggerEnrichmentConfigurationExtensions
 {
 	/// <summary>
-	/// Adds a the application version to log events.
+	/// Adds the application version as property <b>ApplicationVersion</b> to log events.
 	/// </summary>
 	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
 	/// <param name="versionType"> The version type to use. </param>
 	/// <param name="versionModificationCallback"> An optional callback that can be used to modify the obtained version. </param>
 	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
+	[Obsolete("Use 'WithApplicationInformation' instead.")]
 	public static LoggerConfiguration WithApplicationVersion(this LoggerEnrichmentConfiguration enrich, ApplicationVersionEnricher.VersionType versionType = ApplicationVersionEnricher.VersionType.FileVersion, Func<string?, string?>? versionModificationCallback = null)
 	{
 		if (enrich is null) throw new ArgumentNullException(nameof(enrich));

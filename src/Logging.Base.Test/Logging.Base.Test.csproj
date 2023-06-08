@@ -15,11 +15,10 @@
 		<PackageReference Include="morelinq" Version="3.4.1" />
 		<PackageReference Include="NUnit" Version="3.13.3" />
 		<PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
-		<PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Serilog.File\Serilog.File.csproj" />
+	  <ProjectReference Include="..\Logging.Base\Logging.Base.csproj" />
 	</ItemGroup>
 
 </Project>

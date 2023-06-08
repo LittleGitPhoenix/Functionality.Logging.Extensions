@@ -2,6 +2,8 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
+using Phoenix.Functionality.Logging.Base;
+
 namespace Phoenix.Functionality.Logging.Extensions.Serilog.Seq;
 
 /// <summary>
@@ -63,20 +65,23 @@ public class SeqServer
     /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
     /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
     public virtual string RegisterApplication(string applicationTitle, TimeSpan timeout)
-        => this.RegisterApplication(new SeqServerApplicationInformation(applicationTitle), timeout);
+	{
+		var applicationInformation = LogApplicationInformation.Create().StartingWith(applicationTitle).Build();
+		this.RegisterApplication(applicationInformation, timeout);
+		return applicationInformation.AlphanumericIdentifier;
+	}
 
-    /// <summary>
-    /// Registers the application via <paramref name="applicationInformation"/> with the seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application to register. </param>
-    /// <param name="timeout"> The amount of time to wait until registering has to be successful. </param>
-    /// <returns> The generated api key. </returns>
-    /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
-    /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    public virtual string RegisterApplication(SeqServerApplicationInformation applicationInformation, TimeSpan timeout)
+	/// <summary>
+	/// Registers the application via <paramref name="applicationInformation"/> with the seq server.
+	/// </summary>
+	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> of the application to register. </param>
+	/// <param name="timeout"> The amount of time to wait until registering has to be successful. </param>
+	/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+	/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
+	public virtual void RegisterApplication(LogApplicationInformation applicationInformation, TimeSpan timeout)
     {
         using var cancellationTokenSource = new CancellationTokenSource(timeout);
-        return this.RegisterApplication(applicationInformation, cancellationTokenSource.Token);
+        this.RegisterApplication(applicationInformation, cancellationTokenSource.Token);
     }
 
     /// <summary>
@@ -88,36 +93,25 @@ public class SeqServer
     /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
     /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
     public virtual string RegisterApplication(string applicationTitle, CancellationToken cancellationToken = default)
-        => this.RegisterApplication(new SeqServerApplicationInformation(applicationTitle), cancellationToken);
-
-    /// <summary>
-    /// Registers the application via <paramref name="applicationInformation"/> with the seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application to register. </param>
-    /// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
-    /// <returns> The generated api key. </returns>
-    /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
-    /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    public virtual string RegisterApplication(SeqServerApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
+	{
+		var applicationInformation = LogApplicationInformation.Create().StartingWith(applicationTitle).Build();
+		this.RegisterApplication(applicationInformation, cancellationToken);
+		return applicationInformation.AlphanumericIdentifier;
+	}
+	
+	/// <summary>
+	/// Registers the application via <paramref name="applicationInformation"/> with the seq server.
+	/// </summary>
+	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> of the application to register. </param>
+	/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
+	/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+	/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
+	private void RegisterApplication(LogApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
     {
-        var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationInformation.Identifier);
-        this.RegisterApplication(applicationInformation, apiKey, cancellationToken);
-        return apiKey;
-    }
-
-    /// <summary>
-    /// Registers the application via <paramref name="applicationInformation"/> and <paramref name="apiKey"/> with the seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application to register. </param>
-    /// <param name="apiKey"> The api key. </param>
-    /// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
-    /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
-    /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    private void RegisterApplication(SeqServerApplicationInformation applicationInformation, string apiKey, CancellationToken cancellationToken = default)
-    {
-        try
+		var apiKey = applicationInformation.AlphanumericIdentifier;
+		try
         {
-            this.RegisterApplicationAsync(applicationInformation, apiKey, cancellationToken).Wait(CancellationToken.None);
+            this.RegisterApplicationAsync(applicationInformation, cancellationToken).Wait(CancellationToken.None);
         }
         //! Catching SeqServerApplicationRegisterException should not be necessary, as "Wait()" should per specification throw an AggregateException, but unit test proved otherwise.
         catch (SeqServerApplicationRegisterException)
@@ -126,7 +120,7 @@ public class SeqServer
         }
         catch (OperationCanceledException ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Identifier}' with the seq server '{this.ConnectionData.Url}' was cancelled.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}' was cancelled.", new[] { ex });
         }
         catch (AggregateException ex) when (ex.InnerExceptions.FirstOrDefault() is SeqServerApplicationRegisterException seqServerApplicationRegisterException)
         {
@@ -134,7 +128,7 @@ public class SeqServer
         }
         catch (Exception ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Identifier}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] { ex });
         }
     }
 
@@ -146,18 +140,21 @@ public class SeqServer
     /// <returns> The generated api key. </returns>
     /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
     /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    public virtual Task<string> RegisterApplicationAsync(string applicationTitle, TimeSpan timeout)
-        => this.RegisterApplicationAsync(new SeqServerApplicationInformation(applicationTitle), timeout);
+    public virtual async Task<string> RegisterApplicationAsync(string applicationTitle, TimeSpan timeout)
+	{
+		var applicationInformation = LogApplicationInformation.Create().StartingWith(applicationTitle).Build();
+		await this.RegisterApplicationAsync(applicationInformation, timeout);
+		return applicationInformation.AlphanumericIdentifier;
+	}
 
-    /// <summary>
-    /// Registers the application via <paramref name="applicationInformation"/> with the seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application to register. </param>
-    /// <param name="timeout"> The amount of time to wait until registering has to be successful. </param>
-    /// <returns> The generated api key. </returns>
-    /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
-    /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    public virtual Task<string> RegisterApplicationAsync(SeqServerApplicationInformation applicationInformation, TimeSpan timeout)
+	/// <summary>
+	/// Registers the application via <paramref name="applicationInformation"/> with the seq server.
+	/// </summary>
+	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> of the application to register. </param>
+	/// <param name="timeout"> The amount of time to wait until registering has to be successful. </param>
+	/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+	/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
+	public virtual Task RegisterApplicationAsync(LogApplicationInformation applicationInformation, TimeSpan timeout)
     {
         using var cancellationTokenSource = new CancellationTokenSource(timeout);
         return this.RegisterApplicationAsync(applicationInformation, cancellationTokenSource.Token);
@@ -171,39 +168,28 @@ public class SeqServer
     /// <returns> The generated api key. </returns>
     /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
     /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    public virtual Task<string> RegisterApplicationAsync(string applicationTitle, CancellationToken cancellationToken = default)
-        => this.RegisterApplicationAsync(new SeqServerApplicationInformation(applicationTitle), cancellationToken);
-
-    /// <summary>
-    /// Registers the application via <paramref name="applicationInformation"/> with the seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application to register. </param>
-    /// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
-    /// <returns> The generated api key. </returns>
-    /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
-    /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    public virtual async Task<string> RegisterApplicationAsync(SeqServerApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
-    {
-        var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationInformation.Identifier);
-        await this.RegisterApplicationAsync(applicationInformation, apiKey, cancellationToken).ConfigureAwait(false);
-        return apiKey;
-    }
-		
-    /// <summary>
-    /// Registers the application via <paramref name="applicationInformation"/> and <paramref name="apiKey"/> with the seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application to register. </param>
-    /// <param name="apiKey"> The api key. </param>
-    /// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
-    /// <returns> An awaitable <see cref="Task"/>. </returns>
-    /// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
-    /// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-    internal virtual async Task RegisterApplicationAsync(SeqServerApplicationInformation applicationInformation, string apiKey, CancellationToken cancellationToken = default)
+    public virtual async Task<string> RegisterApplicationAsync(string applicationTitle, CancellationToken cancellationToken = default)
+	{
+		var applicationInformation = LogApplicationInformation.Create().StartingWith(applicationTitle).Build();
+		await this.RegisterApplicationAsync(applicationInformation, cancellationToken);
+		return applicationInformation.AlphanumericIdentifier;
+	} 
+	
+	/// <summary>
+	/// Registers the application via <paramref name="applicationInformation"/> with the seq server.
+	/// </summary>
+	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> of the application to register. </param>
+	/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
+	/// <returns> An awaitable <see cref="Task"/>. </returns>
+	/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
+	/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
+	internal virtual async Task RegisterApplicationAsync(LogApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
     {
         var connection = SeqServerHelper.ConnectToSeq(this.ConnectionData.Host, this.ConnectionData.Port, this.ConnectionData.ApiKey);
-        try
+		var apiKey = applicationInformation.AlphanumericIdentifier;
+		try
         {
-            await SeqServerHelper.RegisterApiKeyAsync(applicationInformation.Identifier, apiKey, connection, cancellationToken).ConfigureAwait(false);
+            await SeqServerHelper.RegisterApiKeyAsync(applicationInformation.Name, apiKey, connection, cancellationToken).ConfigureAwait(false);
         }
         catch (SeqServerException ex)
         {
@@ -211,11 +197,11 @@ public class SeqServer
         }
         catch (OperationCanceledException ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Identifier}' with the seq server '{this.ConnectionData.Url}' was cancelled.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}' was cancelled.", new[] { ex });
         }
         catch (Exception ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Identifier}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] { ex });
         }
         finally
         {
@@ -236,21 +222,21 @@ public class SeqServer
     /// <exception cref="OperationCanceledException"> Thrown if the <paramref name="cancellationToken"/> triggered. </exception>
     /// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
     public virtual void SendLogFile(string applicationTitle, FileInfo logFile, CancellationToken cancellationToken = default)
-        => this.SendLogFile(new SeqServerApplicationInformation(applicationTitle), logFile, cancellationToken);
+        => this.SendLogFile(LogApplicationInformation.Create().StartingWith(applicationTitle).Build(), logFile, cancellationToken);
 
-    /// <summary>
-    /// Sends log events to a seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application that produced the log file. </param>
-    /// <param name="logFile"> A reference to the json log file. </param>
-    /// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
-    /// <exception cref="OperationCanceledException"> Thrown if the <paramref name="cancellationToken"/> triggered. </exception>
-    /// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
-    public virtual void SendLogFile(SeqServerApplicationInformation applicationInformation, FileInfo logFile, CancellationToken cancellationToken = default)
+	/// <summary>
+	/// Sends log events to a seq server.
+	/// </summary>
+	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> of the application that produced the log file. </param>
+	/// <param name="logFile"> A reference to the json log file. </param>
+	/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
+	/// <exception cref="OperationCanceledException"> Thrown if the <paramref name="cancellationToken"/> triggered. </exception>
+	/// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
+	public virtual void SendLogFile(LogApplicationInformation applicationInformation, FileInfo logFile, CancellationToken cancellationToken = default)
     {
         try
         {
-            this.SendLogFileAsync(applicationInformation.Identifier, logFile, cancellationToken).Wait(CancellationToken.None);
+            this.SendLogFileAsync(applicationInformation, logFile, cancellationToken).Wait(CancellationToken.None);
         }
         //! Catching SeqServerException should not be necessary, as "Wait()" should per specification throw an AggregateException, but unit test proved otherwise.
         catch (SeqServerException)
@@ -277,20 +263,20 @@ public class SeqServer
     /// <exception cref="OperationCanceledException"> Thrown if the <paramref name="cancellationToken"/> triggered. </exception>
     /// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
     public virtual Task SendLogFileAsync(string applicationTitle, FileInfo logFile, CancellationToken cancellationToken = default)
-        => this.SendLogFileAsync(new SeqServerApplicationInformation(applicationTitle), logFile, cancellationToken);
+        => this.SendLogFileAsync(LogApplicationInformation.Create().StartingWith(applicationTitle).Build(), logFile, cancellationToken);
 
-    /// <summary>
-    /// Sends log events to a seq server.
-    /// </summary>
-    /// <param name="applicationInformation"> The <see cref="SeqServerApplicationInformation"/> of the application that produced the log file. </param>
-    /// <param name="logFile"> A reference to the json log file. </param>
-    /// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
-    /// <returns> An awaitable <see cref="Task"/>. </returns>
-    /// <exception cref="OperationCanceledException"> Thrown if the <paramref name="cancellationToken"/> triggered. </exception>
-    /// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
-    public virtual async Task SendLogFileAsync(SeqServerApplicationInformation applicationInformation, FileInfo logFile, CancellationToken cancellationToken = default)
+	/// <summary>
+	/// Sends log events to a seq server.
+	/// </summary>
+	/// <param name="applicationInformation"> The <see cref="LogApplicationInformation"/> of the application that produced the log file. </param>
+	/// <param name="logFile"> A reference to the json log file. </param>
+	/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
+	/// <returns> An awaitable <see cref="Task"/>. </returns>
+	/// <exception cref="OperationCanceledException"> Thrown if the <paramref name="cancellationToken"/> triggered. </exception>
+	/// <exception cref="SeqServerException"> Thrown if sending the log events to the seq server failed. </exception>
+	public virtual async Task SendLogFileAsync(LogApplicationInformation applicationInformation, FileInfo logFile, CancellationToken cancellationToken = default)
     {
-        var apiKey = IdentifierBuilder.BuildAlphanumericIdentifier(applicationInformation.Identifier);
+        var apiKey = applicationInformation.AlphanumericIdentifier;
         var connection = SeqServerHelper.ConnectToSeq(this.ConnectionData.Host, this.ConnectionData.Port, this.ConnectionData.ApiKey);
         try
         {
@@ -307,7 +293,7 @@ public class SeqServer
         }
         catch (Exception ex)
         {
-            throw new SeqServerException($"An error occurred while sending the log events to the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] {ex});
+            throw new SeqServerException($"An error occurred while sending the log events of {applicationInformation.Name} to the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] {ex});
         }
         finally
         {

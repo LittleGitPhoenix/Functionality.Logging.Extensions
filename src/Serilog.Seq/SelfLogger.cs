@@ -73,7 +73,7 @@ internal class SelfLogger
 
     #region Methods
 
-    public static explicit operator SelfLogger(SeqSinkErrorLogLevel errorLogLevel) => new SelfLogger(errorLogLevel);
+    public static explicit operator SelfLogger(SeqSinkErrorLogLevel errorLogLevel) => new(errorLogLevel);
 
     internal void Log(string message) => this.LogCallback.Invoke(message, null);
         

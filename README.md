@@ -9,6 +9,68 @@ ___
 [toc]
 ___
 
+# Logging.Base
+
+|   .NET Framework   |     .NET Standard      |                     .NET                      |
+| :----------------: | :--------------------: | :-------------------------------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
+
+## General Information
+
+This package contains classes with basic functionality (hence the name).
+
+## LogApplicationInformation
+
+This class contains information about an application that is typically needed when logging. It provides the following properties and is used by some of the other packages.
+
+| Property Name            | Description                                                  |
+| ------------------------ | ------------------------------------------------------------ |
+| `Name`                   | The name of the application.                                 |
+| `NumericIdentifier`      | A unique numeric identifier build from `Name` that can be used for example to register the application with a log target or to enrich log events. |
+| `AlphanumericIdentifier` | A unique 20 chars long alpha-numeric identifier build from`Name` that can be used for example to register the application with a log target or to enrich log events. |
+| `AssemblyVersion`        | The assembly version of the running executable, which is specified in the project file as [**AssemblyVersion**](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-version). |
+| `FileVersion`            | The file version of the running executable, which is specified in the project file as [**FileVersion**](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-file-version). |
+| `InformationalVersion`   | The informational version of the running executable, which is specified in the project file as [**InformationalVersion**](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-informational-version). |
+
+Building an instance is done via **builder pattern**. The `Name` of the application can be composed in different ways, depending on the used methods during building.
+
+The following example will try to obtain the application name from the **entry assembly**.
+
+```c#
+var info = LogApplicationInformation.Create().StartingWithApplicationName().Build();
+```
+
+Below is a more complex example.
+
+```c#
+var info = LogApplicationInformation
+    .Create()
+    .StartingWith("MyApplication")
+    .SeparatedBy('-')
+    .AndMachineName()
+    .SeparatedByDash()
+    .AndOperatingSystemInformation()
+    .Build()
+    ;
+```
+
+### Special instances
+
+- The static `LogApplicationInformation.None` instance is internally used as a **NUll-object** and shouldn't be used in consumer code.
+- The `LogApplicationInformation.Default` instance can be used if no customization to the application name is necessary, as it uses the **entry assembly** to obtain everything.
+
+## Converting Log Levels
+
+The `ILogLevelConverter<TSourceLogLevel, TTargetLogLevel>` interface defined in this package can be implemented when it is necessary to convert log levels from different logging systems (e.g. from **Serilog** to **Microsoft** implementations).
+
+Currently the following specific implementations are available:
+
+| Converter Name                      | Conversion                           | Package                                          |
+| ----------------------------------- | ------------------------------------ | ------------------------------------------------ |
+| SerilogToMicrosoftLogLevelConverter | Serilog :left_right_arrow: Microsoft | Phoenix.Functionality.Logging.Extensions.Serilog |
+
+___
+
 # Logging.Extensions.Microsoft
 
 |   .NET Framework   |     .NET Standard      |                     .NET                      |
@@ -61,18 +123,19 @@ class MyClass
 
 	#region Logging
 
-		static class Log
+	// This is the static Log class.
+	static class Log
+	{
+		// Create log events and/or scopes that can be used with an ILogger.
+		internal static (LogScope, LogEvent) MessageScopeEvent(object data, int userId)
 		{
-			// Create log events and/or scopes that can be used with an ILogger.
-			internal static (LogScope, LogEvent) MessageScopeEvent(object data, int userId)
-			{
-				return
-				(
-					new LogScope(userId),
-					new LogEvent(0, LogLevel.Information, "New data available {Data}.", data)
-				);
-			}
+			return
+			(
+				new LogScope(userId),
+				new LogEvent(0, LogLevel.Information, "New data available {Data}.", data)
+			);
 		}
+	}
 
 	#endregion
 }
@@ -119,8 +182,11 @@ var logEvent = new LogResourceEvent
 	logArgs: new object[] { firstName, lastName }
 	messageArgs: new object[] { firstName, lastName, age }
 );
-var outputMessage = logger.Log(logEvent); // My name is {For} {Bar}.
-Console.WriteLine(outputMessage); // Mein Name ist For Bar. Ich bin 99 Jahre alt.
+
+// The function Will log: 'My name is {For} {Bar}.'
+var outputMessage = logger.Log(logEvent);
+// The returned ouput will be: 'Mein Name ist For Bar. Ich bin 99 Jahre alt.'
+Console.WriteLine(outputMessage);
 ```
 <div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
 	<span style='margin-left:1em; text-align:left'>
@@ -410,7 +476,6 @@ Output:
 
 The following function helps creating log scopes by simply passing a value (like a variable) as parameter. The names of the values will be inferred via the [**System.Runtime.CompilerServices.CallerArgumentExpression**](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.callerargumentexpressionattribute?view=net-6.0) introduced in **C# 10**.
 
-
 ```csharp
 IDisposable CreateScope(this ILogger logger, object? value[1...10], [CallerArgumentExpression("value1")] string? name[1...10] = default)
 ```
@@ -491,10 +556,18 @@ var loggerName = "MyLogger";
 var logger = _fixture.Create<ILogger>();
 
 // Register the named logger.
-builder.RegisterInstance(logger).As<ILogger>().Named<ILogger>(loggerName);
+builder
+    .RegisterInstance(logger)
+    .As<ILogger>()
+    .Named<ILogger>(loggerName)
+    ;
 
 // Register some component that uses that named logger instance.
-builder.RegisterType<MyClass>().WithLogger(loggerName).AsSelf();
+builder
+    .RegisterType<MyClass>()
+    .WithLogger(loggerName)
+    .AsSelf()
+    ;
 ```
 
 Register a component with an **ILogger** that is manipulated before the component is resolved.
@@ -504,10 +577,39 @@ var builder = new ContainerBuilder();
 var logger = _fixture.Create<ILogger>();
 
 // Register the logger instance.
-builder.RegisterInstance(logger).As<ILogger>();
+builder
+    .RegisterInstance(logger)
+    .As<ILogger>()
+    ;
 
-// Register some component that uses a logger instance that is added to a logger group.
-builder.RegisterType<MyClass>().WithLogger(l => l.AddToGroup("MyGroup")).AsSelf();
+// Register some component that uses a logger instance which is added to a logger group.
+builder
+    .RegisterType<MyClass>()
+    .WithLogger(l => l.AddToGroup("MyGroup"))
+    .AsSelf()
+    ;
+```
+
+Register a component with a named **ILogger** that is manipulated before the component is resolved.
+
+```c#
+var loggerName = "MyLogger";
+var builder = new ContainerBuilder();
+var logger = _fixture.Create<ILogger>();
+
+// Register the named logger.
+builder
+    .RegisterInstance(logger)
+    .As<ILogger>()
+    .Named<ILogger>(loggerName)
+    ;
+
+// Register some component that uses the named logger instance which is added to a logger group.
+builder
+    .RegisterType<MyClass>()
+    .WithLogger(loggerName, l => l.AddToGroup("MyGroup"))
+    .AsSelf()
+    ;
 ```
 
 Register a component with an **ILogger** that allows that the resolved logger instance can be replaced. This can be used if the resolved logger needs to be wrapped in a [decorator](https://en.wikipedia.org/wiki/Decorator_pattern).
@@ -517,29 +619,31 @@ var builder = new ContainerBuilder();
 var logger = _fixture.Create<ILogger>();
 
 // Register the logger instance.
-builder.RegisterInstance(logger).As<ILogger>();
+builder
+    .RegisterInstance(logger)
+    .As<ILogger>()
+    ;
 
 // Register some component that uses a different logger than the one that was resolved.
-builder.RegisterType<MyClass>().WithLogger(l => new DecoratedLogger(l)).AsSelf();
+builder
+    .RegisterType<MyClass>()
+    .WithLogger(l => new DecoratedLogger(l))
+    .AsSelf()
+    ;
 ```
-
-
-
 ___
 
 # Logging.Extensions.Serilog
 
 |   .NET Framework   |     .NET Standard      |          .NET          |
 | :----------------: | :--------------------: | :--------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
 
 ## General Information
 
 This package contains different helper classes that can be used when logging with [**Serilog**](https://serilog.net).
 
-## Serilog
-
-### Settings
+## Settings
 
 With some extension methods of **LoggerSettingsConfiguration** creating a new **LoggerConfiguration** and thus a new **Logger** from a json file is pretty simple.
 
@@ -560,9 +664,51 @@ var configuration = new LoggerConfiguration()
 var logger = configuration.CreateLogger();
 ```
 
-### Enrichers
+## Enrichers
 
-#### `ApplicationIdentifierEnricher`
+The package provides some **ILogEventEnricher** that help adding data to log events. More information about log enrichment in general can be found [here](https://github.com/serilog/serilog/wiki/Enrichment).
+
+### `ApplicationInformationEnricher`
+
+An **ILogEventEnricher** that adds configurable information about an application via [`LogApplicationInformation`](#LogApplicationInformation) to log events. What information will be used can be specified via the `ApplicationInformationEnricher.LogApplicationInformationParts` flags-enumeration during setup of the enricher. The enricher itself is accessible via an the `WithApplicationInformation` extension method of **Serilog.Configuration.LoggerEnrichmentConfiguration**.
+
+
+```csharp
+// Create the application information (or use LogApplicationInformation.Default if applicable).
+var logApplicationInformation = LogApplicationInformation
+    .Create()
+    .StartingWithApplicationName
+    .SeparatedByDash()
+    .AndMachineName()
+    .Build()
+    ;
+
+// Enrich a logger.
+var configuration = new LoggerConfiguration()
+	.Enrich.WithApplicationInformation
+    (
+    	logApplicationInformation,
+    	ApplicationInformationEnricher.LogApplicationInformationParts.Name
+	    | ApplicationInformationEnricher.LogApplicationInformationParts.NumericIdentifier
+   	    | ApplicationInformationEnricher.LogApplicationInformationParts.InformationalVersion
+	)
+	.WriteTo.Debug()
+	;
+```
+
+All overloads of `WithApplicationInformation` have an optional callback parameter that allows the used version to be modified. This can be used to pretty-print the version (e.g **1.0.0-beta1** could be rewritten into **1.0.0 Beta 1** or a custom string could be returned in cases the inferred version is **null**).
+
+### `ApplicationIdentifierEnricher`
+
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ff0000; background-color: #ff000020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Deprecated</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		Use <i>ApplicationInformationEnricher</i> instead.
+    </div>
+</div>
 
 An **ILogEventEnricher** that adds a unique application identifier to log events. The property name of the enriched application identifier will be **ApplicationIdentifier**. Creating the enricher can be done via one of the following constructors, which uses different approaches to creating the unique identifier.
 
@@ -588,6 +734,15 @@ var configuration = new LoggerConfiguration()
 
 ### `ApplicationVersionEnricher`
 
+<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ff0000; background-color: #ff000020' >
+	<span style='margin-left:1em; text-align:left'>
+    	<b>Deprecated</b>
+    </span>
+    <br>
+	<div style='margin-left:1em; margin-right:1em;'>
+		Use <i>ApplicationInformationEnricher</i> instead.
+    </div>
+</div>
 An **ILogEventEnricher** that adds the application version to log events. The property name of the enriched application identifier will be **ApplicationVersion**. The enricher can be added as follows:
 
 ```csharp
@@ -604,10 +759,15 @@ The type of the version that is used can be selected between the following optio
 - [`InformationalVersion`](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-informational-version)
 
 Additionally an optional callback can be specified in the `WithApplicationVersion` extension method that allows the obtained version to be modified. This can be used to pretty-print the version (e.g **1.0.0-beta1** could be rewritten into **1.0.0 Beta 1** via string or regex replacements).
+___
 
-## Serilog.File
+# Logging.Extensions.Serilog.File
 
-### `ArchiveHook`
+|   .NET Framework   |     .NET Standard      |                     .NET                      |
+| :----------------: | :--------------------: | :-------------------------------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+
+## `ArchiveHook`
 
 This is a special [**FileLifecycleHooks**](https://github.com/serilog/serilog-sinks-file/blob/dev/src/Serilog.Sinks.File/Sinks/File/FileLifecycleHooks.cs) for the [serilog file sink](https://github.com/serilog/serilog-sinks-file), that compresses log files into zip archives and also only keeps a configurable amount of archived files. It lets you configure the following parameters:
 
@@ -686,14 +846,19 @@ namespace MyApp.Logging
 ```json
 "hooks": "MyApp.Logging.SerilogHooks::MyArchiveHook, MyApp"
 ```
+___
 
-## Serilog.Microsoft
+# Logging.Extensions.Serilog.Microsoft
+
+|   .NET Framework   |     .NET Standard      |          .NET          |
+| :----------------: | :--------------------: | :--------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
 
 This package provides an adapater for **Microsoft.Extensions.Logging.ILogger** named `FrameworkLogger` that forwards log events to a **Serilog.ILogger**. Most of the implementation is taken from the existing package [**Serilog.Extensions.Logging**](https://github.com/serilog/serilog-extensions-logging/) with one key difference: 
 
-Whereas **Serilog.Extensions.Logging** uses **System.ThreadingAsyncLocal\<T\>** to add scope to its loggers in a seemingly magical way, this package only uses a simple collection of objects `FrameworkLoggerScopes` that stores the scope. This collection is an internal member of each logger instance and cannot be shared. When using the `FrameworkLogger`  within an application, controlling which logger shares the same scope is now all about which loggers are the same instance and no longer about the execution context of the loggers. Together with the [**logger groups**](#Logger-groups) feature, handling scope becomes more transparent. Additionally it no longer matter in which order scope is added to or removed from a `FrameworkLogger`. Each scope value can be removed from the internal collection at any time.
+Whereas **Serilog.Extensions.Logging** uses **System.ThreadingAsyncLocal\<T\>** to add scope to its loggers in a seemingly magical way, this package only uses a simple collection of objects `FrameworkLoggerScopes` that stores the scope. This collection is an internal member of each logger instance and cannot be shared. When using the `FrameworkLogger`  within an application, controlling which logger shares the same scope is now all about which loggers are the same instance and no longer about the execution context of the loggers. Together with the [**logger groups**](#Logger-groups) feature, handling scope becomes more transparent. Additionally it no longer matters in which order scope is added to or removed from a `FrameworkLogger`. Each scope value can be removed from the internal collection at any time.
 
-### IoC (Autofac)
+## IoC (Autofac)
 
 Below is an example on how to register an **Microsoft.Extensions.ILogger** backed by **Serilog** using `FrameworkLogger` with **Autofac**.
 
@@ -786,8 +951,13 @@ class LoggerModule : Autofac.Module
 	}
 }
 ```
+___
 
-## Serilog.Seq
+# Logging.Extensions.Serilog.Seq
+
+|   .NET Framework   |     .NET Standard      |          .NET          |
+| :----------------: | :--------------------: | :--------------------: |
+| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
 
 If using [**Seq**](https://datalust.co/seq) as a sink for **Serilog** it is good practice to use an separate **Api Key** for each application forwarding logs to the **Seq Server** so that authentication and filtering can be handled by the server. Normally those **Api Keys** are manually created via the web frontend of the **Seq Server** and then hard-coded into the application.
 
@@ -805,7 +975,7 @@ For some applications this may however not be feasible, e.g. if one application 
 
 - Unique application name
 
-	Each instance of an application needs a unique name. For example this could be the normal name of the application suffixed with the computer it is running on (e.g. MyApplication@Home, MyApplication@Server, ...). This name is used to create the unique 20 alphanumeric characters long  **Api Key** that will be registered in the **Seq Server** if necessary.
+	Each instance of an application needs a unique name. For example this could be the normal name of the application suffixed with the computer it is running on (e.g. MyApplication@Home, MyApplication@Server, ...). This name is internally used to create a unique 20 alphanumeric characters long  **Api Key** that will be registered in the **Seq Server** if necessary.
 
 Then only the `Seq` extension method has to be called during configuration.
 
@@ -864,11 +1034,11 @@ The `Seq` extension method has many parameters, most of them being optional, all
 | configurationApiKey | Existing **Api key** that is used to register the application. | Has to already exist in the **Seq Server** |
 | retryOnError | Automatically retry registering until it succeeds. |  |
 
-In most cases registering a new (or already existing) application instance will succeed on the first try. But in some cases the server may temporarily not be available. The parameter `retryOnError` controls what should happen then.
+In most cases registering a new (or already existing) application instance will succeed on the first try. But in some cases the server may be temporarily unavailable. The parameter `retryOnError` controls what should happen then.
 
 - Retry on error  (true, default)
 
-	The configuration will return a special sink that buffers messages while registering the application is repeatedly is done in the background. Once the connection to the **Seq Server** was established and the **Api Key** has been registered, the queued messages are flushed to the server.
+	The configuration will return a special sink that buffers messages while registering the application is repeatedly done in the background. Once the connection to the **Seq Server** was established and the **Api Key** has been registered, the queued messages are flushed to the server.
 
 - Don't retry on error (false)
 
@@ -881,7 +1051,7 @@ global::Serilog.Debugging.SelfLog.Enable(message => System.Diagnostics.Debug.Wri
 global::Serilog.Debugging.SelfLog.Enable(System.Console.Error);
 ```
 
-### `SeqServer`
+## `SeqServer`
 
 This class for interacting with a given **Seq Server** provides the following helper functionality:
 
@@ -899,9 +1069,6 @@ This class for interacting with a given **Seq Server** provides the following he
     var seqServer = new Phoenix.Functionality.Logging.Extensions.Serilog.Seq.SeqServer("localhost", 5341, "***");
     await seqServer.SendLogFileAsync("MyApplication", logFile);
     ```
-
-
-
 ___
 
 # Authors
