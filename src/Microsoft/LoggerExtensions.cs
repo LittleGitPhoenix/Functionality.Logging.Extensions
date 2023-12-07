@@ -37,6 +37,7 @@ public static partial class LoggerExtensions
 		CreateScopeForGroupsAndLogMethod = typeof(LoggerExtensions)
 			.GetMethods(BindingFlags.Public | BindingFlags.Static)
 			.Where(m => m.Name == nameof(CreateScopeAndLog))
+			.Where(m => m.ReturnType == typeof(IDisposable))
 			.Select(m => new { Method = m, Parameters = m.GetParameters(), GenericParameters = m.GetGenericArguments() })
 			.Where
 			(
@@ -637,9 +638,12 @@ public static partial class LoggerExtensions
 		{
 			var genericType = logScopeType.GenericTypeArguments.First();
 			var genericMethod = CreateScopeForGroupsAndLogMethodCache.GetOrAdd(genericType, _ => CreateScopeForGroupsAndLogMethod.MakeGenericMethod(genericType));
-			genericMethod.Invoke(null, parameters: new object[] { logger, logScope, log.Value.Event });
+			return (genericMethod.Invoke(null, parameters: new object[] {logger, logScope, log.Value.Event}) as IDisposable)!;
 		}
-		return logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+		else
+		{
+			return logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
+		}
 	}
 
 	/// <summary>

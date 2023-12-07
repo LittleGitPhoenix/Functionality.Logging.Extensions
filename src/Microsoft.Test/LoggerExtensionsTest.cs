@@ -109,16 +109,22 @@ public class LoggerExtensionsTest
 	}
 
 	[Test]
-	public void CreateScopeAndLogRespectsGenericScope()
+	public void CreateScopeAndLogCannotInferGenericTypeParameterInsideValueTuple()
 	{
 		// Arrange
 		var logScope = new LogScope<string>("MyGroup", ("Property", "Value"));
 		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message");
-		var log = (logScope, logEvent);
+		var log = (logScope, logEvent); //! Generic type parameter of logScope (string) is wrapped inside a value tuple, which "disables" automatic type inference.
 		var instanceWrapper = _fixture.Create<Mock<InstanceWrapper>>().Object;
 
 		// Act
-		//! Since automatic type inference does not work if the generic type parameter is inside a ValueTuple, below call will currently invoke the log method that does not apply the scope to the group identified by the generic parameter.
+		/*
+		* Since automatic type inference does not work if the generic type parameter is inside a ValueTuple, below call will currently invoke the log method that does not apply the scope to the group identified by the generic parameter.
+		* If this test some when fails, this means that type inference does work for value tuples (which is what I would have expected to be the case all along).
+		* Therefore the changes made in 'LoggerExtensions.CreateScopeAndLog' can then be removed for the .NET version that does handle this properly.
+		
+		* Side node: The 'LoggerExtensions.CreateScopeAndLog' functions cannot be tested directly, as those are extension methods, which must be static functions, which in turn cannot be easily substituted.
+		*/
 		instanceWrapper.CreateScopeAndLog(log);
 
 		// Assert

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 2.2.1
+
+:calendar: _2023-08-??_
+
+### Fixed
+
+- Using the `LoggerExtensions.CreateScopeAndLog` extension method lead to log events getting emitted twice.
+
+___
+
 ## 2.2.0
 
 :calendar: _2023-03-27_

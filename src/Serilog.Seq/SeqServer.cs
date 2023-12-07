@@ -106,7 +106,7 @@ public class SeqServer
 	/// <param name="cancellationToken"> A <see cref="CancellationToken"/>. </param>
 	/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
 	/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-	private void RegisterApplication(LogApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
+	public void RegisterApplication(LogApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
     {
 		var apiKey = applicationInformation.AlphanumericIdentifier;
 		try
@@ -183,7 +183,7 @@ public class SeqServer
 	/// <returns> An awaitable <see cref="Task"/>. </returns>
 	/// <exception cref="SeqServerApplicationRegisterException"> Thrown registering the application failed. </exception>
 	/// <remarks> <see cref="OperationCanceledException"/> will be wrapped into an <see cref="SeqServerApplicationRegisterException"/>. </remarks>
-	internal virtual async Task RegisterApplicationAsync(LogApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
+	public virtual async Task RegisterApplicationAsync(LogApplicationInformation applicationInformation, CancellationToken cancellationToken = default)
     {
         var connection = SeqServerHelper.ConnectToSeq(this.ConnectionData.Host, this.ConnectionData.Port, this.ConnectionData.ApiKey);
 		var apiKey = applicationInformation.AlphanumericIdentifier;

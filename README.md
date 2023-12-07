@@ -155,7 +155,6 @@ A typical scenario when logging (especially exceptions) is writing the error to 
     </div>
 </div>
 
-
 <div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
 	<span style='margin-left:1em; text-align:left'>
     	<b>Output messages</b>
@@ -179,7 +178,7 @@ var logEvent = new LogResourceEvent
 	LogLevel.Debug,
 	resourceManager: l10n.ResourceManager,
 	resourceName: nameof(l10n.Introduction),
-	logArgs: new object[] { firstName, lastName }
+	logArgs: new object[] { firstName, lastName },
 	messageArgs: new object[] { firstName, lastName, age }
 );
 
