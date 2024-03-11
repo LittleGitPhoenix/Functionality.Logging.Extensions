@@ -8,13 +8,16 @@ using Serilog.Formatting.Compact.Reader;
 
 namespace Serilog.Seq.Test;
 
-public class SeqServerHelperTest
+public class SeqServerHelperIntegrationTest
 {
 	#region Setup
 
 #pragma warning disable 8618 // → Always initialized in the 'Setup' method before a test is run.
 	private IFixture _fixture;
 #pragma warning restore 8618
+
+	[OneTimeSetUp]
+	public void BeforeAllTests() { }
 
 	[SetUp]
 	public void BeforeEachTest()
@@ -24,9 +27,15 @@ public class SeqServerHelperTest
 		_title = Guid.NewGuid().ToString();
 		_apiKey = Guid.NewGuid().ToString().Replace("-", String.Empty);
 		//_seqHost = "http://localhost";
-		_seqHost = "http://seq2022.hyper.home";
+		_seqHost = "http://seq2022.leistner.cc";
 		_seqPort = (ushort) 80;
 	}
+
+	[TearDown]
+	public void AfterEachTest() { }
+
+	[OneTimeTearDown]
+	public void AfterAllTest() { }
 
 	#endregion
 
@@ -44,8 +53,10 @@ public class SeqServerHelperTest
 
 	#endregion
 
+	#region Tests
+
 	[Test]
-	public async Task Check_Api_Key_Is_Created_Async()
+	public async Task ApiKeyIsCreatedAsync()
 	{
 		try
 		{
@@ -56,7 +67,7 @@ public class SeqServerHelperTest
 			var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
 			Assert.That(apiKeys.Count, Is.EqualTo(1));
 			Assert.That(apiKeys.Single().Title, Is.EqualTo(_title));
-			Assert.True(_apiKey.StartsWith(apiKeys.Single().TokenPrefix));
+			Assert.That(_apiKey.StartsWith(apiKeys.Single().TokenPrefix), Is.True);
 		}
 		finally
 		{
@@ -65,7 +76,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public void Check_Api_Key_Is_Created_Sync()
+	public void ApiKeyIsCreatedSync()
 	{
 		try
 		{
@@ -76,7 +87,7 @@ public class SeqServerHelperTest
 			var apiKeys = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result;
 			Assert.That(apiKeys.Count, Is.EqualTo(1));
 			Assert.That(apiKeys.Single().Title, Is.EqualTo(_title));
-			Assert.True(_apiKey.StartsWith(apiKeys.Single().TokenPrefix));
+			Assert.That(_apiKey.StartsWith(apiKeys.Single().TokenPrefix), Is.True);
 		}
 		finally
 		{
@@ -85,7 +96,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public async Task Check_Api_Key_Contains_Application_Property_Async()
+	public async Task ApiKeyContainsApplicationPropertyAsync()
 	{
 		try
 		{
@@ -95,7 +106,7 @@ public class SeqServerHelperTest
 			// Assert
 			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey)).Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == "Application" && property.Value.ToString() == _title);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -104,7 +115,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public void Check_Api_Key_Contains_Application_Property_Sync()
+	public void ApiKeyContainsApplicationPropertySync()
 	{
 		try
 		{
@@ -114,7 +125,7 @@ public class SeqServerHelperTest
 			// Assert
 			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result.Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == "Application" && property.Value.ToString() == _title);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -123,7 +134,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public async Task Check_Api_Key_Creation_Fails_Async()
+	public async Task ApiKeyCreationFailsAsync()
 	{
 		// Arrange
 		var wrongSeqHost = "http://not-existing-seq-server";
@@ -145,7 +156,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public void Check_Api_Key_Creation_Fails_Sync()
+	public void ApiKeyCreationFailsSync()
 	{
 		// Arrange
 		var wrongSeqHost = "http://not-existing-seq-server";
@@ -167,7 +178,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public async Task Check_Api_Key_Is_Updated_Async()
+	public async Task ApiKeyIsUpdatedAsync()
 	{
 		// Arrange
 		var propertyName = Guid.NewGuid().ToString();
@@ -186,7 +197,7 @@ public class SeqServerHelperTest
 			// Assert
 			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey)).Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == propertyName && property.Value.ToString() == propertyValue);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -195,7 +206,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public void Check_Api_Key_Is_Updated_Sync()
+	public void ApiKeyIsUpdatedSync()
 	{
 		// Arrange
 		var propertyName = Guid.NewGuid().ToString();
@@ -214,7 +225,7 @@ public class SeqServerHelperTest
 			// Assert
 			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result.Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == propertyName && property.Value.ToString() == propertyValue);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -223,7 +234,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public async Task Check_Api_Key_Is_Deleted_Async()
+	public async Task ApiKeyIsDeletedAsync()
 	{
 		// Arrange
 		await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey);
@@ -238,7 +249,7 @@ public class SeqServerHelperTest
 	}
 
 	[Test]
-	public void Check_Api_Key_Is_Deleted_Sync()
+	public void ApiKeyIsDeletedSync()
 	{
 		// Arrange
 		SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey).Wait();
@@ -256,7 +267,7 @@ public class SeqServerHelperTest
 	/// Checks that sending log events via POST succeeds for a properly registered application.
 	/// </summary>
 	[Test]
-	public async Task Check_Sending_Events_Via_Post_Succeeds_Async()
+	public async Task SendingEventsViaPostSucceedsAsync()
 	{
 		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
 		try
@@ -309,7 +320,7 @@ public class SeqServerHelperTest
 	/// Checks that sending log events via POST succeeds for a properly registered application.
 	/// </summary>
 	[Test]
-	public void Check_Sending_Events_Via_Post_Succeeds_Sync()
+	public void SendingEventsViaPostSucceedsSync()
 	{
 		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
 		try
@@ -363,7 +374,7 @@ public class SeqServerHelperTest
 	/// </summary>
 	/// <remarks> This needs the seq server to enforce having an registered api key for ingestion: Settings → API KEYS → 'Require authentication for HTTP/S ingestion' </remarks>
 	[Test]
-	public async Task Check_Sending_Events_Via_Post_Fails_Because_Application_Is_Not_Registered_Async()
+	public async Task SendingEventsViaPostFailsBecauseApplicationIsNotRegisteredAsync()
 	{
 		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
 		try
@@ -389,7 +400,7 @@ public class SeqServerHelperTest
 	/// </summary>
 	/// <remarks> This needs the seq server to enforce having an registered api key for ingestion: Settings → API KEYS → 'Require authentication for HTTP/S ingestion' </remarks>
 	[Test]
-	public void Check_Sending_Events_Via_Post_Fails_Because_Application_Is_Not_Registered_Sync()
+	public void SendingEventsViaPostFailsBecauseApplicationIsNotRegisteredSync()
 	{
 		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
 		try
@@ -407,12 +418,118 @@ public class SeqServerHelperTest
 			// Assert
 			//! In contrast to await the Wait() method does not throw the first exception but always wraps all exception in an AggregateException.
 			var aggregateException = exception as AggregateException;
-			Assert.NotNull(aggregateException);
-			Assert.True(aggregateException?.InnerExceptions.First() is SeqServerException);
+			Assert.That(aggregateException, Is.Not.Null);
+			Assert.That(aggregateException?.InnerExceptions.First() is SeqServerException, Is.True);
 		}
 		finally
 		{
 			SeqServerHelper.DeleteApiKeysAsync(_title, connection).Wait();
 		}
 	}
+
+	/// <summary>
+	/// Checks that sending a file exceeding the default payload limit still succeeds, because it is send in chunks.
+	/// </summary>
+	/// <remarks> This needs the seq server to enforce having an registered api key for ingestion: Settings → API KEYS → 'Require authentication for HTTP/S ingestion' </remarks>
+	[Test]
+	public async Task LargeFileIsChunkedBeforeSending()
+	{
+		var logFile = new FileInfo(Path.Combine(Directory.GetCurrentDirectory(), $".{nameof(LargeFileIsChunkedBeforeSending)}.log"));
+		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		try
+		{
+			// Arrange
+			await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, connection);
+			var targetLogEventCount = 0;
+			var receivedLogEventCount = 0;
+			var filter = $"Application = '{_title}'";
+			using var stream = connection.Events.StreamAsync<Newtonsoft.Json.Linq.JObject>(filter: filter).Result;
+			using var subscription = stream
+				.Select(LogEventReader.ReadFromJObject)
+				.Subscribe(_ => receivedLogEventCount++)
+				;
+			// Create a file large enough to exceed the payload limit.
+			{
+				await using var fileStream = logFile.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+				await using var streamWriter = new StreamWriter(fileStream);
+				streamWriter.AutoFlush = true;
+				while (streamWriter.BaseStream.Length < (SeqServerHelper.AllowedChunkByteSize * 2)) //! Larger file
+				{
+					await streamWriter.WriteLineAsync("{\"@t\":\"" + $"{DateTime.UtcNow:O}" + "\",\"@mt\":\"Request for {RequestName} will be handled.\",\"RequestName\":\"CheckConnection\",\"EventId\":{\"Id\":1888742473},\"RequestId\":\"" + $"{Guid.NewGuid()}" + "\",\"Scope\":[],\"ThreadId\":1169,\"ApplicationVersion\":\"1.0.0.0\",\"ApplicationId\":1834788672,\"Data\":\"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna.\"}");
+					targetLogEventCount++;
+				}
+			}
+			logFile.Refresh();
+
+			// Act
+			Assert.DoesNotThrowAsync(() => SeqServerHelper.SendLogFileToServerAsync(_apiKey, logFile, connection));
+			
+			// Wait a little bit for the events to reach the server and for the observable to be notified.
+			Thread.Sleep(TimeSpan.FromMilliseconds(10000));
+			subscription.Dispose();
+			stream.Dispose();
+			
+			// Assert
+			Assert.That(targetLogEventCount, Is.EqualTo(receivedLogEventCount));
+		}
+		finally
+		{
+			if (logFile.Exists) logFile.Delete();
+			SeqServerHelper.DeleteApiKeysAsync(_title, connection).Wait();
+		}
+	}
+
+	/// <summary>
+	/// Checks that sending a file that is not exceeding the default payload limit still is send completely.
+	/// </summary>
+	/// <remarks> This needs the seq server to enforce having an registered api key for ingestion: Settings → API KEYS → 'Require authentication for HTTP/S ingestion' </remarks>
+	[Test]
+	public async Task SmallFileIsSendCompletely()
+	{
+		var logFile = new FileInfo(Path.Combine(Directory.GetCurrentDirectory(), $".{nameof(SmallFileIsSendCompletely)}.log"));
+		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		try
+		{
+			// Arrange
+			await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, connection);
+			var targetLogEventCount = 0;
+			var receivedLogEventCount = 0;
+			var filter = $"Application = '{_title}'";
+			using var stream = connection.Events.StreamAsync<Newtonsoft.Json.Linq.JObject>(filter: filter).Result;
+			using var subscription = stream
+				.Select(LogEventReader.ReadFromJObject)
+				.Subscribe(_ => receivedLogEventCount++)
+				;
+			// Create a file large enough to exceed the payload limit.
+			{
+				await using var fileStream = logFile.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+				await using var streamWriter = new StreamWriter(fileStream);
+				streamWriter.AutoFlush = true;
+				while (streamWriter.BaseStream.Length < SeqServerHelper.AllowedChunkByteSize) //! Smaller file
+				{
+					await streamWriter.WriteLineAsync("{\"@t\":\"" + $"{DateTime.UtcNow:O}" + "\",\"@mt\":\"Request for {RequestName} will be handled.\",\"RequestName\":\"CheckConnection\",\"EventId\":{\"Id\":1888742473},\"RequestId\":\"" + $"{Guid.NewGuid()}" + "\",\"Scope\":[],\"ThreadId\":1169,\"ApplicationVersion\":\"1.0.0.0\",\"ApplicationId\":1834788672,\"Data\":\"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna.\"}");
+					targetLogEventCount++;
+				}
+			}
+			logFile.Refresh();
+
+			// Act
+			Assert.DoesNotThrowAsync(() => SeqServerHelper.SendLogFileToServerAsync(_apiKey, logFile, connection));
+			
+			// Wait a little bit for the events to reach the server and for the observable to be notified.
+			Thread.Sleep(TimeSpan.FromMilliseconds(10000));
+			subscription.Dispose();
+			stream.Dispose();
+			
+			// Assert
+			Assert.That(targetLogEventCount, Is.EqualTo(receivedLogEventCount));
+		}
+		finally
+		{
+			if (logFile.Exists) logFile.Delete();
+			SeqServerHelper.DeleteApiKeysAsync(_title, connection).Wait();
+		}
+	}
+
+	#endregion
 }

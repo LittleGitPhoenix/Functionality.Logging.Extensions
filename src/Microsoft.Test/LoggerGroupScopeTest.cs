@@ -55,8 +55,8 @@ public class LoggerGroupScopeTest
 		
 		// Assert
 		Mock.Get(disposedCallback).Verify(_ => _(It.IsAny<LoggerGroupScope>()), Times.Once);
-		Assert.IsEmpty(loggerGroupScope._scopes);
-		Assert.IsEmpty(loggerGroupScope._disposables);
+		Assert.That(loggerGroupScope._scopes, Is.Empty);
+		Assert.That(loggerGroupScope._disposables, Is.Empty);
 	}
 
 	/// <summary>

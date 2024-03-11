@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Data;
+using System.Globalization;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,37 @@ public class LoggerExtensionsTest
 	#endregion
 
 	#region Data
+
+	class MyLogger : ILogger
+	{
+		#region Implementation of ILogger
+
+		/// <inheritdoc />
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) { }
+
+		/// <inheritdoc />
+		public bool IsEnabled(LogLevel logLevel) => false;
+
+		/// <inheritdoc />
+		public IDisposable BeginScope<TState>(TState state) => null;
+
+		#endregion
+	}
+
+	public class InstanceWrapper
+	{
+		private readonly ILogger _logger;
+
+		public InstanceWrapper(ILogger logger)
+		{
+			_logger = logger;
+		}
+
+		public virtual IDisposable CreateScopeAndLog((LogScope Scope, LogEvent Event)? log) => _logger.CreateScopeAndLog(log);
+
+		public virtual IDisposable CreateScopeAndLog<TIdentifier>((LogScope<TIdentifier> Scope, LogEvent Event)? log) where TIdentifier : notnull => _logger.CreateScopeAndLog(log);
+	}
+
 	#endregion
 
 	#region Tests
@@ -65,7 +97,7 @@ public class LoggerExtensionsTest
 			;
 
 		// Act + Assert
-		Assert.DoesNotThrow(() => LoggerExtensions.Log(logger, (EventId) 0, null, LogLevel.Information, _fixture.Create<string>(), _fixture.Create<string>(), _fixture.Create<string>()));
+		Assert.DoesNotThrow(() => LoggerExtensions.Log(logger, (EventId) 0, null, LogLevel.Information, _fixture.Create<string>(), _fixture.Create<LogScope?>(), _fixture.Create<string>(), _fixture.Create<string>()));
 	}
 
 	/// <summary>
@@ -109,16 +141,22 @@ public class LoggerExtensionsTest
 	}
 
 	[Test]
-	public void CreateScopeAndLogRespectsGenericScope()
+	public void CreateScopeAndLogCannotInferGenericTypeParameterInsideValueTuple()
 	{
 		// Arrange
 		var logScope = new LogScope<string>("MyGroup", ("Property", "Value"));
 		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message");
-		var log = (logScope, logEvent);
+		var log = (logScope, logEvent); //! Generic type parameter of logScope (string) is wrapped inside a value tuple, which "disables" automatic type inference.
 		var instanceWrapper = _fixture.Create<Mock<InstanceWrapper>>().Object;
 
 		// Act
-		//! Since automatic type inference does not work if the generic type parameter is inside a ValueTuple, below call will currently invoke the log method that does not apply the scope to the group identified by the generic parameter.
+		/*
+		* Since automatic type inference does not work if the generic type parameter is inside a ValueTuple, below call will currently invoke the log method that does not apply the scope to the group identified by the generic parameter.
+		* If this test some when fails, this means that type inference does work for value tuples (which is what I would have expected to be the case all along).
+		* Therefore the changes made in 'LoggerExtensions.CreateScopeAndLog' can then be removed for the .NET version that does handle this properly.
+		
+		* Side node: The 'LoggerExtensions.CreateScopeAndLog' functions cannot be tested directly, as those are extension methods, which must be static functions, which in turn cannot be easily substituted.
+		*/
 		instanceWrapper.CreateScopeAndLog(log);
 
 		// Assert
@@ -126,18 +164,38 @@ public class LoggerExtensionsTest
 		Mock.Get(instanceWrapper).Verify(mock => mock.CreateScopeAndLog<string>(It.IsAny<(LogScope<string>, LogEvent)>()), Times.Never);
 	}
 
-	public class InstanceWrapper
+	[Test]
+	public void PayloadIsAppliedAsScope()
 	{
-		private readonly ILogger _logger;
-
-		public InstanceWrapper(ILogger logger)
+		// Arrange
+		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message")
 		{
-			_logger = logger;
-		}
+			PayLoad = new LogScope(("Property", "Value"))
+		};
+		var logger = _fixture.Create<Mock<ILogger>>().Object;
 
-		public virtual IDisposable CreateScopeAndLog((LogScope Scope, LogEvent Event)? log) => _logger.CreateScopeAndLog(log);
-		
-		public virtual IDisposable CreateScopeAndLog<TIdentifier>((LogScope<TIdentifier> Scope, LogEvent Event)? log) where TIdentifier : notnull => _logger.CreateScopeAndLog(log);
+		// Act
+		logger.Log(logEvent);
+
+		// Assert
+		Mock.Get(logger).Verify(mock => mock.BeginScope(It.IsAny<IDictionary<string, object>>()), Times.Once);
+	}
+
+	[Test]
+	public void NullPayloadIsNotAppliedAsScope()
+	{
+		// Arrange
+		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message")
+		{
+			PayLoad = null
+		};
+		var logger = _fixture.Create<Mock<ILogger>>().Object;
+
+		// Act
+		logger.Log(logEvent);
+
+		// Assert
+		Mock.Get(logger).Verify(mock => mock.BeginScope(It.IsAny<IDictionary<string, object>>()), Times.Never);
 	}
 
 	#endregion

@@ -54,8 +54,8 @@ public static class LoggerSettingsConfigurationExtensions
             SelfLog.WriteLine($"The configuration file '{serilogConfigurationFile.Name}' has been copied from the application directory '{applicationPath}' to the working directory '{workingPath}'.");
         }
 
-        var configuration = LoggerSettingsConfigurationExtensions.LoadConfiguration(serilogConfigurationFile);
-        var isValid = LoggerSettingsConfigurationExtensions.VerifyConfiguration(configuration, serilogSectionName, out var foundSerilogSectionName);
+        var configuration = LoadConfiguration(serilogConfigurationFile);
+        var isValid = VerifyConfiguration(configuration, serilogSectionName, out var foundSerilogSectionName);
         if (!isValid)
         {
             var message = (serilogSectionName.ToLower() == DefaultSerilogSectionName.ToLower())
@@ -108,7 +108,7 @@ public static class LoggerSettingsConfigurationExtensions
 
         if (!DefaultSerilogSectionName.Equals(serilogSectionName, StringComparison.OrdinalIgnoreCase))
         {
-            return LoggerSettingsConfigurationExtensions.VerifyConfiguration(configuration, DefaultSerilogSectionName, out foundSerilogSectionName);
+            return VerifyConfiguration(configuration, DefaultSerilogSectionName, out foundSerilogSectionName);
         }
 			
         foundSerilogSectionName = null;

@@ -11,9 +11,9 @@ ___
 
 # Logging.Base
 
-|   .NET Framework   |     .NET Standard      |                     .NET                      |
-| :----------------: | :--------------------: | :-------------------------------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
@@ -73,9 +73,9 @@ ___
 
 # Logging.Extensions.Microsoft
 
-|   .NET Framework   |     .NET Standard      |                     .NET                      |
-| :----------------: | :--------------------: | :-------------------------------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
@@ -145,26 +145,11 @@ class MyClass
 
 A typical scenario when logging (especially exceptions) is writing the error to the log while simultaneously showing a message to the user (e.g. in a console application or via message boxes). The **log messages** in the backend should be readable by the application developer, to easily understand application state in case of errors. The user on the other hand should only see **output messages** in a language native to him. To get different **log**- and **output messages**, the special `LogResourceEvent` is available, that can be used to resolve those messages.
 
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Log messages</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		Are by default resolved from resource of the culture <b>lo</b>. <i>Sorry to you guys in Lao.</i>
-    </div>
-</div>
+> [!NOTE]
+> **Log messages** are by default resolved from resource of the culture **lo**. _Sorry to you guys in Lao._
 
-
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Output messages</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		Are resolved from resources matching the current applications culture.
-    </div>
-</div>
+> [!NOTE]
+> **Output messages** are resolved from resources matching the current applications culture.
 
 When using the appropriate `Log` extension method, the **log message** resolved from the `resourceName` parameter is directly passed to the decorated **Microsoft.Extensions.ILogger** and the **output message** will be returned by the function for further use.
 
@@ -179,7 +164,7 @@ var logEvent = new LogResourceEvent
 	LogLevel.Debug,
 	resourceManager: l10n.ResourceManager,
 	resourceName: nameof(l10n.Introduction),
-	logArgs: new object[] { firstName, lastName }
+	logArgs: new object[] { firstName, lastName },
 	messageArgs: new object[] { firstName, lastName, age }
 );
 
@@ -188,15 +173,10 @@ var outputMessage = logger.Log(logEvent);
 // The returned ouput will be: 'Mein Name ist For Bar. Ich bin 99 Jahre alt.'
 Console.WriteLine(outputMessage);
 ```
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Information</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		As shown above, the format parameters can differ between what is used for logging and what is used to build the output message.
-    </div>
-</div>
+
+> [!NOTE]
+> As shown above, the format parameters can differ between what is used for logging and what is used to build the output message.
+
 ## Logger groups
 
 Logger groups is the concept of grouping multiple **Microsoft.Extensions.ILogger**s together, identifiable via a custom group identifier. The goal is to use those groups to apply certain methods to all the loggers belonging to it. Currently the groups only purpose is to easily apply log scopes to **different** logger instances. For example, if having a central module in an application, that triggers a complex workflow utilizing many classes based on some external criteria, it would be of great help, that every logger instance used throughout the workflow logs the criteria that originally triggered execution. To be more precise, the workflow could be processing a web request and the external criteria a request id. If the logger instance is **not** shared between all classes and processing is handled by different tasks that ignore the **SynchronizationContext**, then creating a log scope at the root of the workflow will only output the criteria for log messages emitted from the entry module. Logger groups allow to create a scope at the root level, that will automatically be applied to all other loggers that share the same group. As a result the trigger criteria would be logged even if all loggers are different instances, as long as they were registered as a group member.
@@ -381,16 +361,10 @@ logger.Log(1732634211, ex, LogLevel.Error, "An unexpected error occurred.");
 
 ### Scoping
 
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Information</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		There are two types of extension methods that create scopes. The ones starting with <b>Create...</b> will return an <i>IDisposable</i> that can be used to remove the scope. The ones starting with <b>Pin...</b> will also create a scope, but will return the <i>ILogger</i> instance for chaining, thus making it impossible to remove the scope. Those extenion methods can be used when initially setting up logger instances.<br><br>The following examples will only contain the <b>Create...</b> methods, as the <b>Pin...</b> methods are only counterparts.
-    </div>
-</div>
-
+> [!NOTE]
+> There are two types of extension methods that create scopes. The ones starting with **Create...** will return an `IDisposable` that can be used to remove the scope. The ones starting with **Pin...** will also create a scope, but will return the `ILogger` instance for chaining, thus making it impossible to remove the scope. Those extenion methods can be used when initially setting up logger instances.
+> 
+> The following examples will only contain the **Create...** methods, as the **Pin...** methods are only counterparts.
 
 Below are some examples of the extension methods that can be used to create log scopes.
 
@@ -464,30 +438,16 @@ Output:
 
 **Scopes from CallerArgumentExpression**
 
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #37ff00; background-color: #37ff0020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Information</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		This is only available when using at least <b>.NET Core 3.0</b>.
-    </div>
-</div>
+> [!NOTE]
+> This is only available when using at least **.NET Core 3.0**.
 
 The following function helps creating log scopes by simply passing a value (like a variable) as parameter. The names of the values will be inferred via the [**System.Runtime.CompilerServices.CallerArgumentExpression**](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.callerargumentexpressionattribute?view=net-6.0) introduced in **C# 10**.
 
 ```csharp
 IDisposable CreateScope(this ILogger logger, object? value[1...10], [CallerArgumentExpression("value1")] string? name[1...10] = default)
 ```
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ffd200; background-color: #ffd20020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Advice</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		The current implementation allows for up to ten values to be added at a time to the scope. If more parameters are needed, the method must be called multiple times.
-    </div>
-</div>
+> [!IMPORTANT]
+> The current implementation allows for up to ten values to be added at a time to the scope. If more parameters are needed, the method must be called multiple times.
 
 Example:
 
@@ -524,23 +484,15 @@ The `Phoenix.Functionality.Logging.Extensions.Microsoft.NoLogger` is a simple nu
 
 The `Phoenix.Functionality.Logging.Extensions.Microsoft.TraceLogger` is a simple **ILogger** implementation that writes its log events to **System.Diagnostics.Trace** and - if available - to the console output. It can be instantiated or directly used via the static `TraceLogger.Instance` property.
 
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ffd200; background-color: #ffd20020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Advice</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		It does not support <b>log scopes</b> at all
-    </div>
-</div>
-
+> [!IMPORTANT]
+> This logger does not support **log scopes** at all.
 ___
 
 # Logging.Extensions.Microsoft.Autofac
 
-|   .NET Framework   |     .NET Standard      |                     .NET                      |
-| :----------------: | :--------------------: | :-------------------------------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
@@ -635,9 +587,9 @@ ___
 
 # Logging.Extensions.Serilog
 
-|   .NET Framework   |     .NET Standard      |          .NET          |
-| :----------------: | :--------------------: | :--------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
@@ -700,15 +652,8 @@ All overloads of `WithApplicationInformation` have an optional callback paramete
 
 ### `ApplicationIdentifierEnricher`
 
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ff0000; background-color: #ff000020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Deprecated</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		Use <i>ApplicationInformationEnricher</i> instead.
-    </div>
-</div>
+> [!WARNING]
+> This is deprecated. Use `ApplicationInformationEnricher` instead.
 
 An **ILogEventEnricher** that adds a unique application identifier to log events. The property name of the enriched application identifier will be **ApplicationIdentifier**. Creating the enricher can be done via one of the following constructors, which uses different approaches to creating the unique identifier.
 
@@ -734,15 +679,9 @@ var configuration = new LoggerConfiguration()
 
 ### `ApplicationVersionEnricher`
 
-<div style='padding:0.1em; border-style: solid; border-width: 0px; border-left-width: 10px; border-color: #ff0000; background-color: #ff000020' >
-	<span style='margin-left:1em; text-align:left'>
-    	<b>Deprecated</b>
-    </span>
-    <br>
-	<div style='margin-left:1em; margin-right:1em;'>
-		Use <i>ApplicationInformationEnricher</i> instead.
-    </div>
-</div>
+> [!WARNING]
+> This is deprecated. Use `ApplicationInformationEnricher` instead.
+
 An **ILogEventEnricher** that adds the application version to log events. The property name of the enriched application identifier will be **ApplicationVersion**. The enricher can be added as follows:
 
 ```csharp
@@ -763,9 +702,9 @@ ___
 
 # Logging.Extensions.Serilog.File
 
-|   .NET Framework   |     .NET Standard      |                     .NET                      |
-| :----------------: | :--------------------: | :-------------------------------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 5.0 :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## `ArchiveHook`
 
@@ -850,9 +789,9 @@ ___
 
 # Logging.Extensions.Serilog.Microsoft
 
-|   .NET Framework   |     .NET Standard      |          .NET          |
-| :----------------: | :--------------------: | :--------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 This package provides an adapater for **Microsoft.Extensions.Logging.ILogger** named `FrameworkLogger` that forwards log events to a **Serilog.ILogger**. Most of the implementation is taken from the existing package [**Serilog.Extensions.Logging**](https://github.com/serilog/serilog-extensions-logging/) with one key difference: 
 
@@ -955,9 +894,9 @@ ___
 
 # Logging.Extensions.Serilog.Seq
 
-|   .NET Framework   |     .NET Standard      |          .NET          |
-| :----------------: | :--------------------: | :--------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 If using [**Seq**](https://datalust.co/seq) as a sink for **Serilog** it is good practice to use an separate **Api Key** for each application forwarding logs to the **Seq Server** so that authentication and filtering can be handled by the server. Normally those **Api Keys** are manually created via the web frontend of the **Seq Server** and then hard-coded into the application.
 

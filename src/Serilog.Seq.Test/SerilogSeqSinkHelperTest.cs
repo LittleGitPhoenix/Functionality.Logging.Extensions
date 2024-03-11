@@ -24,17 +24,17 @@ public class SerilogSeqSinkHelperTest
 	#endregion
 
 	[Test]
-	public void Check_Get_SeqSink_Via_Reflection_Succeeds()
+	public void GetSeqSinkViaReflectionSucceeds()
 	{
 		// Act
 		var success = SerilogSeqSinkHelper.TryGetSeqRequirements(out _, out _, SelfLogger.DefaultSelfLogger, "http://localhost");
 
 		// Assert
-		Assert.True(success);
+		Assert.That(success, Is.True);
 	}
 
 	[Test]
-	public void Check_SeqBufferSink_Is_Not_Returned_If_Application_Could_Be_Registered()
+	public void SeqBufferSinkIsNotReturnedIfApplicationCouldBeRegistered()
 	{
 		// Arrange
 		var seqHost = "http://nevermind";
@@ -51,7 +51,7 @@ public class SerilogSeqSinkHelperTest
 	}
 
 	[Test]
-	public void Check_SeqBufferSink_Is_Returned_If_Application_Could_Not_Be_Registered()
+	public void SeqBufferSinkIsReturnedIfApplicationCouldNotBeRegistered()
 	{
 		// Arrange
 		var seqHost = "http://nevermind";
@@ -68,7 +68,7 @@ public class SerilogSeqSinkHelperTest
 	}
 
 	[Test]
-	public void Check_Null_Is_Returned_If_Application_Could_Not_Be_Registered_And_Retry_Is_Disabled()
+	public void NullIsReturnedIfApplicationCouldNotBeRegisteredAndRetryIsDisabled()
 	{
 		// Arrange
 		var seqHost = "http://nevermind";
@@ -81,6 +81,6 @@ public class SerilogSeqSinkHelperTest
 		var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title", retryOnError: false);
 
 		// Assert
-		Assert.Null(sink);
+		Assert.That(sink, Is.Null);
 	}
 }

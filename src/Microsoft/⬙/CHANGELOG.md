@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 2.3.0
+
+:calendar: _2024-03-11_
+
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_minus_sign: ~~5.0~~ :heavy_check_mark: 6.0 :new: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### Added
+
+- The `LogEvent` and `LogResourceEvent` classes now provide an _init-only_ `PayLoad` property. This is a `LogScope` that will be applied to the log event alone. It can be used to add additional key/value pairs to an event even though they are not part of the regular message.
+
+### Fixed
+
+- Using the `LoggerExtensions.CreateScopeAndLog` extension method lead to log events getting emitted twice.
+
+### Deprecated
+
+- The `Log` extension methods allowing to specify an log scope getting explicitly added to an log event have been marked obsolete in favor of the newly added `LogEvent.Payload` property.
+
+### References
+
+:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**
+___
+
 ## 2.2.0
 
 :calendar: _2023-03-27_

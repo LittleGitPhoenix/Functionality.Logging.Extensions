@@ -5,13 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 2.1.0
+
+:calendar: _2024-03-11_
+
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_check_mark: 6.0 :new: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### Changed
+
+- When sending a log file to a **SEQ** server, that file is now chunked into roughly **5 MB** pieces to circumvent the payload exceeding the default **10 MB** that **SEQ** allows by default.
+
+### Fixed
+
+- Made overloads of `SeqServer.RegisterApplication(Async)` public, that where previously already accessible. The original functions where removed during restructuring for `LogApplicationInformation` and their replacements where private.
+
+### References
+
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)
+:large_blue_circle: Serilog.Sinks.Seq ~~5.1.0~~ → **7.0.0**
+:large_blue_circle: Seq.Api ~~2023.1.0~~ → **2024.1.0**
+___
+
 ## 2.0.0
 
 :calendar: _2023-06-08_
 
-|   .NET Framework   |     .NET Standard      |                     .NET                      |
-| :----------------: | :--------------------: | :-------------------------------------------: |
-| :heavy_minus_sign: | :heavy_check_mark: 2.0 | :heavy_check_mark: 6.0 |
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :new: 6.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ### Added
 

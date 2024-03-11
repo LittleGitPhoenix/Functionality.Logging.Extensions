@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;net8.0;netstandard2.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</AssemblyName>
 		<RootNamespace>Phoenix.Functionality.Logging.Extensions.Serilog.Seq</RootNamespace>
-		<Version>2.0.0</Version>
+		<Version>2.1.0</Version>
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
-		<Copyright>2023</Copyright>
+		<Copyright>2024</Copyright>
 		<Description>Containes helper functionality for using the Seq sink of Serilog.</Description>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -34,8 +34,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
-		<PackageReference Include="Seq.Api" Version="2023.1.0" />
+		<PackageReference Include="Serilog.Sinks.Seq" Version="7.0.0" />
+		<PackageReference Include="Seq.Api" Version="2024.1.0" />
 	</ItemGroup>
 
 	<!-- Move the created NuGet packages into another folder. -->
