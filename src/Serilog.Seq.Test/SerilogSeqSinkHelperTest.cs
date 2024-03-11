@@ -30,7 +30,7 @@ public class SerilogSeqSinkHelperTest
 		var success = SerilogSeqSinkHelper.TryGetSeqRequirements(out _, out _, SelfLogger.DefaultSelfLogger, "http://localhost");
 
 		// Assert
-		Assert.True(success);
+		Assert.That(success, Is.True);
 	}
 
 	[Test]
@@ -81,6 +81,6 @@ public class SerilogSeqSinkHelperTest
 		var (sink, _) = SerilogSeqSinkHelper.CreateSink(seqServer, "Title", retryOnError: false);
 
 		// Assert
-		Assert.Null(sink);
+		Assert.That(sink, Is.Null);
 	}
 }

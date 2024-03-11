@@ -81,8 +81,8 @@ public class LogScopeBuilderTest
 
         // Assert
         var pair = scopes.ElementAt(0);
-        Assert.True(String.Equals(pair.Key, nameof(message), StringComparison.OrdinalIgnoreCase));
-        Assert.AreEqual(pair.Value, message);
+        Assert.That(String.Equals(pair.Key, nameof(message), StringComparison.OrdinalIgnoreCase), Is.True);
+        Assert.That(pair.Value, Is.EqualTo(message));
     }
 
     [Test]
@@ -105,44 +105,44 @@ public class LogScopeBuilderTest
 
         // Assert
         var pair = scopes.ElementAt(0);
-        Assert.True(String.Equals(pair.Key, nameof(one), StringComparison.OrdinalIgnoreCase));
-        Assert.AreEqual(pair.Value, one);
+        Assert.That(String.Equals(pair.Key, nameof(one), StringComparison.OrdinalIgnoreCase), Is.True);
+        Assert.That(pair.Value, Is.EqualTo(one));
         
 		pair = scopes.ElementAt(1);
-		Assert.True(String.Equals(pair.Key, nameof(two), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, two);
+		Assert.That(String.Equals(pair.Key, nameof(two), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(two));
 
 		pair = scopes.ElementAt(2);
-		Assert.True(String.Equals(pair.Key, nameof(three), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, three);
+		Assert.That(String.Equals(pair.Key, nameof(three), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(three));
 
 		pair = scopes.ElementAt(3);
-		Assert.True(String.Equals(pair.Key, nameof(four), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, four);
+		Assert.That(String.Equals(pair.Key, nameof(four), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(four));
 
 		pair = scopes.ElementAt(4);
-		Assert.True(String.Equals(pair.Key, nameof(five), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, five);
+		Assert.That(String.Equals(pair.Key, nameof(five), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(five));
 
 		pair = scopes.ElementAt(5);
-		Assert.True(String.Equals(pair.Key, nameof(six), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, six);
+		Assert.That(String.Equals(pair.Key, nameof(six), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(six));
 
 		pair = scopes.ElementAt(6);
-		Assert.True(String.Equals(pair.Key, nameof(seven), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, seven);
+		Assert.That(String.Equals(pair.Key, nameof(seven), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(seven));
 
 		pair = scopes.ElementAt(7);
-		Assert.True(String.Equals(pair.Key, nameof(eight), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, eight);
+		Assert.That(String.Equals(pair.Key, nameof(eight), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(eight));
 
 		pair = scopes.ElementAt(8);
-		Assert.True(String.Equals(pair.Key, nameof(nine), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, nine);
+		Assert.That(String.Equals(pair.Key, nameof(nine), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(nine));
 
 		pair = scopes.ElementAt(9);
-		Assert.True(String.Equals(pair.Key, nameof(ten), StringComparison.OrdinalIgnoreCase));
-		Assert.AreEqual(pair.Value, ten);
+		Assert.That(String.Equals(pair.Key, nameof(ten), StringComparison.OrdinalIgnoreCase), Is.True);
+		Assert.That(pair.Value, Is.EqualTo(ten));
     }
 
 	[Test]
@@ -155,11 +155,11 @@ public class LogScopeBuilderTest
 
 		// Assert
 		var pair = scopes.ElementAt(0);
-		Assert.AreEqual(pair.Key, "Test");
-		Assert.AreEqual(pair.Value, "Test");
+		Assert.That(pair.Key, Is.EqualTo("Test"));
+		Assert.That(pair.Value, Is.EqualTo("Test"));
 
 		pair = scopes.ElementAt(1);
-		Assert.AreEqual(pair.Key, "NewGuid");
+		Assert.That(pair.Key, Is.EqualTo("NewGuid"));
 		Assert.That(pair.Value, Is.TypeOf<Guid>());
     }
 	

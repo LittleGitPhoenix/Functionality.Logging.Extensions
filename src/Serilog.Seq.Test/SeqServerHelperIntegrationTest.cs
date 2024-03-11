@@ -67,7 +67,7 @@ public class SeqServerHelperIntegrationTest
 			var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
 			Assert.That(apiKeys.Count, Is.EqualTo(1));
 			Assert.That(apiKeys.Single().Title, Is.EqualTo(_title));
-			Assert.True(_apiKey.StartsWith(apiKeys.Single().TokenPrefix));
+			Assert.That(_apiKey.StartsWith(apiKeys.Single().TokenPrefix), Is.True);
 		}
 		finally
 		{
@@ -87,7 +87,7 @@ public class SeqServerHelperIntegrationTest
 			var apiKeys = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result;
 			Assert.That(apiKeys.Count, Is.EqualTo(1));
 			Assert.That(apiKeys.Single().Title, Is.EqualTo(_title));
-			Assert.True(_apiKey.StartsWith(apiKeys.Single().TokenPrefix));
+			Assert.That(_apiKey.StartsWith(apiKeys.Single().TokenPrefix), Is.True);
 		}
 		finally
 		{
@@ -106,7 +106,7 @@ public class SeqServerHelperIntegrationTest
 			// Assert
 			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey)).Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == "Application" && property.Value.ToString() == _title);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -125,7 +125,7 @@ public class SeqServerHelperIntegrationTest
 			// Assert
 			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result.Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == "Application" && property.Value.ToString() == _title);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -197,7 +197,7 @@ public class SeqServerHelperIntegrationTest
 			// Assert
 			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey)).Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == propertyName && property.Value.ToString() == propertyValue);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -225,7 +225,7 @@ public class SeqServerHelperIntegrationTest
 			// Assert
 			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result.Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == propertyName && property.Value.ToString() == propertyValue);
-			Assert.NotNull(existingProperty);
+			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
@@ -418,8 +418,8 @@ public class SeqServerHelperIntegrationTest
 			// Assert
 			//! In contrast to await the Wait() method does not throw the first exception but always wraps all exception in an AggregateException.
 			var aggregateException = exception as AggregateException;
-			Assert.NotNull(aggregateException);
-			Assert.True(aggregateException?.InnerExceptions.First() is SeqServerException);
+			Assert.That(aggregateException, Is.Not.Null);
+			Assert.That(aggregateException?.InnerExceptions.First() is SeqServerException, Is.True);
 		}
 		finally
 		{

@@ -31,7 +31,7 @@ public class SelfLoggerTest
 
         // Assert
 #pragma warning disable CS8974 // Converting method group to non-delegate type
-        Assert.AreEqual(SelfLogger.LogNone, selfLogger.LogCallback);
+        Assert.That(SelfLogger.LogNone, Is.EqualTo(selfLogger.LogCallback));
 #pragma warning restore CS8974 // Converting method group to non-delegate type
     }
     
@@ -45,7 +45,7 @@ public class SelfLoggerTest
 
         // Assert
 #pragma warning disable CS8974 // Converting method group to non-delegate type
-        Assert.AreEqual(SelfLogger.LogSimple, selfLogger.LogCallback);
+        Assert.That(SelfLogger.LogSimple, Is.EqualTo(selfLogger.LogCallback));
 #pragma warning restore CS8974 // Converting method group to non-delegate type
     }
     
@@ -59,7 +59,7 @@ public class SelfLoggerTest
 
         // Assert
 #pragma warning disable CS8974 // Converting method group to non-delegate type
-        Assert.AreEqual(SelfLogger.LogFull, selfLogger.LogCallback);
+        Assert.That(SelfLogger.LogFull, Is.EqualTo(selfLogger.LogCallback));
 #pragma warning restore CS8974 // Converting method group to non-delegate type
     }
 }

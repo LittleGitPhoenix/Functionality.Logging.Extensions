@@ -73,7 +73,7 @@ public class SeqBufferSinkTest
 		Mock.Get(bufferSink).Verify(sink => sink.RemoveElementFromQueue(), Times.Never);
 		Mock.Get(bufferSink).Verify(sink => sink.ForwardLogEventToOtherSink(It.IsAny<LogEvent>()), Times.Never);
 		Mock.Get(mockSink).Verify(sink => sink.Emit(It.IsAny<LogEvent>()), Times.Never);
-		Assert.AreEqual(bufferSink.QueuedEvents, logEvents);
+		Assert.That(bufferSink.QueuedEvents, Is.EqualTo(logEvents));
 	}
 
 	class Check_Log_Events_Are_Buffered_As_Long_As_Application_Is_Not_Registered_SeqBufferSinkGenerator : ISpecimenBuilder
@@ -119,7 +119,7 @@ public class SeqBufferSinkTest
 		foreach (var logEvent in logEvents) bufferSink.Emit(logEvent);
 
 		// Assert
-		Assert.AreEqual(bufferSink.QueuedEvents, logEvents.Skip(sizeLimit));
+		Assert.That(bufferSink.QueuedEvents, Is.EqualTo(logEvents.Skip(sizeLimit)));
 	}
 
 	[Test]

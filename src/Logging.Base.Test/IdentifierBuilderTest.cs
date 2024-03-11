@@ -47,7 +47,7 @@ public class IdentifierBuilderTest
 		var identifier = IdentifierBuilder.BuildNumericIdentifier(value);
 
 		// Assert
-		Assert.AreEqual(identifier, target);
+		Assert.That(identifier, Is.EqualTo(target));
 	}
 
 	[Test]
@@ -72,7 +72,7 @@ public class IdentifierBuilderTest
 		var identifier2 = IdentifierBuilder.BuildNumericIdentifier(objects2);
 
 		// Assert
-		Assert.AreEqual(identifier1, identifier2);
+		Assert.That(identifier1, Is.EqualTo(identifier2));
 	}
 
 	[Test]
@@ -97,7 +97,7 @@ public class IdentifierBuilderTest
 		var identifier2 = IdentifierBuilder.BuildNumericIdentifier(objects2);
 
 		// Assert
-		Assert.AreEqual(identifier1, identifier2);
+		Assert.That(identifier1, Is.EqualTo(identifier2));
 	}
 
 	[Test]
@@ -122,7 +122,7 @@ public class IdentifierBuilderTest
 		var identifier2 = IdentifierBuilder.BuildNumericIdentifier(objects2);
 
 		// Assert
-		Assert.AreNotEqual(identifier1, identifier2);
+		Assert.That(identifier1, Is.Not.EqualTo(identifier2));
 	}
 
 	#endregion
@@ -153,7 +153,7 @@ public class IdentifierBuilderTest
 		var identifier = IdentifierBuilder.BuildAlphanumericIdentifier(value);
 
 		// Assert
-		Assert.AreEqual(identifier, target);
+		Assert.That(identifier, Is.EqualTo(target));
 	}
 
 	[Test]
@@ -178,7 +178,7 @@ public class IdentifierBuilderTest
 		var identifier2 = IdentifierBuilder.BuildAlphanumericIdentifier(objects2);
 
 		// Assert
-		Assert.AreEqual(identifier1, identifier2);
+		Assert.That(identifier1, Is.EqualTo(identifier2));
 	}
 
 	[Test]
@@ -203,7 +203,7 @@ public class IdentifierBuilderTest
 		var identifier2 = IdentifierBuilder.BuildAlphanumericIdentifier(objects2);
 
 		// Assert
-		Assert.AreEqual(identifier1, identifier2);
+		Assert.That(identifier1, Is.EqualTo(identifier2));
 	}
 
 	[Test]
@@ -228,7 +228,7 @@ public class IdentifierBuilderTest
 		var identifier2 = IdentifierBuilder.BuildAlphanumericIdentifier(objects2);
 
 		// Assert
-		Assert.AreNotEqual(identifier1, identifier2);
+		Assert.That(identifier1, Is.Not.EqualTo(identifier2));
 	}
 
 	#endregion

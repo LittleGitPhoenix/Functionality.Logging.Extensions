@@ -135,7 +135,7 @@ public class LoggerGroupManagerTest
 		// Assert
 		Assert.That(originalAmount, Is.EqualTo(loggers.Length));
 		Assert.That(loggerGroup, Has.Length.EqualTo(loggers.Length - 1));
-		Assert.False(loggerGroup.Contains(firstLogger));
+		Assert.That(loggerGroup.Contains(firstLogger), Is.False);
 	}
 
 	[Test]
@@ -147,9 +147,9 @@ public class LoggerGroupManagerTest
 		foreach (var logger in loggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
 		
 		// Act + Assert
-		Assert.IsNotEmpty(LoggerGroupManager.Cache);
+		Assert.That(LoggerGroupManager.Cache, Is.Not.Empty);
 		foreach (var logger in loggers) LoggerGroupManager.RemoveLoggerFromGroup(logger, groupIdentifier);
-		Assert.IsEmpty(LoggerGroupManager.Cache);
+		Assert.That(LoggerGroupManager.Cache, Is.Empty);
 	}
 
 	#endregion
@@ -260,7 +260,7 @@ public class LoggerGroupManagerTest
 		// Assert
 		Mock.Get(newLogger).Verify(mock => mock.BeginScope(It.IsAny<object>()), Times.Once);
 		loggerScopes.TryGetValue(newLogger, out var scopes);
-		Assert.NotNull(scopes);
+		Assert.That(scopes, Is.Not.Null);
 		Assert.Multiple
 		(
 			() =>
@@ -287,7 +287,7 @@ public class LoggerGroupManagerTest
 		var groups = LoggerGroupManager.GetAllGroups();
 
 		// Assert
-		Assert.IsEmpty(groups);
+		Assert.That(groups, Is.Empty);
 	}
 
 	/// <summary>
@@ -303,7 +303,7 @@ public class LoggerGroupManagerTest
 		var loggerGroup = LoggerGroupManager.GetGroup(groupIdentifier);
 			
 		// Assert
-		Assert.IsEmpty(loggerGroup);
+		Assert.That(loggerGroup, Is.Empty);
 	}
 
 	/// <summary>
@@ -319,7 +319,7 @@ public class LoggerGroupManagerTest
 		var groups = LoggerGroupManager.GetGroupsOfLogger(logger);
 			
 		// Assert
-		Assert.IsEmpty(groups);
+		Assert.That(groups, Is.Empty);
 	}
 
 	#endregion
@@ -337,8 +337,8 @@ public class LoggerGroupManagerTest
         var identifier2 = new LoggerGroupManager.GroupIdentifier<Guid>(groupIdentifier);
 			
         // Assert
-        Assert.AreEqual(identifier1, identifier2);
-        Assert.AreNotSame(identifier1, identifier2);
+        Assert.That(identifier1, Is.EqualTo(identifier2));
+        Assert.That(identifier1, Is.Not.SameAs(identifier2));
     }
 
     [Test]
@@ -353,8 +353,8 @@ public class LoggerGroupManagerTest
         var identifier2 = new LoggerGroupManager.GroupIdentifier<int>(groupIdentifier2);
 			
         // Assert
-        Assert.AreEqual(identifier1, identifier2);
-        Assert.AreNotSame(identifier1, identifier2);
+        Assert.That(identifier1, Is.EqualTo(identifier2));
+        Assert.That(identifier1, Is.Not.SameAs(identifier2));
     }
 
     [Test]
@@ -368,8 +368,8 @@ public class LoggerGroupManagerTest
         var identifier2 = new LoggerGroupManager.GroupIdentifier<object>(groupIdentifier);
 			
         // Assert
-        Assert.AreEqual(identifier1, identifier2);
-        Assert.AreNotSame(identifier1, identifier2);
+        Assert.That(identifier1, Is.EqualTo(identifier2));
+        Assert.That(identifier1, Is.Not.SameAs(identifier2));
     }
 
     [Test]
@@ -384,8 +384,8 @@ public class LoggerGroupManagerTest
         var identifier2 = new LoggerGroupManager.GroupIdentifier<string>(groupIdentifier2);
 			
         // Assert
-        Assert.AreEqual(identifier1, identifier2);
-        Assert.AreNotSame(identifier1, identifier2);
+        Assert.That(identifier1, Is.EqualTo(identifier2));
+        Assert.That(identifier1, Is.Not.SameAs(identifier2));
     }
 
     [Test]
@@ -400,8 +400,8 @@ public class LoggerGroupManagerTest
         var identifier2 = new LoggerGroupManager.GroupIdentifier<Guid>(groupIdentifier2);
 
         // Assert
-        Assert.AreNotEqual(identifier1, identifier2);
-        Assert.AreNotSame(identifier1, identifier2);
+        Assert.That(identifier1, Is.Not.EqualTo(identifier2));
+        Assert.That(identifier1, Is.Not.SameAs(identifier2));
     }
 
     [Test]
@@ -416,8 +416,8 @@ public class LoggerGroupManagerTest
         var identifier2 = new LoggerGroupManager.GroupIdentifier<object>(groupIdentifier2);
 
         // Assert
-        Assert.AreNotEqual(identifier1, identifier2);
-        Assert.AreNotSame(identifier1, identifier2);
+        Assert.That(identifier1, Is.Not.EqualTo(identifier2));
+        Assert.That(identifier1, Is.Not.SameAs(identifier2));
     }
 
 	#endregion

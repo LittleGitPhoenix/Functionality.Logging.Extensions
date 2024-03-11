@@ -66,7 +66,7 @@ public class RegistrationBuilderExtensionsTest
 		var service = container.Resolve<MyClass>();
 
 		// Assert
-		Assert.AreEqual(namedLogger, service.Logger);
+		Assert.That(namedLogger, Is.EqualTo(service.Logger));
 	}
 
 	[Test]
@@ -103,7 +103,7 @@ public class RegistrationBuilderExtensionsTest
 		var service = container.Resolve<MyClass>();
 
 		// Assert
-		Assert.AreEqual(logger, service.Logger);
+		Assert.That(logger, Is.EqualTo(service.Logger));
 		Mock.Get(logger).Verify(mock => mock.BeginScope(It.IsAny<object>()), Times.Once);
 	}
 
@@ -122,7 +122,7 @@ public class RegistrationBuilderExtensionsTest
 		var service = container.Resolve<MyClass>();
 
 		// Assert
-		Assert.AreEqual(swappedLogger, service.Logger);
+		Assert.That(swappedLogger, Is.EqualTo(service.Logger));
 	}
 
 	#endregion

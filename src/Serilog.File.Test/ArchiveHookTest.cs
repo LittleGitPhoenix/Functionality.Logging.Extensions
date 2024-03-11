@@ -48,7 +48,7 @@ public class ArchiveHookTest
         var zipFile = ArchiveHook.CreateZipFile(logFile, System.IO.Compression.CompressionLevel.Optimal, testDirectory.Directory);
 
         // Assert
-        Assert.True(zipFile.Exists);
+        Assert.That(zipFile.Exists, Is.True);
         Assert.That(testDirectory.Directory.GetFiles(), Has.Length.EqualTo(2));
     }
 
@@ -64,7 +64,7 @@ public class ArchiveHookTest
         var zipFile = ArchiveHook.CreateZipFile(logFile, System.IO.Compression.CompressionLevel.Optimal, archiveDirectory);
 
         // Assert
-        Assert.True(zipFile.Exists);
+        Assert.That(zipFile.Exists, Is.True);
         Assert.That(testDirectory.Directory.GetFiles(), Has.Length.EqualTo(1));
         Assert.That(testDirectory.Directory.GetDirectories(), Has.Length.EqualTo(1));
     }
