@@ -25,6 +25,9 @@ ___
 
 - The `Log` extension methods allowing to specify an log scope getting explicitly added to an log event have been marked obsolete in favor of the newly added `LogEvent.Payload` property.
 
+### References
+
+:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**
 ___
 
 ## 2.2.0

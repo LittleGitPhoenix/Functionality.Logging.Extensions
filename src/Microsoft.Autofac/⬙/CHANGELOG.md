@@ -12,6 +12,10 @@ ___
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
 | :heavy_minus_sign: ~~5.0~~ :heavy_check_mark: 6.0 :new: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### References
+
+:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**
 ___
 
 ## 2.1.0
