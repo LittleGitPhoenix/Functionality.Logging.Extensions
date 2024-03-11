@@ -2,6 +2,7 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
+using System.Text;
 using Seq.Api;
 using Seq.Api.Model.Inputs;
 using Seq.Api.Model.Security;
@@ -34,7 +35,7 @@ internal class SeqServerHelper
     /// <returns> A <see cref="SeqConnection"/> connection object. </returns>
     internal static SeqConnection ConnectToSeq(string seqHost, ushort? seqPort, string? configurationApiKey = null)
     {
-        return new SeqConnection(SeqServerHelper.BuildSeqUrl(seqHost, seqPort), configurationApiKey);
+        return new SeqConnection(BuildSeqUrl(seqHost, seqPort), configurationApiKey);
     }
 		
     /// <summary>
@@ -43,8 +44,8 @@ internal class SeqServerHelper
     internal static async Task RegisterApiKeyAsync(string title, string apiKey, string seqHost, ushort? seqPort, string? configurationApiKey = null, CancellationToken cancellationToken = default)
     {
         // Establish a connection to the seq server.
-        using var connection = SeqServerHelper.ConnectToSeq(seqHost, seqPort, configurationApiKey);
-        await SeqServerHelper.RegisterApiKeyAsync(title, apiKey, connection, cancellationToken);
+        using var connection = ConnectToSeq(seqHost, seqPort, configurationApiKey);
+        await RegisterApiKeyAsync(title, apiKey, connection, cancellationToken);
     }
 
     /// <summary>
@@ -98,8 +99,8 @@ internal class SeqServerHelper
     internal static async Task<ICollection<ApiKeyEntity>> GetApiKeysByTitleAsync(string title, string seqHost, ushort? seqPort, string? configurationApiKey = null, CancellationToken cancellationToken = default)
     {
         // Establish a connection to the seq server.
-        using var connection = SeqServerHelper.ConnectToSeq(seqHost, seqPort, configurationApiKey);
-        return await SeqServerHelper.GetApiKeysByTitleAsync(title, connection, cancellationToken);
+        using var connection = ConnectToSeq(seqHost, seqPort, configurationApiKey);
+        return await GetApiKeysByTitleAsync(title, connection, cancellationToken);
     }
 
     /// <summary>
@@ -122,8 +123,8 @@ internal class SeqServerHelper
     internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, string seqHost, ushort? seqPort, ICollection<EventPropertyPart> appliedProperties, string? configurationApiKey = null, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Establish a connection to the seq server.
-        using var connection = SeqServerHelper.ConnectToSeq(seqHost, seqPort, configurationApiKey);
-        return await SeqServerHelper.AddOrUpdateAppliedPropertiesOfApiKeysAsync(title, connection, appliedProperties, throwIfMultipleApiKeysAreFound, cancellationToken);
+        using var connection = ConnectToSeq(seqHost, seqPort, configurationApiKey);
+        return await AddOrUpdateAppliedPropertiesOfApiKeysAsync(title, connection, appliedProperties, throwIfMultipleApiKeysAreFound, cancellationToken);
     }
 
     /// <summary>
@@ -133,7 +134,7 @@ internal class SeqServerHelper
     internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, SeqConnection connection, ICollection<EventPropertyPart> appliedProperties, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Get all matching api keys.
-        var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(title, connection, cancellationToken).ConfigureAwait(false);
+        var apiKeys = await GetApiKeysByTitleAsync(title, connection, cancellationToken).ConfigureAwait(false);
         if (apiKeys.Count == 0) return -1;
         if (apiKeys.Count > 1 && throwIfMultipleApiKeysAreFound)
         {
@@ -169,8 +170,8 @@ internal class SeqServerHelper
     internal static async Task<int> DeleteApiKeysAsync(string title, string seqHost, ushort? seqPort, string? configurationApiKey = null, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Establish a connection to the seq server.
-        using var connection = SeqServerHelper.ConnectToSeq(seqHost, seqPort, configurationApiKey);
-        return await SeqServerHelper.DeleteApiKeysAsync(title, connection, throwIfMultipleApiKeysAreFound, cancellationToken);
+        using var connection = ConnectToSeq(seqHost, seqPort, configurationApiKey);
+        return await DeleteApiKeysAsync(title, connection, throwIfMultipleApiKeysAreFound, cancellationToken);
     }
 
     /// <summary>
@@ -180,7 +181,7 @@ internal class SeqServerHelper
     internal static async Task<int> DeleteApiKeysAsync(string title, SeqConnection connection, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Get all matching api keys.
-        var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(title, connection, cancellationToken).ConfigureAwait(false);
+        var apiKeys = await GetApiKeysByTitleAsync(title, connection, cancellationToken).ConfigureAwait(false);
         if (apiKeys.Count == 0) return -1;
         if (apiKeys.Count > 1 && throwIfMultipleApiKeysAreFound)
         {
@@ -195,6 +196,11 @@ internal class SeqServerHelper
 
         return apiKeys.Count;
     }
+
+	/// <summary>
+	/// The maximum size allowed to be sent to the SEQ server at once.
+	/// </summary>
+	internal const int AllowedChunkByteSize = 5 * 1024 * 1024;
 
     /// <summary>
     /// Sends log events to a seq server.
@@ -216,10 +222,40 @@ internal class SeqServerHelper
         await using var fileStream = logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 #endif
         using var streamReader = new StreamReader(fileStream);
-        var content = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+       
+		//var content = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+		//await SendLogEventsToServerAsync(apiKey, content, connection, cancellationToken).ConfigureAwait(false);
 
-        await SeqServerHelper.SendLogEventsToServerAsync(apiKey, content, connection, cancellationToken).ConfigureAwait(false);
-    }
+		// Send the file as chunks to the server, so that the payload size does not exceed the default limit of 10MB.
+		//* Keep in mind, that this limit could be changed in the Settings of the SEQ instance under Settings → System.
+		var bytes = 0;
+		var contentBuilder = new StringBuilder();
+		var sendTask = Task.CompletedTask;
+		while (await streamReader.ReadLineAsync().ConfigureAwait(false) is { } line)
+		{
+			// Get the size of the new line and check if adding this would exceed the allowed limit.
+			var lineSize = Encoding.UTF8.GetByteCount(line);
+			if (bytes + lineSize >= AllowedChunkByteSize)
+			{
+				// Wait for any previously executed send task.
+				await sendTask.ConfigureAwait(false);
+				
+				// Send this chunk to the server.
+				sendTask = SendLogEventsToServerAsync(apiKey, contentBuilder.ToString(), connection, cancellationToken);
+				contentBuilder.Clear();
+				bytes = 0;
+			}
+
+			bytes += lineSize;
+			contentBuilder.AppendLine(line);
+		}
+
+		// Wait for any previously executed send task.
+		await sendTask.ConfigureAwait(false);
+
+		// Flush the rest of the content (if any).
+		if (contentBuilder.Length > 0) await SendLogEventsToServerAsync(apiKey, contentBuilder.ToString(), connection, cancellationToken);
+	}
 
     /// <summary>
     /// Sends log events to a seq server.
@@ -236,7 +272,7 @@ internal class SeqServerHelper
     {
         try
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"{connection.Client.ServerUrl}/api/events/raw/");
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{connection.Client.ServerUrl}/api/events/raw/");
             request.Headers.Add("X-Seq-ApiKey", apiKey);
             request.Content = new StringContent(logFileContent, System.Text.Encoding.UTF8, "application/vnd.serilog.clef");
 

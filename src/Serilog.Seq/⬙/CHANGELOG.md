@@ -5,9 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
-## 2.0.1
+## 2.1.0
 
-:calendar: _2023-08-??_
+:calendar: _2024-03-11_
+
+### Changed
+
+- When sending a log file to a **SEQ** server, that file is now chunked into roughly **5 MB** pieces to circumvent the payload exceeding the default **10 MB** that **SEQ** allows by default.
 
 ### Fixed
 
