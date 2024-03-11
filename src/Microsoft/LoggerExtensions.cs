@@ -84,7 +84,7 @@ public static partial class LoggerExtensions
 	public static void Log(this ILogger logger, LogEvent? logEvent)
 	{
 		if (logEvent is null) return;
-		Log(logger, (EventId) logEvent.EventId, logEvent.Exception, logEvent.LogLevel, logEvent.LogMessage, logEvent.Args);
+		Log(logger, (EventId) logEvent.EventId, logEvent.Exception, logEvent.LogLevel, logEvent.LogMessage, logEvent.PayLoad, logEvent.Args);
 	}
 
 	/// <summary>
@@ -96,7 +96,7 @@ public static partial class LoggerExtensions
 	/// <param name="logMessage"> The message to log. </param>
 	/// <param name="args"> Arguments passed to the log message. </param>
 	public static void Log(this ILogger logger, int eventId, LogLevel logLevel, string logMessage, params object?[] args)
-		=> Log(logger, (EventId) eventId, null, logLevel, logMessage, args);
+		=> Log(logger, (EventId) eventId, null, logLevel, logMessage, payload: null, args);
 
 	/// <summary>
 	/// Logs an event with a given <paramref name="logMessage"/> and <paramref name="exception"/>.
@@ -108,7 +108,7 @@ public static partial class LoggerExtensions
 	/// <param name="logMessage"> The message to log. </param>
 	/// <param name="args"> Arguments passed to the log message. </param>
 	public static void Log(this ILogger logger, int eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
-		=> Log(logger, (EventId) eventId, exception, logLevel, logMessage, args);
+		=> Log(logger, (EventId) eventId, exception, logLevel, logMessage, payload: null, args);
 	
 	/// <summary>
 	/// Logs an event with an automatically disposed scope.
@@ -119,11 +119,12 @@ public static partial class LoggerExtensions
 	/// <para> Scope (<see cref="LogScope"/>): The scope of the event. </para>
 	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
 	/// </param>
+	[Obsolete($"Use the {nameof(LogEvent)}/{nameof(LogResourceEvent)}.{nameof(LogEvent.PayLoad)} property instead.")]
 	public static void Log(this ILogger logger, IEnumerable<(LogScope Scope, LogEvent Event)> logs)
 	{
 		foreach (var log in logs) Log(logger, log);
 	}
-	
+
 	/// <summary>
 	/// Logs an event with an automatically disposed scope.
 	/// </summary>
@@ -133,6 +134,7 @@ public static partial class LoggerExtensions
 	/// <para> Scope (<see cref="LogScope"/>): The scope of the event. </para>
 	/// <para> Event (<see cref="Phoenix.Functionality.Logging.Extensions.Microsoft.LogEvent"/>): The event to log. </para>
 	/// </param>
+	[Obsolete($"Use the {nameof(LogEvent)}/{nameof(LogResourceEvent)}.{nameof(LogEvent.PayLoad)} property instead.")]
 	public static void Log(this ILogger logger, (LogScope Scope, LogEvent Event)? log)
 	{
 		if (log == null) return;
@@ -145,6 +147,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope of the event. </param>
 	/// <param name="logEvent"> The event to log. </param>
+	[Obsolete($"Use the {nameof(LogEvent)}/{nameof(LogResourceEvent)}.{nameof(LogEvent.PayLoad)} property instead.")]
 	public static void Log(this ILogger logger, LogScope? scope, LogEvent? logEvent)
 		=> logger.CreateScopeAndLog(scope, logEvent).Dispose();
 
@@ -157,7 +160,7 @@ public static partial class LoggerExtensions
 	public static string Log(this ILogger logger, LogResourceEvent? logEvent)
 	{
 		if (logEvent is null) return String.Empty;
-		return LogEventFromResource(logger, (EventId) logEvent.EventId, logEvent.Exception, logEvent.LogLevel, logEvent.ResourceManager, logEvent.ResourceName, logEvent.LogArgs, logEvent.MessageArgs, logEvent.LogCulture);
+		return LogEventFromResource(logger, (EventId) logEvent.EventId, logEvent.Exception, logEvent.LogLevel, logEvent.ResourceManager, logEvent.ResourceName, logEvent.LogArgs, logEvent.MessageArgs, logEvent.LogCulture, logEvent.PayLoad);
 	}
 
 	/// <summary>
@@ -173,7 +176,7 @@ public static partial class LoggerExtensions
 	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogCulture"/>. </param>
 	/// <returns> The translated log message. </returns>
 	public static string Log(this ILogger logger, int eventId, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
-		=> LogEventFromResource(logger, (EventId) eventId, null, logLevel, resourceManager, resourceName, logArgs, messageArgs, logCulture);
+		=> LogEventFromResource(logger, (EventId) eventId, null, logLevel, resourceManager, resourceName, logArgs, messageArgs, logCulture, payload: null);
 
 	/// <summary>
 	/// Logs an event with a message resolved from a resource file together with an <paramref name="exception"/> and returns this message translated into the current ui culture (or its nearest fallback).
@@ -189,7 +192,7 @@ public static partial class LoggerExtensions
 	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogCulture"/>. </param>
 	/// <returns> The translated log message. </returns>
 	public static string Log(this ILogger logger, int eventId, Exception exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
-		=> LogEventFromResource(logger, (EventId) eventId, exception, logLevel, resourceManager, resourceName, logArgs, messageArgs, logCulture);
+		=> LogEventFromResource(logger, (EventId) eventId, exception, logLevel, resourceManager, resourceName, logArgs, messageArgs, logCulture, payload: null);
 
 	#region Helper
 
@@ -201,9 +204,12 @@ public static partial class LoggerExtensions
 	/// <param name="exception"> An optional <see cref="Exception"/> to log. Default is null. </param>
 	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
 	/// <param name="logMessage"> The message to log. </param>
+	/// <param name="payload"> Special <see cref="LogScope"/> that may contain key/value pairs that are applied directly to this log event even if they are not part of the message. </param>
 	/// <param name="args"> Arguments passed to the log message. </param>
-	internal static void Log(ILogger logger, EventId eventId, Exception? exception, LogLevel logLevel, string logMessage, params object?[] args)
+	internal static void Log(ILogger logger, EventId eventId, Exception? exception, LogLevel logLevel, string logMessage, LogScope? payload = null, params object?[] args)
 	{
+		using var payloadScope = logger.CreateScope(payload);
+
 		try
 		{
 			logger.Log(logLevel, eventId, exception, logMessage, args);
@@ -232,15 +238,16 @@ public static partial class LoggerExtensions
 	/// <param name="logArgs"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
 	/// <param name="messageArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="logArgs"/> will be used. </param>
 	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogCulture"/>. </param>
+	/// <param name="payload"> Special <see cref="LogScope"/> that may contain key/value pairs that are applied directly to this log event even if they are not part of the message. </param>
 	/// <returns> The translated log message. </returns>
-	private static string LogEventFromResource(ILogger logger, EventId eventId, Exception? exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
+	private static string LogEventFromResource(ILogger logger, EventId eventId, Exception? exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null, LogScope? payload = null)
 	{
 		logArgs ??= Array.Empty<object?>();
 		messageArgs ??= logArgs;
 		var (logMessage, unformattedOutput) = GetMessages(resourceManager, resourceName, logCulture ?? LogCulture, logArgs, messageArgs, eventId);
 
 		// Log
-		Log(logger, eventId, exception, logLevel, logMessage, logArgs);
+		Log(logger, eventId, exception, logLevel, logMessage, payload, logArgs);
 
 		// Format output message
 		try
@@ -614,7 +621,7 @@ public static partial class LoggerExtensions
 #endif
 
 	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
+	/// Creates a new logging scope and writes a log event afterward.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="log">
@@ -647,7 +654,7 @@ public static partial class LoggerExtensions
 	}
 
 	/// <summary>
-	/// Creates a new logging scope and writes log events afterwards.
+	/// Creates a new logging scope and writes log events afterward.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
@@ -661,7 +668,7 @@ public static partial class LoggerExtensions
 	}
 
 	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
+	/// Creates a new logging scope and writes a log event afterward.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
@@ -675,7 +682,7 @@ public static partial class LoggerExtensions
 	}
 
 	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
+	/// Creates a new logging scope and writes a log event afterward.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="log">
@@ -689,7 +696,7 @@ public static partial class LoggerExtensions
 		=> log is null ? NoDisposable.Instance : logger.CreateScopeAndLog(log.Value.Scope, log.Value.Event);
 		
 	/// <summary>
-	/// Creates a new logging scope and writes log events afterwards.
+	/// Creates a new logging scope and writes log events afterward.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// /// <param name="scope"> The scope to apply. </param>
@@ -704,7 +711,7 @@ public static partial class LoggerExtensions
 	}
 
 	/// <summary>
-	/// Creates a new logging scope and writes a log event afterwards.
+	/// Creates a new logging scope and writes a log event afterward.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>

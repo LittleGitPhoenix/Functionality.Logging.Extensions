@@ -11,8 +11,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 /// <summary>
 /// A <see cref="EventIdLogger"/> that can resolve messages from resource files.
 /// </summary>
-/// <remarks> Consider not inheriting from this class anymore. Instead use the extension methods <b>LoggerExtensions.Log</b>. </remarks>
-//[Obsolete($"Do not inherit from this class anymore. Instead use the extension methods {nameof(LoggerExtensions.Log)}.")]
+/// <remarks> Consider not inheriting from this class anymore. Instead, use the extension methods <b>LoggerExtensions.Log</b>. </remarks>
+//[Obsolete($"Do not inherit from this class anymore. Instead, use the extension methods {nameof(LoggerExtensions.Log)}.")]
 public abstract class EventIdResourceLogger : EventIdLogger
 {
     #region Delegates / Events
@@ -107,7 +107,7 @@ public abstract class EventIdResourceLogger : EventIdLogger
         var (logMessage, unformattedOutput) = LoggerExtensions.GetMessages(_resourceManagers, resourceName, _logCulture, logArgs, messageArgs, eventId);
 
         // Log
-        LoggerExtensions.Log(this, eventId, exception, logLevel, logMessage, logArgs);
+        LoggerExtensions.Log(this, eventId, exception, logLevel, logMessage, payload: null, logArgs);
 
 		// Format output message
 		try

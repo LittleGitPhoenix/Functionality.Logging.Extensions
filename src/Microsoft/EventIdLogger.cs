@@ -9,8 +9,8 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 /// <summary>
 /// An <see cref="ILogger"/> decorator that logs messages along with an event id.
 /// </summary>
-/// <remarks> Consider not inheriting from this class anymore. Instead use the extension methods <b>LoggerExtensions.Log</b>. </remarks>
-//[Obsolete($"Do not inherit from this class anymore. Instead use the extension methods {nameof(LoggerExtensions.Log)}.")]
+/// <remarks> Consider not inheriting from this class anymore. Instead, use the extension methods <b>LoggerExtensions.Log</b>. </remarks>
+//[Obsolete($"Do not inherit from this class anymore. Instead, use the extension methods {nameof(LoggerExtensions.Log)}.")]
 public abstract class EventIdLogger : ILogger
 {
     #region Delegates / Events
@@ -81,12 +81,12 @@ public abstract class EventIdLogger : ILogger
 
 	#region Log Functions
 
-	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, EventId, LogLevel, string, object?[])"/>
+	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, EventId, LogLevel, string, LogScope?, object?[])"/>
 	//[Obsolete($"Use the {nameof(ILogger)} extension method {nameof(LoggerExtensions.Log)} instead.")]
 	protected internal void LogEvent(int eventId, LogLevel logLevel, string logMessage, params object[] args)
         => _logger.Log(eventId, logLevel, logMessage, args);
 
-	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, EventId, Exception?, LogLevel, string, object?[])"/>
+	/// <inheritdoc cref="LoggerExtensions.Log(ILogger, EventId, Exception?, LogLevel, string, LogScope?, object?[])"/>
 	//[Obsolete($"Use the {nameof(ILogger)} extension method {nameof(LoggerExtensions.Log)} instead.")]
 	protected internal void LogEvent(int eventId, Exception exception, LogLevel logLevel, string logMessage, params object[] args)
 		=> _logger.Log(eventId, exception, logLevel, logMessage, args);

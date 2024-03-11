@@ -33,6 +33,10 @@ public class LogEvent
 	/// <summary> Optional <see cref="System.Exception"/>. Default is <b>null</b>. </summary>
 	public Exception? Exception { get; }
 
+	/// <summary> Optional payload that is applied to the log event as scope. Default is <b>null</b>. </summary>
+	/// <remarks> Can be used to add additional key/value pairs to an event even though they are not part of the regular message. </remarks>
+	public LogScope? PayLoad { get; init; }
+
 	/// <summary>
 	/// Constructor
 	/// </summary>
@@ -91,6 +95,10 @@ public class LogResourceEvent
 
 	/// <inheritdoc cref = "LogEvent.Exception" />
 	public Exception? Exception { get; }
+
+	/// <summary> Optional payload that is applied to the log event as scope. Default is <b>null</b>. </summary>
+	/// <remarks> Can be used to add additional key/value pairs to an event even though they are not part of the regular message. </remarks>
+	public LogScope? PayLoad { get; init; }
 
 	/// <summary> The <see cref="System.Globalization.CultureInfo"/> that contains the log message. </summary>
 	public CultureInfo? LogCulture { get; }
