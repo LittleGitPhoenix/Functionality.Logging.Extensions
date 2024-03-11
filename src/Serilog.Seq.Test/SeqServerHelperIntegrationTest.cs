@@ -27,7 +27,7 @@ public class SeqServerHelperIntegrationTest
 		_title = Guid.NewGuid().ToString();
 		_apiKey = Guid.NewGuid().ToString().Replace("-", String.Empty);
 		//_seqHost = "http://localhost";
-		_seqHost = "http://seq2021.hyper.home";
+		_seqHost = "http://seq2022.leistner.cc";
 		_seqPort = (ushort) 80;
 	}
 
