@@ -9,6 +9,10 @@ ___
 
 :calendar: _2024-03-11_
 
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_minus_sign: ~~5.0~~ :heavy_check_mark: 6.0 :new: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
 ### Added
 
 - The `LogEvent` and `LogResourceEvent` classes now provide an _init-only_ `PayLoad` property. This is a `LogScope` that will be applied to the log event alone. It can be used to add additional key/value pairs to an event even though they are not part of the regular message.
