@@ -12,7 +12,6 @@ ___
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
 | :heavy_check_mark: 6.0 :new: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
-___
 
 ### Changed
 
@@ -25,6 +24,8 @@ ___
 ### References
 
 :large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)
+:large_blue_circle: Serilog.Sinks.Seq ~~5.1.0~~ → **7.0.0**
+:large_blue_circle: Seq.Api ~~2023.1.0~~ → **2024.1.0**
 ___
 
 ## 2.0.0

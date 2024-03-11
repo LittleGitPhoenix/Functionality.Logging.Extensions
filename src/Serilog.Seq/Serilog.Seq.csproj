@@ -34,8 +34,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
-		<PackageReference Include="Seq.Api" Version="2023.1.0" />
+		<PackageReference Include="Serilog.Sinks.Seq" Version="7.0.0" />
+		<PackageReference Include="Seq.Api" Version="2024.1.0" />
 	</ItemGroup>
 
 	<!-- Move the created NuGet packages into another folder. -->
