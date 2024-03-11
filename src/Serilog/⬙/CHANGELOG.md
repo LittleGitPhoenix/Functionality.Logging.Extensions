@@ -16,6 +16,7 @@ ___
 ### References
 
 :large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)
+:large_blue_circle: Serilog.Settings.Configuration ~~3.3.0~~ → **8.0.0**
 :large_blue_circle: Microsoft.Extensions.Configuration.Json ~~6.0.0~~ → **8.0.0**
 
 ___
