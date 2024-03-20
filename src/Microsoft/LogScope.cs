@@ -92,6 +92,10 @@ public class LogScope : Dictionary<string, object?>
 	/// Constructor
 	/// </summary>
 	/// <param name="dictionary"> A dictionary of scope values. </param>
+	/// <remarks>
+	/// <para> This constructor can be used to directly pass a <see cref="Dictionary{TKey,TValue}"/> to the base class of this class. </para>
+	/// <para> It is required as otherwise the constructor with the object parameters would be used, leading to the scope's key/value pairs being merged into a single entry in a new dictionary created by that constructor. </para>
+	/// </remarks>
 	protected LogScope(Dictionary<string, object?> dictionary)
 		: base(dictionary) { }
 }
