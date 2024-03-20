@@ -87,6 +87,17 @@ public class LogScope : Dictionary<string, object?>
 	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
 	public LogScope(params Expression<Func<object>>[] scopedValues)
 		: base(LogScopeBuilder.BuildScopeDictionary(scopedValues)) { }
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="dictionary"> A dictionary of scope values. </param>
+	/// <remarks>
+	/// <para> This constructor can be used to directly pass a <see cref="Dictionary{TKey,TValue}"/> to the base class of this class. </para>
+	/// <para> It is required as otherwise the constructor with the object parameters would be used, leading to the scope's key/value pairs being merged into a single entry in a new dictionary created by that constructor. </para>
+	/// </remarks>
+	protected LogScope(Dictionary<string, object?> dictionary)
+		: base(dictionary) { }
 }
 
 /// <summary>
@@ -127,20 +138,23 @@ public class LogScope<TIdentifier> : LogScope
 		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = default,
 		bool cleanCallerArgument = true
 	)
-		: base(LogScopeBuilder.BuildScopeDictionary
+		: base
 		(
-			value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
-			name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
-			cleanCallerArgument
-		))
+			LogScopeBuilder.BuildScopeDictionary
+			(
+				value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
+				name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+				cleanCallerArgument
+			)
+		)
 	{
 		this.Identifier = groupIdentifier;
 	}
+
 #endif
-	
 	/// <inheritdoc cref="LogScope"/>
 	public LogScope(TIdentifier groupIdentifier, params (string Identifier, object? Value)[] scopedValues)
-		: base(scopedValues)
+	: base(scopedValues)
 	{
 		this.Identifier = groupIdentifier;
 	}

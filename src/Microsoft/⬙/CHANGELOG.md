@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 2.3.1
+
+:calendar: _2024-03-20_
+
+### Fixed
+
+- Creating a `LogScope<TIdentifier>` (used for groups of loggers) failed if the constructor that uses the **System.Runtime.CompilerServices.CallerArgumentExpression** argument to determine the names used for the scope values was used. This was due to it calling the wrong base class constructor.
+___
+
 ## 2.3.0
 
 :calendar: _2024-03-11_

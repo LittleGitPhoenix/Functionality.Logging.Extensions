@@ -71,7 +71,7 @@ public class LogScopeBuilderTest
 #if NET5_0_OR_GREATER
 
 	[Test]
-    public void Check_CallerArgumentExpression_Single_Value()
+    public void CallerArgumentExpressionSingleValue()
     {
         // Arrange
 		var message = Guid.NewGuid().ToString();
@@ -86,7 +86,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-	public void Check_CallerArgumentExpression_All_Values()
+	public void CallerArgumentExpressionAllValues()
     {
         // Arrange
 		var one = ushort.MaxValue;
@@ -146,7 +146,7 @@ public class LogScopeBuilderTest
     }
 
 	[Test]
-	public void Check_CallerArgumentExpression_Direct()
+	public void CallerArgumentExpressionDirect()
 	{
 		// Arrange
 
@@ -164,7 +164,7 @@ public class LogScopeBuilderTest
     }
 	
 	[Test]
-	public void Check_CallerArgumentExpression_Enum()
+	public void CallerArgumentExpressionEnum()
 	{
 		// Act
 		var scopes = LogScopeBuilder.BuildScopeDictionary(MyEnum.EnumValue);
@@ -176,7 +176,7 @@ public class LogScopeBuilderTest
 	}
 
 	[Test]
-	public void Check_CallerArgumentExpression_Is_Cleaned()
+	public void CallerArgumentExpressionIsCleaned()
 	{
 		// Act
 		var scopes = LogScopeBuilder.BuildScopeDictionary(this.BoolProperty, cleanCallerArgument: true);
@@ -188,7 +188,7 @@ public class LogScopeBuilderTest
 	}
 
 	[Test]
-	public void Check_CallerArgumentExpression_Is_Not_Cleaned()
+	public void CallerArgumentExpressionIsNotCleaned()
 	{
 		// Act
 		var scopes = LogScopeBuilder.BuildScopeDictionary(this.BoolProperty, cleanCallerArgument: false);
@@ -204,7 +204,7 @@ public class LogScopeBuilderTest
     #region Expression Data
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Bool_Property()
+    public void GetExpressionDataSucceedsForBoolProperty()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.BoolProperty);
@@ -215,7 +215,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Numeric_Property()
+    public void GetExpressionDataSucceedsForNumericProperty()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.NumericProperty);
@@ -226,7 +226,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_String_Property()
+    public void GetExpressionDataSucceedsForStringProperty()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.StringProperty);
@@ -237,7 +237,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Static_String_Property()
+    public void GetExpressionDataSucceedsForStaticStringProperty()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => StaticStringProperty);
@@ -248,7 +248,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Null_String_Property()
+    public void GetExpressionDataSucceedsForNullStringProperty()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.NullStringProperty);
@@ -259,7 +259,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Nested_Property()
+    public void GetExpressionDataSucceedsForNestedProperty()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.NestedProperty.Guid);
@@ -270,7 +270,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Nested_Static_Property()
+    public void GetExpressionDataSucceedsForNestedStaticProperty()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => Nested.StaticGuid);
@@ -281,7 +281,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Null_Instance()
+    public void GetExpressionDataSucceedsForNullInstance()
     {
         // Act
         Nested? nullInstance = null;
@@ -293,7 +293,7 @@ public class LogScopeBuilderTest
     }
 
 	[Test]
-	public void Check_GetExpressionData_Succeeds_For_String_Constant()
+	public void GetExpressionDataSucceedsForStringConstant()
 	{
 		// Act
 		var (name, value) = LogScopeBuilder.GetExpressionData(() => StringConstant);
@@ -305,7 +305,7 @@ public class LogScopeBuilderTest
 	}
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Direct_Numeric_Value()
+    public void GetExpressionDataSucceedsForDirectNumericValue()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => 2);
@@ -316,7 +316,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Direct_Calculation_Value()
+    public void GetExpressionDataSucceedsForDirectCalculationValue()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => 2 * 2);
@@ -327,7 +327,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Direct_String_Value()
+    public void GetExpressionDataSucceedsForDirectStringValue()
     {
         // Act																		
         var (name, value) = LogScopeBuilder.GetExpressionData(() => "Hello");
@@ -338,7 +338,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Direct_Null_Value()
+    public void GetExpressionDataSucceedsForDirectNullValue()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => null);
@@ -349,7 +349,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Bool_Member()
+    public void GetExpressionDataSucceedsForBoolMember()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => _boolField);
@@ -360,7 +360,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Numeric_Member()
+    public void GetExpressionDataSucceedsForNumericMember()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => _numericField);
@@ -371,7 +371,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_String_Member()
+    public void GetExpressionDataSucceedsForStringMember()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => _stringField);
@@ -382,7 +382,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Static_String_Member()
+    public void GetExpressionDataSucceedsForStaticStringMember()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => StaticStringField);
@@ -393,7 +393,7 @@ public class LogScopeBuilderTest
     }
 
     [Test]
-    public void Check_GetExpressionData_Succeeds_For_Enum()
+    public void GetExpressionDataSucceedsForEnum()
     {
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => MyEnum.EnumValue);
@@ -430,7 +430,7 @@ public class LogScopeBuilderTest
     [TestCase("1 2 3 ", "123")]
     [TestCase("1 AB cd EFDDD 8", "1AbCdEfddd8")]
     [TestCase("INVALID VALUE AND _2THINGS", "InvalidValueAnd2Things")]
-    public void Check_GetExpressionData_Succeeds_For_String_Member(string value, string target)
+    public void GetExpressionDataSucceedsForStringMember(string value, string target)
     {
         // Act
         var actual = LogScopeBuilder.ToPascalCase(value);
@@ -438,12 +438,10 @@ public class LogScopeBuilderTest
         // Assert
         Assert.That(actual, Is.EqualTo(target));
     }
-    
-    #endregion
 	
     /// <summary> Checks that <see cref="Expression"/>s are properly converted into <see cref="Dictionary{string, object}"/> to later be used for logger scope creation. </summary>
     [Test]
-    public void Check_Expression_Conversion()
+    public void ExpressionConversion()
     {
         // Arrange
         var nested = new Nested();
@@ -460,6 +458,8 @@ public class LogScopeBuilderTest
         // Assert
         Assert.That(scopedValues, Has.Count.EqualTo(scopedExpressions.Length));
 	}
+    
+    #endregion
 
 	#endregion
 }

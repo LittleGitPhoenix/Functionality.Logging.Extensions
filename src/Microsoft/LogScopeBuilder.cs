@@ -58,7 +58,7 @@ internal static class LogScopeBuilder
 		{
 			/*
 			* Check if the value is an enumeration and if the name contains the value.
-			* Later is necessary in cases where the enumeration value is passed from a variable instead of directly:
+			* Later is necessary in cases where the enumeration value is passed from a variable and not directly:
 			* • Direct		: LogScopeBuilder.BuildScopeDictionary(MyEnum.EnumValue) ⇒ Name: MyEnum, Value: EnumValue
 			* • Variable	: LogScopeBuilder.BuildScopeDictionary(myEnumVariable) ⇒ Name: MyEnumVariable, Value: EnumValue
 			*/
