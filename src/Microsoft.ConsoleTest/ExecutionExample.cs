@@ -95,7 +95,7 @@ namespace Microsoft.ConsoleTest
 			internal static LogResourceEvent StartEvent(int iteration)
 			{
 				//! The 'iteration' argument can be omitted from the logArgs, as this method is always called from a log-scope that encapsulates this value.
-				return new LogResourceEvent(1523340757, LogLevel.Debug, l10n.ResourceManager, nameof(l10n.Start), messageArgs: new object[] { iteration });
+				return new LogResourceEvent(1523340757, LogLevel.Debug, l10n.ResourceManager, nameof(l10n.Start), outputArgs: new object[] { iteration });
 			}
 			
 			internal static LogResourceEvent FinishedEvent(int iteration, ExecutionResult result, TimeSpan duration)

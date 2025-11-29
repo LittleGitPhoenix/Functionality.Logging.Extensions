@@ -46,7 +46,7 @@ internal sealed class LoggerGroupScope : IDisposable
 		(
 			loggers.Select
 			(
-				logger => new KeyValuePair<WeakReference<ILogger>, List<IDisposable>>(new WeakReference<ILogger>(logger), new List<IDisposable>() {logger.BeginScope(scopes)})
+				logger => new KeyValuePair<WeakReference<ILogger>, List<IDisposable>>(key: new WeakReference<ILogger>(logger), value: [ logger.BeginScope(scopes) ])
 			)
 		);
 	}
@@ -69,7 +69,7 @@ internal sealed class LoggerGroupScope : IDisposable
 			}
 			else
 			{
-				_disposables.GetOrAdd(new WeakReference<ILogger>(logger), new List<IDisposable>() { disposable });
+				_disposables.GetOrAdd(new WeakReference<ILogger>(logger), [ disposable ]);
 			}
 		}
 	}
@@ -88,7 +88,7 @@ internal sealed class LoggerGroupScope : IDisposable
 	/// <summary>
 	/// Cleans the weak references by removing loggers that are no longer alive.
 	/// </summary>
-	/// <param name="loggerToRemove"> Optional <see cref="ILogger"/> that should be removed, even it it is still alive. </param>
+	/// <param name="loggerToRemove"> Optional <see cref="ILogger"/> that should be removed, even if it is still alive. </param>
 	/// <returns> A collection of <see cref="ILogger"/>s that where alive at the time clean-up executed. </returns>
 	internal Dictionary<ILogger, ICollection<IDisposable>> CleanLoggers(ILogger? loggerToRemove = null)
 	{
@@ -97,14 +97,14 @@ internal sealed class LoggerGroupScope : IDisposable
 			var activeLoggers = new Dictionary<ILogger, ICollection<IDisposable>>();
 			var deadLoggers = new List<WeakReference<ILogger>>();
 
-#if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
+#if NETCOREAPP3_0_OR_GREATER
+			foreach (var (weakLogger, disposables) in _disposables)
+			{
+#else
 			foreach (var pair in _disposables)
 			{
 				var weakLogger = pair.Key;
 				var disposables = pair.Value;
-#else
-			foreach (var (weakLogger, disposables) in _disposables)
-			{
 #endif
 				var isAlive = weakLogger.TryGetTarget(out var logger);
 				if (isAlive && logger is not null && !Object.ReferenceEquals(logger, loggerToRemove)) activeLoggers.Add(logger, disposables);
@@ -125,7 +125,7 @@ internal sealed class LoggerGroupScope : IDisposable
 	/// <summary>
 	/// Tries to dispose this instance (thus triggering the <see cref="_disposedCallback"/>) if it no longer contains any disposables.
 	/// </summary>
-	/// <returns> <b>True</b> on success, otherwise <b>false</b>. </returns>
+	/// <returns> <see langword="true"/> on success, otherwise <b>false</b>. </returns>
 	private void TryDisposeThisScope()
 	{
 		lock (_disposablesLock)

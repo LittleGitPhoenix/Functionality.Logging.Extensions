@@ -67,7 +67,18 @@ public class LoggerGroupScopeTest
 	{
 		// Arrange
 		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
-		var scopes = new Dictionary<string, object?>(_fixture.CreateMany<KeyValuePair<string, object?>>(4));
+		var scopes =
+#if NETCOREAPP3_0_OR_GREATER
+			new Dictionary<string, object?>(_fixture.CreateMany<KeyValuePair<string, object?>>(4));
+#else
+			new Dictionary<string, object?>();
+			var pairs = _fixture.CreateMany<KeyValuePair<string, object?>>(4);
+			foreach (var pair in pairs)
+			{
+				scopes[pair.Key] = pair.Value;
+			}
+#endif
+
 		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
 		var loggerGroupScope = new LoggerGroupScope(loggers, scopes, disposedCallback);
 		var originalScopesAmount = loggerGroupScope._scopes.Count;

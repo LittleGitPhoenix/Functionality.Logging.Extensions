@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 1.6.0
+
+:calendar: _2025-12-??_
+
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_minus_sign: ~~6~~ :heavy_check_mark: 8 :new: 10 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### Removed
+
+- Support for **.NET 6** has been removed since that framework is officially deprecated.
+### References
+
+:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~8.0.0~~ → **10.0.0**  
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**1.2.0**](../../Logging.Base/⬙/CHANGELOG.md#1.2.0)  
+:large_blue_circle: Serilog.Settings.Configuration ~~8.0.0~~ → **9.0.0**  
+___
+
 ## 1.5.0
 
 :calendar: _2024-03-11_
@@ -15,9 +33,9 @@ ___
 
 ### References
 
-:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)
-:large_blue_circle: Serilog.Settings.Configuration ~~3.3.0~~ → **8.0.0**
-:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~6.0.0~~ → **8.0.0**
+:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~6.0.0~~ → **8.0.0**  
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)  
+:large_blue_circle: Serilog.Settings.Configuration ~~3.3.0~~ → **8.0.0**  
 
 ___
 
@@ -40,7 +58,7 @@ ___
 
 ### References
 
-:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**
+:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**  
 ___
 
 ## 1.3.0
@@ -62,7 +80,7 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~5.0.0~~ → **6.0.0**
+:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~5.0.0~~ → **6.0.0**  
 ___
 
 ## 1.1.0

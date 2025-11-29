@@ -4,6 +4,7 @@
 
 using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
+using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
@@ -16,8 +17,8 @@ public interface ILoggerGroup : IReadOnlyCollection<ILogger>, IDisposable
 	/// Adds the <paramref name="logger"/> to the group.
 	/// </summary>
 	/// <param name="logger"> The <see cref="ILogger"/> to add. </param>
-	/// <param name="applyExistingScope"> Should existing scopes be applied tho the <paramref name="logger"/>. Default is <b>true</b>. </param>
-	void AddLogger(ILogger logger, bool applyExistingScope);
+	/// <param name="applyExistingScope"> Should existing scopes be applied to the <paramref name="logger"/>. Default is <see langword="true"/>. </param>
+	void AddLogger(ILogger logger, bool applyExistingScope = true);
 
 	/// <summary>
 	/// Removes the <paramref name="logger"/> from the group.
@@ -71,7 +72,7 @@ public interface ILoggerGroup : IReadOnlyCollection<ILogger>, IDisposable
 	/// <param name="name9"> See: <paramref name="value1"/>. </param>
 	/// <param name="value10"> See: <paramref name="name1"/>. </param>
 	/// <param name="name10"> See: <paramref name="value1"/>. </param>
-	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <b>true</b>. </param>
+	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
 	/// <returns> The logging scope. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained while its value is specified. </exception>
 	IDisposable CreateScope

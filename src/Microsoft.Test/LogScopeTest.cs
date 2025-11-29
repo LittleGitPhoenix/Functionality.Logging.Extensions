@@ -43,7 +43,12 @@ public class LogScopeTest
 		var scopeKey = "ScopeValue";
 
 		// Act
-		var logScope = new LogScope(scopeKey);
+		var logScope =
+#if NETCOREAPP3_0_OR_GREATER
+			new LogScope(scopeKey);
+#else
+			new LogScope((nameof(scopeKey), scopeKey));
+#endif
 
 		// Assert
 		Assert.That(logScope, Has.Count.EqualTo(1));
@@ -60,7 +65,12 @@ public class LogScopeTest
 		var scopeKey = "ScopeValue";
 
 		// Act
-		var logScope = new LogScope<object>(groupIdentifier, scopeKey);
+		var logScope =
+#if NETCOREAPP3_0_OR_GREATER
+			new LogScope<object>(groupIdentifier, scopeKey);
+#else
+			new LogScope<object>(groupIdentifier, (nameof(scopeKey), scopeKey));
+#endif
 
 		// Assert
 		Assert.That(logScope.Identifier, Is.EqualTo(groupIdentifier));
@@ -69,5 +79,5 @@ public class LogScopeTest
 		Assert.That(logScope.First().Value, Is.EqualTo(scopeKey));
 	}
 	
-	#endregion
+#endregion
 }

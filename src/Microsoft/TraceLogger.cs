@@ -99,7 +99,7 @@ public class TraceLogger : ILogger
 	public bool IsEnabled(LogLevel logLevel) => true;
 
 	/// <inheritdoc />
-	public IDisposable BeginScope<TState>(TState state) => NoDisposable.Instance;
+	public IDisposable? BeginScope<TState>(TState state) where TState : notnull => NoDisposable.Instance;
 
 	#endregion
 

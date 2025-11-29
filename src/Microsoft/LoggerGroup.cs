@@ -60,7 +60,7 @@ internal sealed class LoggerGroup : ILoggerGroup
 	#region Methods
 
 	/// <inheritdoc />
-	public void AddLogger(ILogger logger, bool applyExistingScope)
+	public void AddLogger(ILogger logger, bool applyExistingScope = true)
 	{
 		lock (_loggersLock)
 		{
@@ -84,7 +84,7 @@ internal sealed class LoggerGroup : ILoggerGroup
 	/// <summary>
 	/// Cleans the weak references by removing loggers that are no longer alive.
 	/// </summary>
-	/// <param name="loggerToRemove"> Optional <see cref="ILogger"/> that should be removed, even it it is still alive. </param>
+	/// <param name="loggerToRemove"> Optional <see cref="ILogger"/> that should be removed, even if it is still alive. </param>
 	/// <returns> A collection of <see cref="ILogger"/>s that where alive at the time clean-up executed. </returns>
 	private IReadOnlyCollection<ILogger> CleanLoggers(ILogger? loggerToRemove = null)
 	{

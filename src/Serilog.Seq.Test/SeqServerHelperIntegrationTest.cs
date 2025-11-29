@@ -450,8 +450,13 @@ public class SeqServerHelperIntegrationTest
 				;
 			// Create a file large enough to exceed the payload limit.
 			{
+#if NETCOREAPP3_0_OR_GREATER
 				await using var fileStream = logFile.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
 				await using var streamWriter = new StreamWriter(fileStream);
+#else
+				using var fileStream = logFile.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+				using var streamWriter = new StreamWriter(fileStream);
+#endif
 				streamWriter.AutoFlush = true;
 				while (streamWriter.BaseStream.Length < (SeqServerHelper.AllowedChunkByteSize * 2)) //! Larger file
 				{
@@ -502,8 +507,13 @@ public class SeqServerHelperIntegrationTest
 				;
 			// Create a file large enough to exceed the payload limit.
 			{
+#if NETCOREAPP3_0_OR_GREATER
 				await using var fileStream = logFile.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
-				await using var streamWriter = new StreamWriter(fileStream);
+				await using var streamWriter = new StreamWriter(fileStream);			
+#else
+				using var fileStream = logFile.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+				using var streamWriter = new StreamWriter(fileStream);
+#endif
 				streamWriter.AutoFlush = true;
 				while (streamWriter.BaseStream.Length < SeqServerHelper.AllowedChunkByteSize) //! Smaller file
 				{
