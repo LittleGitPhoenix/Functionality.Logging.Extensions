@@ -1,5 +1,5 @@
 ###############################
-## PHOENIX validation v0.7.0 ##
+## PHOENIX validation v0.8.0 ##
 ###############################
 name: PR Validation
 
@@ -43,15 +43,15 @@ jobs:
             if ($content -match '<Version>([^<]+)</Version>') {
               $version = $matches[1]
               if ($version -notmatch $semverRegex) {
-                Write-Host "❌ Project $($file.FullName) has invalid version: $version"                
+                Write-Host "❌ Project $($file.Name) has invalid version: $version"                
                 $errorCount++
               }
               else {
-                Write-Host "✅ Project $($file.FullName) has valid SemVer: $version"
+                Write-Host "✅ Project $($file.Name) has valid SemVer: $version"
               }
             }
             else {
-              Write-Host "❌ Project $($file.FullName) has no <Version> tag defined."
+              Write-Host "❌ Project $($file.Name) has no <Version> tag defined."
               $errorCount++
             }
           }
