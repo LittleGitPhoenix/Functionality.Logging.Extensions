@@ -15,6 +15,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Serilog.File\Serilog.File.csproj" />
+		<ProjectReference Include="..\..\Serilog.Seq\Serilog.Seq.csproj" />
+		<ProjectReference Include="..\..\Serilog\Serilog.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Autofac" Version="8.1.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
@@ -24,12 +30,6 @@
 		<PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
 		<PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
 		<PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Serilog.File\Serilog.File.csproj" />
-	  <ProjectReference Include="..\Serilog.Seq\Serilog.Seq.csproj" />
-	  <ProjectReference Include="..\Serilog\Serilog.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
