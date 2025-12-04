@@ -22,6 +22,10 @@ jobs:
         working-directory: './src'
     steps:
       
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       # Validate project versions
       - name: Check project versions (SemVer enforcement for C#, VB, F#)
         run: |
