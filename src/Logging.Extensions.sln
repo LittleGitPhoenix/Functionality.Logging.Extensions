@@ -6,6 +6,8 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{31C21C2E-B1E8-4780-8C35-5020B4245F37}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		..\.gitignore = ..\.gitignore
+		..\.github\workflows\validation.yml = ..\.github\workflows\validation.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging.Base", "Logging.Base\Logging.Base.csproj", "{F7B3E03D-7C0F-4EFA-81DB-75B26D6923AD}"
