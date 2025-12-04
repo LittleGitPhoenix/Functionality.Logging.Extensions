@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace Phoenix.Functionality.Logging.Base;
 
-internal static class LogScopeBuilder
+internal static partial class LogScopeBuilder
 {
 	#region Delegates / Events
 	#endregion
@@ -171,32 +171,59 @@ internal static class LogScopeBuilder
 			if (member is PropertyInfo propertyInfo)
 			{
 				var isStatic = propertyInfo.GetAccessors(nonPublic: true).Any(x => x.IsStatic);
-				if (!isStatic && value is null)
-					break;
+				if (!isStatic && value is null) break;
 
 				value = propertyInfo.GetValue(value);
 			}
 			else if (member is FieldInfo fieldInfo)
 			{
-				if (!fieldInfo.IsStatic && value is null)
-					break;
+				if (!fieldInfo.IsStatic && value is null) break;
 				value = fieldInfo.GetValue(value);
 			}
 		}
 		return (name, value);
 	}
 
-	private static readonly Regex InvalidCharsRegEx = new Regex("[^_a-zA-Z0-9]", RegexOptions.Compiled);
+#if NETCOREAPP3_0_OR_GREATER
+	[GeneratedRegex("[^_a-zA-Z0-9]", RegexOptions.Compiled)]
+	private static partial Regex InvalidCharsRegExGenerator();
+	private static readonly Regex InvalidCharsRegEx = InvalidCharsRegExGenerator();
 
-	private static readonly Regex WhiteSpaceRegEx = new Regex(@"(?<=\s)", RegexOptions.Compiled);
+	[GeneratedRegex(@"(?<=\s)", RegexOptions.Compiled)]
+	private static partial Regex WhiteSpaceRegExGenerator();
+	private static readonly Regex WhiteSpaceRegEx = WhiteSpaceRegExGenerator();
 
-	private static readonly Regex StartsWithLowerCaseCharRegEx = new Regex("^[a-z]", RegexOptions.Compiled);
+	[GeneratedRegex("^[a-z]", RegexOptions.Compiled)]
+	private static partial Regex StartsWithLowerCaseCharRegExGenerator();
+	private static readonly Regex StartsWithLowerCaseCharRegEx = StartsWithLowerCaseCharRegExGenerator();
 
-	private static readonly Regex FirstCharFollowedByUpperCasesOnlyRegEx = new Regex("(?<=[A-Z])[A-Z0-9]+$", RegexOptions.Compiled);
+	[GeneratedRegex("(?<=[A-Z])[A-Z0-9]+$", RegexOptions.Compiled)]
+	private static partial Regex FirstCharFollowedByUpperCasesOnlyRegExGenerator();
+	private static readonly Regex FirstCharFollowedByUpperCasesOnlyRegEx = FirstCharFollowedByUpperCasesOnlyRegExGenerator();
 
-	private static readonly Regex LowerCaseNextToNumberRegEx = new Regex("(?<=[0-9])[a-z]", RegexOptions.Compiled);
+	[GeneratedRegex("(?<=[0-9])[a-z]", RegexOptions.Compiled)]
+	private static partial Regex LowerCaseNextToNumberRegExGenerator();
+	private static readonly Regex LowerCaseNextToNumberRegEx = LowerCaseNextToNumberRegExGenerator();
 
-	private static readonly Regex UpperCaseInsideRegEx = new Regex("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))", RegexOptions.Compiled);
+	[GeneratedRegex("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))", RegexOptions.Compiled)]
+	private static partial Regex UpperCaseInsideRegExGenerator();
+	private static readonly Regex UpperCaseInsideRegEx = UpperCaseInsideRegExGenerator();
+#else
+
+	private static readonly Regex InvalidCharsRegEx = new("[^_a-zA-Z0-9]", RegexOptions.Compiled);
+
+	private static readonly Regex WhiteSpaceRegEx = new(@"(?<=\s)", RegexOptions.Compiled);
+
+	private static readonly Regex StartsWithLowerCaseCharRegEx = new("^[a-z]", RegexOptions.Compiled);
+
+	private static readonly Regex FirstCharFollowedByUpperCasesOnlyRegEx = new("(?<=[A-Z])[A-Z0-9]+$", RegexOptions.Compiled);
+
+	private static readonly Regex LowerCaseNextToNumberRegEx = new("(?<=[0-9])[a-z]", RegexOptions.Compiled);
+
+	private static readonly Regex UpperCaseInsideRegEx = new("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))", RegexOptions.Compiled);
+#endif
+	
+	internal static readonly char[] Separator = ['_'];
 
 	/// <summary>
 	/// Cleans <paramref name="value"/> by removing everything but the last section of a <b>dot</b> separated string.
@@ -217,9 +244,9 @@ internal static class LogScopeBuilder
 	internal static string ToPascalCase(string value)
 	{
 		// replace white spaces with underscore, then replace all invalid chars with empty string
-		var pascalCase = InvalidCharsRegEx.Replace(WhiteSpaceRegEx.Replace(value, "_"), string.Empty)
+		var pascalCase = InvalidCharsRegEx.Replace(WhiteSpaceRegEx.Replace(value, "_"), String.Empty)
 			// split by underscores
-			.Split(new char[] {'_'}, StringSplitOptions.RemoveEmptyEntries)
+			.Split(Separator, StringSplitOptions.RemoveEmptyEntries)
 			// set first letter to uppercase
 			.Select(w => StartsWithLowerCaseCharRegEx.Replace(w, m => m.Value.ToUpper()))
 			// replace second and all following upper case letters to lower if there is no next lower (ABC -> Abc)

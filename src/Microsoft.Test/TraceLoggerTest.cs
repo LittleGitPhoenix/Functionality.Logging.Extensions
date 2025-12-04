@@ -1,8 +1,4 @@
-using AutoFixture;
-using AutoFixture.AutoMoq;
 using Microsoft.Extensions.Logging;
-using Moq;
-using NUnit.Framework;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 namespace Microsoft.Test;

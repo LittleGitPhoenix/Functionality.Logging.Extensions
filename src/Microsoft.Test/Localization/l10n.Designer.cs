@@ -19,7 +19,7 @@ namespace Microsoft.Test.Localization {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class l10n {
@@ -63,9 +63,45 @@ namespace Microsoft.Test.Localization {
         /// <summary>
         ///   Looks up a localized string similar to Dataset {0} has been updated..
         /// </summary>
-        internal static string StartIteration {
+        internal static string DatasetUpdated {
             get {
-                return ResourceManager.GetString("StartIteration", resourceCulture);
+                return ResourceManager.GetString("DatasetUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user {0} is a human..
+        /// </summary>
+        internal static string MessageWithDifferentPlaceholders {
+            get {
+                return ResourceManager.GetString("MessageWithDifferentPlaceholders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The id {0} belongs to user {1}..
+        /// </summary>
+        internal static string MessageWithMatchingPlaceholders {
+            get {
+                return ResourceManager.GetString("MessageWithMatchingPlaceholders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current time is {0}..
+        /// </summary>
+        internal static string MessageWithOnePlaceholder {
+            get {
+                return ResourceManager.GetString("MessageWithOnePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hello World.
+        /// </summary>
+        internal static string MessageWithoutPlaceholders {
+            get {
+                return ResourceManager.GetString("MessageWithoutPlaceholders", resourceCulture);
             }
         }
     }

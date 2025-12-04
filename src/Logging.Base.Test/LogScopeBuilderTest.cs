@@ -2,10 +2,9 @@ using System.Linq.Expressions;
 using System.Text;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using NUnit.Framework;
-using Phoenix.Functionality.Logging.Extensions.Microsoft;
+using Phoenix.Functionality.Logging.Base;
 
-namespace Microsoft.Test;
+namespace Logging.Base.Test;
 
 public class LogScopeBuilderTest
 {
@@ -242,8 +241,8 @@ public class LogScopeBuilderTest
         // Act
         var (name, value) = LogScopeBuilder.GetExpressionData(() => StaticStringProperty);
 
-        // Assert
-        Assert.That(name, Is.EqualTo(nameof(StaticStringProperty)));
+		// Assert
+		Assert.That(name, Is.EqualTo(nameof(StaticStringProperty)));
         Assert.That(value, Is.EqualTo(StaticStringProperty));
     }
 

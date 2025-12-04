@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.ConsoleTest.Localization;
 using Microsoft.Extensions.Logging;
+using Phoenix.Functionality.Logging.Base;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 namespace Microsoft.ConsoleTest
@@ -44,7 +44,7 @@ namespace Microsoft.ConsoleTest
 
 			// Initialize fields.
 			_logger = logger;
-			logger.CreateScope(Log.NameScope(nameof(ExecutionExample)));
+			logger.Enrich(Log.NameScope(nameof(ExecutionExample)));
 		}
 
 		#endregion
@@ -83,19 +83,14 @@ namespace Microsoft.ConsoleTest
 
 		static class Log
 		{
-			internal static LogScope NameScope(string scope)
-			{
-				return new LogScope(scope);
-			}
-			internal static LogScope IterationScope(int iteration)
-			{
-				return new LogScope(iteration);
-			}
+			internal static ILogScope NameScope(string scope) => LogScope.Create(LogScopeType.Independent, scope);
+
+			internal static ILogScope IterationScope(int iteration) => LogScope.Create(LogScopeType.Independent, iteration);
 
 			internal static LogResourceEvent StartEvent(int iteration)
 			{
 				//! The 'iteration' argument can be omitted from the logArgs, as this method is always called from a log-scope that encapsulates this value.
-				return new LogResourceEvent(1523340757, LogLevel.Debug, l10n.ResourceManager, nameof(l10n.Start), outputArgs: new object[] { iteration });
+				return new LogResourceEvent(1523340757, LogLevel.Debug, l10n.ResourceManager, nameof(l10n.Start), outputArgs: [iteration]);
 			}
 			
 			internal static LogResourceEvent FinishedEvent(int iteration, ExecutionResult result, TimeSpan duration)
@@ -103,7 +98,7 @@ namespace Microsoft.ConsoleTest
 				var logLevel = result == ExecutionResult.Valid ? LogLevel.Debug : LogLevel.Warning;
 
 				//! The 'iteration' argument cannot be omitted from the logArgs even if this method is always called from a log-scope that encapsulates this value, because other values will be provided too.
-				return new LogResourceEvent(813784984, logLevel, l10n.ResourceManager, nameof(l10n.Finished), new object[] { iteration, duration, result }, new object[] { iteration, duration.TotalMilliseconds, result });
+				return new LogResourceEvent(813784984, logLevel, l10n.ResourceManager, nameof(l10n.Finished), [iteration, duration, result], [iteration, duration.TotalMilliseconds, result]);
 			}
 		}
 

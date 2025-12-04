@@ -34,8 +34,10 @@ public class LogScopeManagerTest
 	#region Data
 
 	/// <summary> Test implementation of IExecutionContextAwareLogScope </summary>
-	private class TestExecutionContextAwareScope : IExecutionContextAwareLogScope
+	private class TestExecutionContextAwareScope : ILogScope
 	{
+		public LogScopeType Type => LogScopeType.ExecutionContextAware;
+
 		IDictionary<string, object?> _underlyingData;
 
 		public string Name { get; }

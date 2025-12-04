@@ -1,8 +1,5 @@
-﻿using AutoFixture;
-using AutoFixture.AutoMoq;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NUnit.Framework;
+﻿using Microsoft.Extensions.Logging;
+using Phoenix.Functionality.Logging.Base;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 namespace Microsoft.Test;
@@ -43,10 +40,11 @@ public class LoggerGroupScopeTest
 	{
 		// Arrange
 		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
-		var scopes = _fixture.Create<Dictionary<string, object?>>();
+		//var scopes = _fixture.Create<Dictionary<string, object?>>();
+		var scope = _fixture.Create<ILogScope>();
 		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
 		Mock.Get(disposedCallback).Setup(_ => _(It.IsAny<LoggerGroupScope>())).Verifiable();
-		var loggerGroupScope = new LoggerGroupScope(loggers, scopes, disposedCallback);
+		var loggerGroupScope = new LoggerGroupScope(loggers, scope, disposedCallback);
 		
 		// Act
 		loggerGroupScope.Dispose();
@@ -55,7 +53,7 @@ public class LoggerGroupScopeTest
 		
 		// Assert
 		Mock.Get(disposedCallback).Verify(_ => _(It.IsAny<LoggerGroupScope>()), Times.Once);
-		Assert.That(loggerGroupScope._scopes, Is.Empty);
+		Assert.That(loggerGroupScope._scope, Is.Empty);
 		Assert.That(loggerGroupScope._disposables, Is.Empty);
 	}
 
@@ -78,10 +76,11 @@ public class LoggerGroupScopeTest
 				scopes[pair.Key] = pair.Value;
 			}
 #endif
+		var scope = LogScope.CreateIndependent(scopes);
 
 		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
-		var loggerGroupScope = new LoggerGroupScope(loggers, scopes, disposedCallback);
-		var originalScopesAmount = loggerGroupScope._scopes.Count;
+		var loggerGroupScope = new LoggerGroupScope(loggers, scope, disposedCallback);
+		var originalScopesAmount = loggerGroupScope._scope.Count;
 		var originalDisposableAmount = loggerGroupScope._disposables.Count;
 
 		// Act
@@ -89,8 +88,8 @@ public class LoggerGroupScopeTest
 		
 		// Assert
 		Assert.That(originalScopesAmount, Is.EqualTo(scopes.Count));            //* One scope per...well...scope.
-		Assert.That(loggerGroupScope._scopes, Has.Count.EqualTo(scopes.Count)); //! Should be the same, as the scopes still exist, while one disposable was removed.
-		
+		Assert.That(loggerGroupScope._scope, Has.Count.EqualTo(scopes.Count)); //! Should be the same, as the scopes still exist, while one disposable was removed.
+
 		Assert.That(originalDisposableAmount, Is.EqualTo(loggers.Length));                 //* One disposable per logger.
 		Assert.That(loggerGroupScope._disposables, Has.Count.EqualTo(loggers.Length - 1)); //! Should be one less as before, because the logger was removed.
 	}

@@ -1,8 +1,5 @@
-﻿using AutoFixture;
-using AutoFixture.AutoMoq;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NUnit.Framework;
+﻿using Microsoft.Extensions.Logging;
+using Phoenix.Functionality.Logging.Base;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 namespace Microsoft.Test;
@@ -73,7 +70,7 @@ public class LoggerGroupTest
 		// Arrange: Create logger group with existing scope.
 		var logger = _fixture.Create<ILogger>();
 		var loggerGroup = new LoggerGroup(logger);
-		loggerGroup.CreateScope(new LogScope(("TestScope", "TestValue")));
+		loggerGroup.Enrich(LogScope.CreateIndependent(("TestScope", "TestValue")));
 
 		// Arrange: Create mocked logger, that can verify if BeginScope was called.
 		var newLogger = _fixture.Create<Mock<ILogger>>().Object;

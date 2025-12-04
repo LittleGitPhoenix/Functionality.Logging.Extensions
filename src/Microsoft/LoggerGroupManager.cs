@@ -93,7 +93,7 @@ internal static class LoggerGroupManager
 	{
 		var identifier = (GroupIdentifier<TIdentifier>) groupIdentifier;
 		var matchingGroups = LoggerGroupManager.GetMatchingGroups(group => identifier.Equals(group.GroupIdentifier)).Take(1).ToArray();
-		return matchingGroups.Any() ? matchingGroups.FirstOrDefault().LoggerGroup : new LoggerGroup();
+		return matchingGroups.Length != 0 ? matchingGroups.FirstOrDefault().LoggerGroup : new LoggerGroup();
 	}
 
 	/// <summary>
@@ -102,21 +102,13 @@ internal static class LoggerGroupManager
 	/// <returns> A collection of all cached groups. </returns>
 	internal static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetAllGroups()
 	{
-		return LoggerGroupManager
-			.GetMatchingGroups(_ => true)
-			.Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))
-			.ToArray()
-			;
+		return [.. GetMatchingGroups(_ => true).Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))];
 	}
 
 	/// <inheritdoc cref="LoggerExtensions.GetGroups"/>
 	internal static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetGroupsOfLogger(ILogger logger)
     {
-        return LoggerGroupManager
-            .GetMatchingGroups(tuple => tuple.LoggerGroup.Contains(logger))
-            .Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))
-            .ToArray()
-            ;
+        return [.. GetMatchingGroups(tuple => tuple.LoggerGroup.Contains(logger)).Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))];
     }
 
 	/// <summary>

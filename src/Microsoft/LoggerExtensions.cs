@@ -20,6 +20,7 @@ class NoDisposable : IDisposable
 	public void Dispose() { }
 }
 
+#if DEBUG && NETCOREAPP3_0_OR_GREATER
 static class Example
 {
 	//# Unit Test: Check that multiple Enrich calls can be chained and that they all are properly disposed.
@@ -39,7 +40,7 @@ static class Example
 	{
 		// Example how to use the Enrich method.
 		ILogger logger = null!;
-		var scope = new LogScope
+		var scope = LogScope.CreateIndependent
 		(
 			("UserId", 12345),
 			("SessionId", "abcde-67890-fghij-12345")
@@ -53,6 +54,7 @@ static class Example
 		}
 	}
 }
+#endif
 
 /// <summary>
 /// Provides extension methods for <see cref="ILogger"/>.
@@ -87,25 +89,25 @@ public static partial class LoggerExtensions
 	/// Logs an event with a given <paramref name="logMessage"/>.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="eventId"> The <see cref="EventId"/> of the event. </param>
 	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
 	/// <param name="logMessage"> The message to log. </param>
 	/// <param name="args"> Arguments passed to the log message. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger Log(this ILogger logger, int eventId, LogLevel logLevel, string logMessage, params object?[] args)
+	public static ILogger Log(this ILogger logger, EventId eventId, LogLevel logLevel, string logMessage, params object?[] args)
 		=> Log(new LogEvent(eventId, logLevel, logMessage, args), logger);
 
 	/// <summary>
 	/// Logs an event with a given <paramref name="logMessage"/> and <paramref name="exception"/>.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="eventId"> The <see cref="EventId"/> of the event. </param>
 	/// <param name="exception"> The <see cref="Exception"/> to log. </param>
 	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
 	/// <param name="logMessage"> The message to log. </param>
 	/// <param name="args"> Arguments passed to the log message. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger Log(this ILogger logger, int eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
+	public static ILogger Log(this ILogger logger, EventId eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
 		=> Log(new LogEvent(eventId, exception, logLevel, logMessage, args), logger);
 
 	/// <summary>
@@ -121,7 +123,7 @@ public static partial class LoggerExtensions
 	/// Logs an event with a message resolved from a resource file and returns this message translated into the current ui culture (or its nearest fallback).
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="eventId"> The <see cref="EventId"/> of the event. </param>
 	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
 	/// <param name="resourceManager"> The <see cref="ResourceManager"/>s that is queried to find the proper messages for <paramref name="resourceName"/>. </param>
 	/// <param name="resourceName"> The name of the resource that is the log message. </param>
@@ -129,14 +131,14 @@ public static partial class LoggerExtensions
 	/// <param name="outputArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="args"/> will be used. </param>
 	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogResourceEvent.LogCulture"/>. </param>
 	/// <returns> The translated log message. </returns>
-	public static string Log(this ILogger logger, int eventId, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
+	public static string Log(this ILogger logger, EventId eventId, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
 		=> LogEventFromResource(new LogResourceEvent(eventId, logLevel, resourceManager, resourceName, args, outputArgs, logCulture), logger);
 
 	/// <summary>
 	/// Logs an event with a message resolved from a resource file together with an <paramref name="exception"/> and returns this message translated into the current ui culture (or its nearest fallback).
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
-	/// <param name="eventId"> The id of the event. </param>
+	/// <param name="eventId"> The <see cref="EventId"/> of the event. </param>
 	/// <param name="exception"> The <see cref="Exception"/> to log. </param>
 	/// <param name="logLevel"> The <see cref="LogLevel"/> of the event. </param>
 	/// <param name="resourceManager"> The <see cref="ResourceManager"/>s that is queried to find the proper messages for <paramref name="resourceName"/>. </param>
@@ -145,7 +147,7 @@ public static partial class LoggerExtensions
 	/// <param name="outputArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="args"/> will be used. </param>
 	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogResourceEvent.LogCulture"/>. </param>
 	/// <returns> The translated log message. </returns>
-	public static string Log(this ILogger logger, int eventId, Exception exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
+	public static string Log(this ILogger logger, EventId eventId, Exception exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
 		=> LogEventFromResource(new LogResourceEvent(eventId, exception, logLevel, resourceManager, resourceName, args, outputArgs, logCulture), logger);
 
 	#region Helper
@@ -161,7 +163,7 @@ public static partial class LoggerExtensions
 	{
 		if (logger is null) throw new ArgumentNullException(nameof(logger));
 		if (logger == NoLogger.Instance || logger == global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance) return logger;
-		if (logEvent is null || logEvent == LogEvent.NoLogEvent) return logger;
+		if (logEvent is null || logEvent == NoLogEvent.Instance) return logger;
 
 		//* If the logger is wrapped within a chaining logger, always use the inner logger. This way the actual logger is always used for logging.
 		//* This improves performance and using the actual logger allows type checking further down the log chain.
@@ -205,7 +207,7 @@ public static partial class LoggerExtensions
 	private static string LogEventFromResource(ILogResourceEvent? logEvent, ILogger logger)
 	{		
 		if (logger is null || logger == NoLogger.Instance || logger == global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance) return String.Empty;
-		if (logEvent is null || logEvent == LogResourceEvent.NoLogResourceEvent) return String.Empty;
+		if (logEvent is null || logEvent == NoLogResourceEvent.Instance) return String.Empty;
 
 		// Log
 		Log(logEvent, logger);
@@ -219,8 +221,6 @@ public static partial class LoggerExtensions
 	#endregion
 
 	#region Groups
-
-	//# The LoggerGroup must be made into a regualr ILogger too.
 
 	/// <summary>
 	/// Adds the <paramref name="logger"/> to the group identified by <paramref name="groupIdentifier"/>.
@@ -311,7 +311,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger EnrichPermantently(this ILogger logger, LogScope? scope)
+	public static ILogger EnrichPermantently(this ILogger logger, ILogScope? scope)
 		=> logger.Enrich(scope);
 
 	/// <summary>
@@ -349,6 +349,7 @@ public static partial class LoggerExtensions
 	/// Creates a new logging scope with named values extracted from the given parameters.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="type"> The <see cref="LogScopeType"/> of the new scope. </param>
 	/// <param name="value1"> The value that will be added to the scope. </param>
 	/// <param name="value2"> See: <paramref name="value1"/>. </param>
 	/// <param name="value3"> See: <paramref name="value1"/>. </param>
@@ -376,6 +377,7 @@ public static partial class LoggerExtensions
 	public static IChainingLogScopeDisposable Enrich
 	(
 		this ILogger logger,
+		LogScopeType type,
 		object? value1,
 		object? value2 = default,
 		object? value3 = default,
@@ -399,19 +401,24 @@ public static partial class LoggerExtensions
 		bool cleanCallerArgument = true
 	)
 	{
-		var scopes = new LogScope
+		return logger.Enrich
 		(
-			value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
-			name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
-			cleanCallerArgument
+			//? Will the names be passed or will they be overridden by the CallerArgumentExpression attribute of the Create function?		
+			LogScope.Create
+			(
+				type,
+				value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
+				name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+				cleanCallerArgument
+			)
 		);
-		return logger.Enrich(scopes);
 	}
 
 	/// <summary>
 	/// Creates a new logging scope with named values extracted from the given parameters that is not removable.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
+	/// <param name="type"> The <see cref="LogScopeType"/> of the new scope. </param>
 	/// <param name="value1"> The value that will be added to the scope. </param>
 	/// <param name="value2"> See: <paramref name="value1"/>. </param>
 	/// <param name="value3"> See: <paramref name="value1"/>. </param>
@@ -439,6 +446,7 @@ public static partial class LoggerExtensions
 	public static ILogger EnrichPermantently
 	(
 		this ILogger logger,
+		LogScopeType type,
 		object? value1,
 		object? value2 = default,
 		object? value3 = default,
@@ -462,13 +470,17 @@ public static partial class LoggerExtensions
 		bool cleanCallerArgument = true
 	)
 	{
-		var scopes = new LogScope
+		return logger.Enrich
 		(
-			value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
-			name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
-			cleanCallerArgument
+			//? Will the names be passed or will they be overridden by the CallerArgumentExpression attribute of the Create function?
+			LogScope.Create
+			(
+				type,
+				value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
+				name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+				cleanCallerArgument
+			)
 		);
-		return logger.Enrich(scopes);
 	}
 #endif
 
@@ -493,10 +505,10 @@ public static partial class LoggerExtensions
 	/// <param name="scope"> The scope to apply. </param>
 	/// <returns> The logging scope. </returns>
 	/// <remarks> It may be better to get the groups of a logger with the <see cref="AsGroup{TIdentifier}"/> extension method and then applying the scope with one of the group methods like <see cref="ILoggerGroup.CreateScope(LogScope)"/>. </remarks>
-	[Obsolete($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.", true)]
+	[Obsolete($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(ILoggerGroup)}.{nameof(ILoggerGroup.Enrich)}.", true)]
 	public static IDisposable CreateScope<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope)
 		where TIdentifier : notnull
-		=> throw new NotSupportedException($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.");
+		=> throw new NotSupportedException($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(ILoggerGroup)}.{nameof(ILoggerGroup.Enrich)}.");
 
 	/// <summary>
 	/// Creates a new logging scope with named values.
@@ -504,7 +516,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scopedValues"> Collection of named values. </param>
 	/// <returns> The logging scope. </returns>
-	[Obsolete($"Use {nameof(Enrich)} instead.")]
+	[Obsolete($"Use {nameof(Enrich)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static IDisposable CreateScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
 		=> logger.Enrich(new LogScope(scopedValues));
 
@@ -514,7 +526,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scopedValues"> The <see cref="System.Linq.Expressions.Expression"/>s used to build the named values. </param>
 	/// <returns> The logging scope. </returns>
-	[Obsolete($"Use {nameof(Enrich)} instead.")]
+	[Obsolete($"Use {nameof(Enrich)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static IDisposable CreateScope(this ILogger logger, params System.Linq.Expressions.Expression<Func<object>>[] scopedValues)
 		=> logger.Enrich(new LogScope(scopedValues));
 
@@ -547,7 +559,7 @@ public static partial class LoggerExtensions
 	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
 	/// <returns> The logging scope. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained even though its value is specified. </exception>
-	[Obsolete($"Use {nameof(Enrich)} instead.")]
+	[Obsolete($"Use {nameof(Enrich)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static IDisposable CreateScope
 	(
 		this ILogger logger,
@@ -575,6 +587,7 @@ public static partial class LoggerExtensions
 	)
 		=> logger.Enrich
 		(
+			LogScopeType.Independent,
 			value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
 			name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
 			cleanCallerArgument
@@ -587,7 +600,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead.")]
+	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope(this ILogger logger, LogScope? scope)
 		=> logger.EnrichPermantently(scope);
 
@@ -597,7 +610,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scopedValues"> Collection of named values. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead.")]
+	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
 	{
 		var scopes = new LogScope(scopedValues);
@@ -610,7 +623,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scopedValues"> The <see cref="System.Linq.Expressions.Expression"/>s used to build the named values. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead.")]
+	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope(this ILogger logger, params System.Linq.Expressions.Expression<Func<object>>[] scopedValues)
 	{
 		var scopes = new LogScope(scopedValues);
@@ -645,7 +658,7 @@ public static partial class LoggerExtensions
 	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained even though its value is specified. </exception>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead.")]
+	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope
 	(
 		this ILogger logger,
@@ -674,6 +687,7 @@ public static partial class LoggerExtensions
 		=>
 		logger.EnrichPermantently
 		(
+			LogScopeType.Independent,
 			value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
 			name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
 			cleanCallerArgument
@@ -726,10 +740,10 @@ public static partial class LoggerExtensions
 	/// <para> Event (<see cref="LogEvent"/>): The event to log. </para>
 	/// </param>
 	/// <returns> The logging scope. </returns>
-	[Obsolete($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.", true)]
+	[Obsolete($"Directly creating scopes for a logger group and logging afterwards is no longer supported. Logger groups can only be used to create scopes but not log to them.", true)]
 	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, (LogScope<TIdentifier> Scope, LogEvent Event)? log)
 		where TIdentifier : notnull
-		=> throw new NotSupportedException($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.");
+		=> throw new NotSupportedException($"Directly creating scopes for a logger group and logging afterwards is no longer supported. Logger groups can only be used to create scopes but not log to them.");
 
 	/// <summary>
 	/// Creates a new logging scope and writes log events afterward.
@@ -738,10 +752,10 @@ public static partial class LoggerExtensions
 	/// <param name="scope"> The scope to apply. </param>
 	/// <param name="logEvents"> A collection of <see cref="LogEvent"/>s. </param>
 	/// <returns> The logging scope. </returns>
-	[Obsolete($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.", true)]
+	[Obsolete($"Directly creating scopes for a logger group and logging afterwards is no longer supported. Logger groups can only be used to create scopes but not log to them.", true)]
 	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, IEnumerable<LogEvent> logEvents)
 		where TIdentifier : notnull
-		=> throw new NotSupportedException($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.");
+		=> throw new NotSupportedException($"Directly creating scopes for a logger group and logging afterwards is no longer supported. Logger groups can only be used to create scopes but not log to them.");
 
 	/// <summary>
 	/// Creates a new logging scope and writes a log event afterward.
@@ -750,10 +764,10 @@ public static partial class LoggerExtensions
 	/// <param name="scope"> The scope to apply. </param>
 	/// <param name="logEvent"> The event to log. </param>
 	/// <returns> The logging scope. </returns>
-	[Obsolete($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.", true)]
+	[Obsolete($"Directly creating scopes for a logger group and logging afterwards is no longer supported. Logger groups can only be used to create scopes but not log to them.", true)]
 	public static IDisposable CreateScopeAndLog<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope, LogEvent? logEvent)
 		where TIdentifier : notnull
-		=> throw new NotSupportedException($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(Enrich)}.");
+		=> throw new NotSupportedException($"Directly creating scopes for a logger group and logging afterwards is no longer supported. Logger groups can only be used to create scopes but not log to them.");
 
 	#endregion
 }

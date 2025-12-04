@@ -31,7 +31,7 @@ public interface ILogScopeManager
 /// This class supports both execution context-aware scopes (which flow with async operations) and global scopes.
 /// Scopes are ordered to ensure correct nesting when logging. Thread safety is provided for concurrent operations.
 /// </remarks>
-class LogScopeManager : ILogScopeManager
+public class LogScopeManager : ILogScopeManager
 {
     #region Delegates / Events
     #endregion
@@ -77,7 +77,7 @@ class LogScopeManager : ILogScopeManager
         if (scope is null) return DisposableAction.NoDisposableAction;
 
 		// Determine which collection to use.
-		var scopes = scope is Phoenix.Functionality.Logging.Base.IExecutionContextAwareLogScope ? _executionContextAwareScopes.Value ??= [] : _scopes;
+		var scopes = scope is ILogScope logScope && logScope.Type == LogScopeType.ExecutionContextAware ? _executionContextAwareScopes.Value ??= [] : _scopes;
 		
         // Only add unique items.		
 		if (!scopes.ContainsKey(scope)) scopes.Add(scope, Interlocked.Increment(ref _scopeOrder));

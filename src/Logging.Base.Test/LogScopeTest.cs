@@ -1,9 +1,9 @@
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using NUnit.Framework;
-using Phoenix.Functionality.Logging.Extensions.Microsoft;
+using Phoenix.Functionality.Logging.Base;
 
-namespace Microsoft.Test;
+namespace Logging.Base.Test;
 
 public class LogScopeTest
 {
@@ -45,9 +45,9 @@ public class LogScopeTest
 		// Act
 		var logScope =
 #if NETCOREAPP3_0_OR_GREATER
-			new LogScope(scopeKey);
+			LogScope.CreateIndependent(scopeKey);
 #else
-			new LogScope((nameof(scopeKey), scopeKey));
+			LogScope.CreateIndependent((nameof(scopeKey), scopeKey));
 #endif
 
 		// Assert
@@ -56,28 +56,28 @@ public class LogScopeTest
 		Assert.That(logScope.First().Value, Is.EqualTo(scopeKey));
 	}
 	
-	/// <summary> Checks that creating a <see cref="LogScope{TIdentifier}"/> succeeds. </summary>
-	[Test]
-	public void GenericLogScopeCanBeCreated()
-	{
-		// Arrange
-		object groupIdentifier = Guid.NewGuid();
-		var scopeKey = "ScopeValue";
+//	/// <summary> Checks that creating a <see cref="LogScope{TIdentifier}"/> succeeds. </summary>
+//	[Test]
+//	public void GenericLogScopeCanBeCreated()
+//	{
+//		// Arrange
+//		object groupIdentifier = Guid.NewGuid();
+//		var scopeKey = "ScopeValue";
 
-		// Act
-		var logScope =
-#if NETCOREAPP3_0_OR_GREATER
-			new LogScope<object>(groupIdentifier, scopeKey);
-#else
-			new LogScope<object>(groupIdentifier, (nameof(scopeKey), scopeKey));
-#endif
+//		// Act
+//		var logScope =
+//#if NETCOREAPP3_0_OR_GREATER
+//			new LogScope<object>(groupIdentifier, scopeKey);
+//#else
+//			new LogScope<object>(groupIdentifier, (nameof(scopeKey), scopeKey));
+//#endif
 
-		// Assert
-		Assert.That(logScope.Identifier, Is.EqualTo(groupIdentifier));
-		Assert.That(logScope, Has.Count.EqualTo(1));
-		Assert.That(logScope.First().Key, Is.EqualTo("ScopeKey"));
-		Assert.That(logScope.First().Value, Is.EqualTo(scopeKey));
-	}
+//		// Assert
+//		Assert.That(logScope.Identifier, Is.EqualTo(groupIdentifier));
+//		Assert.That(logScope, Has.Count.EqualTo(1));
+//		Assert.That(logScope.First().Key, Is.EqualTo("ScopeKey"));
+//		Assert.That(logScope.First().Value, Is.EqualTo(scopeKey));
+//	}
 	
 #endregion
 }

@@ -48,8 +48,6 @@ public class LoggerSettingsConfigurationExtensionsTest
 
         // Act + Assert
         Assert.Catch<SerilogSettingsException>(() => new LoggerConfiguration().ReadFrom.JsonFile(settingsFile, "MISSING"));
-		Directory.GetCurrentDirectory()
-
 	}
 
     [Test]

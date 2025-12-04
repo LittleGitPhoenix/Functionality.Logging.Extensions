@@ -97,7 +97,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="StartIteration" xml:space="preserve">
+  <data name="DatasetUpdated" xml:space="preserve">
     <value>Datensatz {0} wurde aktualisiert.</value>
+  </data>
+  <data name="MessageWithoutPlaceholders" xml:space="preserve">
+    <value>Hallo Welt</value>
+  </data>
+  <data name="MessageWithMatchingPlaceholders" xml:space="preserve">
+    <value>Die id {0} gehört zum Nutzer {1}.</value>
+  </data>
+  <data name="MessageWithDifferentPlaceholders" xml:space="preserve">
+    <value>Der Nutzer {0} ist ein Mensch.</value>
+  </data>
+  <data name="MessageWithOnePlaceholder" xml:space="preserve">
+    <value>Die aktuelle Uhrzeit ist {0}.</value>
   </data>
 </root>

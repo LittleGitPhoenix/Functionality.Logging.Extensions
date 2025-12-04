@@ -53,17 +53,17 @@ public class FrameworkLogger : IFrameworkLogger
 
 	internal ILogScopeManager ScopeManager { get; }
 
-    #endregion
+	#endregion
 
-    #region (De)Constructors
-	
-    /// <summary>
-    /// Constructor
-    /// </summary>
-    /// <param name="serilogLogger"> The <see cref="ISerilogLogger"/> that will be used to output log events. </param>
-    /// <param name="name"> An optional name for the logger. </param>
-    /// <param name="propertyName"> <see cref="Constants.SourceContextPropertyName"/>, is only used if <paramref name="name"/> is not null. </param>
-    public FrameworkLogger(ISerilogLogger serilogLogger, string? name = null, string propertyName = Constants.SourceContextPropertyName)
+	#region (De)Constructors
+
+	/// <summary>
+	/// Constructor using a new <see cref="LogScopeManager"/>.
+	/// </summary>
+	/// <param name="serilogLogger"> The <see cref="ISerilogLogger"/> that will be used to output log events. </param>
+	/// <param name="name"> An optional name for the logger. </param>
+	/// <param name="propertyName"> <see cref="Constants.SourceContextPropertyName"/>, is only used if <paramref name="name"/> is not null. </param>
+	public FrameworkLogger(ISerilogLogger serilogLogger, string? name = null, string propertyName = Constants.SourceContextPropertyName)
 		: this(serilogLogger, new LogScopeManager(), name, propertyName) { }
 
 	/// <summary>

@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
@@ -19,7 +20,8 @@ internal sealed class LoggerGroupScope : IDisposable
 
 	private int _disposed;
 
-	internal readonly IDictionary<string, object?> _scopes;
+	//internal readonly IDictionary<string, object?> _scopes;
+	internal readonly ILogScope _scope;
 
 	private readonly Action<LoggerGroupScope> _disposedCallback;
 
@@ -37,16 +39,17 @@ internal sealed class LoggerGroupScope : IDisposable
 
 	#region (De)Constructors
 
-	public LoggerGroupScope(IReadOnlyCollection<ILogger> loggers, IDictionary<string, object?> scopes, Action<LoggerGroupScope> disposedCallback)
+	//public LoggerGroupScope(IReadOnlyCollection<ILogger> loggers, IDictionary<string, object?> scopes, Action<LoggerGroupScope> disposedCallback)
+	public LoggerGroupScope(IReadOnlyCollection<ILogger> loggers, ILogScope scope, Action<LoggerGroupScope> disposedCallback)
 	{
-		_scopes = scopes;
+		_scope = scope;
 		_disposedCallback = disposedCallback;
 		_disposablesLock = new ();
 		_disposables = new ConcurrentDictionary<WeakReference<ILogger>, List<IDisposable>>
 		(
 			loggers.Select
 			(
-				logger => new KeyValuePair<WeakReference<ILogger>, List<IDisposable>>(key: new WeakReference<ILogger>(logger), value: [ logger.BeginScope(scopes) ])
+				logger => new KeyValuePair<WeakReference<ILogger>, List<IDisposable>>(key: new WeakReference<ILogger>(logger), value: [ logger.BeginScope((IDictionary<string, object?>) scope) ])
 			)
 		);
 	}
@@ -61,7 +64,7 @@ internal sealed class LoggerGroupScope : IDisposable
 		{
 			if (_disposed == 1) return;
 
-			var disposable = logger.BeginScope(_scopes);
+			var disposable = logger.BeginScope((IDictionary<string, object?>) _scope);
 			var loggers = this.CleanLoggers();
 			if (loggers.TryGetValue(logger, out var disposables))
 			{
@@ -156,7 +159,7 @@ internal sealed class LoggerGroupScope : IDisposable
 				.ForEach(this.SaveDispose)
 				;
 			_disposables.Clear();
-			_scopes.Clear();
+			_scope.Clear();
 		
 			_disposedCallback.Invoke(this);
 		}

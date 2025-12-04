@@ -1,9 +1,6 @@
 ﻿using System.Collections.Concurrent;
-using AutoFixture;
-using AutoFixture.AutoMoq;
 using Microsoft.Extensions.Logging;
-using Moq;
-using NUnit.Framework;
+using Phoenix.Functionality.Logging.Base;
 using Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 namespace Microsoft.Test;
@@ -201,8 +198,8 @@ public class LoggerGroupManagerTest
 		secondLogger.AddToGroup(groupIdentifier);
 		
 		// Act
-		firstLogger.AsGroup(groupIdentifier).CreateScope(("First", 1));
-		secondLogger.AsGroup(groupIdentifier).CreateScope(("Second", 2));
+		firstLogger.AsGroup(groupIdentifier).Enrich(LogScope.CreateIndependent(("First", 1)));
+		secondLogger.AsGroup(groupIdentifier).Enrich(LogScope.CreateIndependent(("Second", 2)));
 		
 		// Assert
 		Mock.Get(firstLogger).Verify(mock => mock.BeginScope(It.IsAny<object>()), Times.Exactly(2));
@@ -236,7 +233,7 @@ public class LoggerGroupManagerTest
 		var existingLoggers = _fixture.CreateMany<ILogger>(count: 6).ToArray();
 		foreach (var logger in existingLoggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
 		var loggerGroup = LoggerGroupManager.GetGroup(groupIdentifier);
-		loggerGroup.CreateScope(("Key", "Value"));
+		loggerGroup.Enrich(LogScope.CreateIndependent(("Key", "Value")));
 
 		var newLogger = _fixture.Create<Mock<ILogger>>().Object;
 		Mock.Get(newLogger)
