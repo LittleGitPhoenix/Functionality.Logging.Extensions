@@ -1,5 +1,5 @@
 ###############################
-## PHOENIX validation v0.1.0 ##
+## PHOENIX validation v0.2.0 ##
 ###############################
 name: PR Validation
 
@@ -8,22 +8,21 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
 jobs:
-  validate-packages-and-projects:
-    name: Validate Packages and Project Versions
+
+  validate:
+    name: Validate repository before allowing PR
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore
-
+      
+      # Validate project versions
       - name: Check project versions (SemVer enforcement for C#, VB, F#)
         run: |
           echo "Checking project versions..."
@@ -43,6 +42,7 @@ jobs:
             fi
           done
 
+      # Validate package versions
       - name: Check for prerelease packages
         run: |
           dotnet list ./YourSolution.sln package > packages.txt
@@ -54,32 +54,29 @@ jobs:
             echo "✅ All packages are stable releases."
           fi
 
-  run-tests:
-    name: Run Unit Tests with Coverage
-    runs-on: ubuntu-latest
-    needs: validate-packages-and-projects
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      # Install .NET SDK
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
+      # Restore dependencies
       - name: Restore dependencies
         run: dotnet restore
 
+      # Build the solution
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
 
+      # Run tests with coverage
       - name: Run tests with TRX + coverage
         run: dotnet test --configuration Release --no-build \
               --logger "trx;LogFileName=test_results.trx" \
               /p:CollectCoverage=true \
               /p:CoverletOutput=TestResults/coverage/ \
               /p:CoverletOutputFormat=cobertura
-
+      
+      # Publish test results
       - name: Publish test results
         uses: dorny/test-reporter@v1
         if: always()
@@ -88,6 +85,7 @@ jobs:
           path: '**/TestResults/*.trx'
           reporter: dotnet-trx
 
+      # Publish coverage summary
       - name: Publish coverage summary
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
