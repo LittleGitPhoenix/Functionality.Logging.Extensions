@@ -36,7 +36,7 @@ jobs:
           $semverRegex = '^[0-9]+\.[0-9]+\.[0-9]+$'
           $errorCount = 0
           
-          $projectFiles = Get-ChildItem -Path . -Recurse -Include *.csproj, *.vbproj, *.fsproj | Where-Object { $_.FullName -notlike "*\Tests\*" }
+          $projectFiles = Get-ChildItem -Path . -Recurse -Include *.csproj, *.vbproj, *.fsproj | Where-Object { $_.FullName -notlike "*\Tests\*" -and $_.FullName -notlike "*/Tests/*" }
           
           foreach ($file in $projectFiles) {
             $content = Get-Content -Path $file.FullName -Raw
