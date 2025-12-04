@@ -1,5 +1,5 @@
 ###############################
-## PHOENIX validation v0.4.0 ##
+## PHOENIX validation v0.5.0 ##
 ###############################
 name: PR Validation
 
@@ -23,11 +23,11 @@ jobs:
     steps:
       
       # Checkout the repository
-      - name: Checkout code
+      - name: <Setup> Checkout code
         uses: actions/checkout@v4
       
       # Validate project versions
-      - name: Check project versions (SemVer enforcement for C#, VB, F#)
+      - name: <Test> Check project versions (SemVer enforcement for C#, VB, F#)
         id: check-project-versions
         run: |
           echo "Checking project versions..."
@@ -48,7 +48,7 @@ jobs:
           done
 
       # Validate package versions
-      - name: Check for prerelease packages
+      - name: <Test> Check for prerelease packages
         id: check-package-versions
         run: |
           dotnet list package > packages.txt
@@ -61,21 +61,21 @@ jobs:
           fi
 
       # Install .NET SDK
-      - name: Setup .NET
+      - name: <Setup> Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
       # Restore dependencies
-      - name: Restore dependencies
+      - name: <Build> Restore dependencies
         run: dotnet restore
 
       # Build the solution
-      - name: Build solution
+      - name: <Build> Build solution
         run: dotnet build --configuration Release --no-restore
 
       # Run tests with coverage
-      - name: Run tests with TRX + coverage
+      - name: <Test> Run tests with TRX + coverage
         id: run-tests
         run: dotnet test --configuration Release --no-build \
               --logger "trx;LogFileName=test_results.trx" \
@@ -84,7 +84,7 @@ jobs:
               /p:CoverletOutputFormat=cobertura
       
       # Publish test results
-      - name: Publish test results
+      - name: <Test> Publish test results
         id: publish-tests
         uses: dorny/test-reporter@v1
         if: steps.run-tests.outcome == 'success' || steps.run-tests.outcome == 'failure'
@@ -94,7 +94,7 @@ jobs:
           reporter: dotnet-trx
 
       # Publish coverage summary
-      - name: Publish coverage summary
+      - name: <Test> Publish coverage summary
         id: publish-coverage
         uses: irongut/CodeCoverageSummary@v1.3.0
         if: steps.run-tests.outcome == 'success' || steps.run-tests.outcome == 'failure'
