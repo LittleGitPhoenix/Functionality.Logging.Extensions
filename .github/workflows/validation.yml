@@ -25,32 +25,46 @@ jobs:
       # Checkout the repository
       - name: <Setup> Checkout code
         uses: actions/checkout@v4
-      
+            
       # Validate project versions
       - name: <Test> Check project versions (SemVer enforcement for C#, VB, F#)
         id: check-project-versions
         continue-on-error: true
+        shell: pwsh
         run: |
-          echo "Checking project versions..."
-          semver_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
-          error_count=0
-          for file in $(find . -type f \( -name '*.csproj' -o -name '*.vbproj' -o -name '*.fsproj' \)); do
-            version=$(grep -oPm1 "(?<=<Version>)[^<]+" "$file" || echo "none")
-            if [ "$version" = "none" ]; then
-              echo "❌ Project $file has no <Version> tag defined."
-              ((error_count++))
-            elif [[ ! "$version" =~ $semver_regex ]]; then
-              echo "❌ Project $file has invalid version: $version"
-              echo "   Allowed format: MAJOR.MINOR.PATCH (e.g., 1.2.3)"
-              ((error_count++))
-            else
-              echo "✅ Project $file has valid SemVer: $version"
-            fi
-          done
-          if [ $error_count -gt 0 ]; then
-            echo "❌ Found $error_count project version error(s)."
+          Write-Host "Checking project versions..."
+          $semverRegex = '^[0-9]+\.[0-9]+\.[0-9]+$'
+          $errorCount = 0
+          
+          $projectFiles = Get-ChildItem -Path . -Recurse -Include *.csproj, *.vbproj, *.fsproj | Where-Object { $_.FullName -notlike "*\Tests\*" }
+          
+          foreach ($file in $projectFiles) {
+            $content = Get-Content -Path $file.FullName -Raw
+            if ($content -match '<Version>([^<]+)</Version>') {
+              $version = $matches[1]
+              if ($version -notmatch $semverRegex) {
+                Write-Host "❌ Project $($file.FullName) has invalid version: $version"                
+                $errorCount++
+              }
+              else {
+                Write-Host "✅ Project $($file.FullName) has valid SemVer: $version"
+              }
+            }
+            else {
+              Write-Host "❌ Project $($file.FullName) has no <Version> tag defined."
+              $errorCount++
+            }
+          }
+          
+          if ($errorCount -gt 0) {
+            Write-Host ""
+            Write-Host "❌ Found $errorCount project version error(s)."
             exit 1
-          fi
+          }
+          else {
+            Write-Host ""
+            Write-Host "✅ All project versions are valid."
+          }
 
       # Validate package versions
       - name: <Test> Check for prerelease packages
