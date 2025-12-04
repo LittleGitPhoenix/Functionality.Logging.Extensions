@@ -25,8 +25,8 @@ static class Example
 {
 	//# Unit Test: Check that multiple Enrich calls can be chained and that they all are properly disposed.
 	//# Unit Test: Check that the actual logger of a ChainingLogScopeDisposable is always the initial logger even if multiple nested instance are used.
-	//# Unit Test: Check that Log uses the actual logger in case of a ChainingLogScopeDisposable but still returns the chanined one.
-	//# Unit Test: Check missmatch in args supplied to Log.
+	//# Unit Test: Check that Log uses the actual logger in case of a ChainingLogScopeDisposable but still returns the chained one.
+	//# Unit Test: Check mismatch in args supplied to Log.
 
 	/*
 	[LoggerMessage(LogLevel.Information, EventId = 2134430538, Message = "Database connection is to {DatabaseName}@{DatabaseServer}.")]
