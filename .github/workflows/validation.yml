@@ -1,5 +1,5 @@
 ###############################
-## PHOENIX validation v0.5.0 ##
+## PHOENIX validation v0.6.0 ##
 ###############################
 name: PR Validation
 
@@ -29,36 +29,56 @@ jobs:
       # Validate project versions
       - name: <Test> Check project versions (SemVer enforcement for C#, VB, F#)
         id: check-project-versions
+        continue-on-error: true
         run: |
           echo "Checking project versions..."
           semver_regex='^[0-9]+\.[0-9]+\.[0-9]+$'
+          error_count=0
           for file in $(find . -type f \( -name '*.csproj' -o -name '*.vbproj' -o -name '*.fsproj' \)); do
             version=$(grep -oPm1 "(?<=<Version>)[^<]+" "$file" || echo "none")
             if [ "$version" = "none" ]; then
               echo "❌ Project $file has no <Version> tag defined."
-              exit 1
-            fi
-            if [[ ! "$version" =~ $semver_regex ]]; then
+              ((error_count++))
+            elif [[ ! "$version" =~ $semver_regex ]]; then
               echo "❌ Project $file has invalid version: $version"
               echo "   Allowed format: MAJOR.MINOR.PATCH (e.g., 1.2.3)"
-              exit 1
+              ((error_count++))
             else
               echo "✅ Project $file has valid SemVer: $version"
             fi
           done
+          if [ $error_count -gt 0 ]; then
+            echo "❌ Found $error_count project version error(s)."
+            exit 1
+          fi
 
       # Validate package versions
       - name: <Test> Check for prerelease packages
         id: check-package-versions
+        continue-on-error: true
         run: |
           dotnet list package > packages.txt
           echo "Checking for prerelease packages..."
-          if grep -E -- '-(alpha|beta|rc|preview)' packages.txt; then
-            echo "❌ Prerelease packages detected. Please use stable versions."
+          error_count=0
+          while IFS= read -r line; do
+            if echo "$line" | grep -qE -- '-(alpha|beta|rc|preview)'; then
+              echo "❌ Prerelease package detected: $line"
+              ((error_count++))
+            fi
+          done < packages.txt
+          if [ $error_count -gt 0 ]; then
+            echo "❌ Found $error_count prerelease package(s). Please use stable versions."
             exit 1
           else
             echo "✅ All packages are stable releases."
           fi
+
+      # Fail workflow if any validation failed
+      - name: <Test> Fail if validation errors occurred
+        if: steps.check-project-versions.outcome == 'failure' || steps.check-package-versions.outcome == 'failure'
+        run: |
+          echo "❌ Validation of project and package versions failed. Please review the errors above."
+          exit 1
 
       # Install .NET SDK
       - name: <Setup> Setup .NET
