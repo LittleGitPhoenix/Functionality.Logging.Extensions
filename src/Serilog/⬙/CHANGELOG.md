@@ -7,7 +7,7 @@ ___
 
 ## 2.0.0
 
-:calendar: _2025-12-??_
+:calendar: _2026-??-??_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -19,8 +19,8 @@ ___
 ### References
 
 :large_blue_circle: Microsoft.Extensions.Configuration.Json ~~8.0.0~~ → **10.0.0**  
-:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**1.2.0**](../../Logging.Base/⬙/CHANGELOG.md#1.2.0)  
-:large_blue_circle: Serilog.Settings.Configuration ~~8.0.0~~ → **9.0.0**  
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**2.0.0**](../../Logging.Base/⬙/CHANGELOG.md#2.0.0)  
+:large_blue_circle: Serilog.Settings.Configuration ~~8.0.0~~ → **10.0.0**  
 ___
 
 ## 1.5.0

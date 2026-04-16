@@ -7,7 +7,7 @@ ___
 
 ## 2.0.0
 
-:calendar: _2025-12-??_
+:calendar: _2026-??-??_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -15,7 +15,7 @@ ___
 
 ### Added
 
-- The `IExecutionContextAwareLogScope` has been added to be able to differentiate  log scopes that are bound to an execution context.
+- The `IExecutionContextAwareLogScope` has been added to be able to differentiate log scopes that are bound to an execution context.
 
 ### Changed
 

@@ -7,7 +7,7 @@ ___
 
 ## 3.0.0
 
-:calendar: _2025-12-??_
+:calendar: _2026-??-??_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -20,7 +20,7 @@ ___
 ### References
 
 :white_circle: Microsoft.Extensions.Logging.Abstractions **10.0.0**  
-:large_blue_circle: Autofac ~~6.0.0~~ → **8.1.0**  
+:large_blue_circle: Autofac ~~6.0.0~~ → **9.1.0**  
 :red_circle: ~~Microsoft.Extensions.Logging~~  
 
 ___
@@ -35,7 +35,7 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**
+:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**  
 ___
 
 ## 2.1.0

@@ -7,7 +7,7 @@ ___
 
 ## 2.0.0
 
-:calendar: _2025-12-??_
+:calendar: _2026-??-??_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |

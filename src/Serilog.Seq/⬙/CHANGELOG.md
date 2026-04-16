@@ -7,7 +7,7 @@ ___
 
 ## 3.0.0
 
-:calendar: _2025-12-??_
+:calendar: _2026-??-??_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -19,7 +19,8 @@ ___
 
 ### References
 
-:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**1.2.0**](../../Logging.Base/⬙/CHANGELOG.md#1.2.0)  
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**2.0.0**](../../Logging.Base/⬙/CHANGELOG.md#2.0.0)  
+:large_blue_circle: Serilog.Sinks.Seq ~~7.0.0~~ → **9.0.0**  
 ___
 
 ## 2.1.0
@@ -40,9 +41,9 @@ ___
 
 ### References
 
-:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)
-:large_blue_circle: Serilog.Sinks.Seq ~~5.1.0~~ → **7.0.0**
-:large_blue_circle: Seq.Api ~~2023.1.0~~ → **2024.1.0**
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)  
+:large_blue_circle: Serilog.Sinks.Seq ~~5.1.0~~ → **7.0.0**  
+:large_blue_circle: Seq.Api ~~2023.1.0~~ → **2024.1.0**  
 ___
 
 ## 2.0.0
@@ -64,8 +65,8 @@ ___
 
 ### References
 
-:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**
-:large_blue_circle: Seq.Api ~~2022.1.0~~ → **2023.1.0**
+:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**  
+:large_blue_circle: Seq.Api ~~2022.1.0~~ → **2023.1.0**  
 ___
 
 ## 1.4.0
@@ -86,7 +87,7 @@ ___
 
 ### References
 
-:large_blue_circle: Seq.Api ~~2021.3.0~~ → **2022.1.0**
+:large_blue_circle: Seq.Api ~~2021.3.0~~ → **2022.1.0**  
 
 ___
 
@@ -105,7 +106,7 @@ ___
 
 ### References
 
-:large_blue_circle: Serilog.Sinks.Seq ~~5.0.1~~ → **5.1.0**
+:large_blue_circle: Serilog.Sinks.Seq ~~5.0.1~~ → **5.1.0**  
 ___
 
 ## 1.2.0

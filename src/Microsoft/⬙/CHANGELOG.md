@@ -7,7 +7,7 @@ ___
 
 ## 3.0.0
 
-:calendar: _2025-12-??_
+:calendar: _2026-??-??_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -63,7 +63,7 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**
+:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**  
 ___
 
 ## 2.2.0
@@ -77,7 +77,6 @@ ___
 ### Fixed
 
 - Due to **automatic type inference** not working if the **generic type** parameter is inside a **ValueTuple**, calls to `CreateScopeAndLog` having a generic `LogScope<>` as parameter was invoking the wrong method. This cannot be prevented in a reasonable way by just changing method signatures. Therefor the falsely called method now checks if its log scope parameter is generic and then forwards the call to the correct method.
-
 ___
 
 ## 2.1.0
@@ -88,7 +87,6 @@ ___
 
 - New null-object logger `NoLogger.Instance`.
 - New trace and console logger `TraceLogger`. It can be instantiated or used directly via the static `TraceLogger.Instance` property.
-
 ___
 
 ## 2.0.0
@@ -118,7 +116,6 @@ ___
 ### Fixed
 
 -   The `ILogger.CreateScope` extension method using **CallerArgumentExpression** did not clean the caller argument and therefore produced values that differed from the overload that uses **Expression**s. For example `logger.CreateScope(_member.Property)` would produce a scope with the name **MemberProperty** as opposed to just **Property**. The old behavior can be restored by setting the new optional parameter `cleanCallerArgument` to false. **This fix is implemented as a breaking change**.
-
 ___
 
 ## 1.3.0
@@ -132,7 +129,7 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Logging ~~5.0.0~~ → **6.0.0**
+:large_blue_circle: Microsoft.Extensions.Logging ~~5.0.0~~ → **6.0.0**  
 ___
 
 ## 1.2.0
