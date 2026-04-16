@@ -13,7 +13,7 @@ ___
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
-| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+| :heavy_check_mark: 8.0 :heavy_check_mark: 10.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
@@ -59,6 +59,14 @@ var info = LogApplicationInformation
 - The static `LogApplicationInformation.None` instance is internally used as a **NUll-object** and shouldn't be used in consumer code.
 - The `LogApplicationInformation.Default` instance can be used if no customization to the application name is necessary, as it uses the **entry assembly** to obtain everything.
 
+
+
+## IExecutionContextAwareLogScope
+
+The `IExecutionContextAwareLogScope` is a marker interface used to identify log scopes that should be aware of the execution context they where created in. More about its usage is explained [here](#Log-Scope-Handling).
+
+
+
 ## Converting Log Levels
 
 The `ILogLevelConverter<TSourceLogLevel, TTargetLogLevel>` interface defined in this package can be implemented when it is necessary to convert log levels from different logging systems (e.g. from **Serilog** to **Microsoft** implementations).
@@ -75,11 +83,13 @@ ___
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
-| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+| :heavy_check_mark: 8.0 :heavy_check_mark: 10.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
 This package contains different helper classes that can be used when logging with [**Microsoft.Extensions.Logging**](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line).
+
+
 
 ## Logging with event ids
 
@@ -99,6 +109,8 @@ Random, logIdentifier, 0, 2147483647
 Send, %logIdentifier%
 return
 ```
+
+
 
 ## Concept
 
@@ -141,6 +153,8 @@ class MyClass
 }
 ```
 
+
+
 ## Logging with resources
 
 A typical scenario when logging (especially exceptions) is writing the error to the log while simultaneously showing a message to the user (e.g. in a console application or via message boxes). The **log messages** in the backend should be readable by the application developer, to easily understand application state in case of errors. The user on the other hand should only see **output messages** in a language native to him. To get different **log**- and **output messages**, the special `LogResourceEvent` is available, that can be used to resolve those messages.
@@ -177,9 +191,11 @@ Console.WriteLine(outputMessage);
 > [!NOTE]
 > As shown above, the format parameters can differ between what is used for logging and what is used to build the output message.
 
+
+
 ## Logger groups
 
-Logger groups is the concept of grouping multiple **Microsoft.Extensions.ILogger**s together, identifiable via a custom group identifier. The goal is to use those groups to apply certain methods to all the loggers belonging to it. Currently the groups only purpose is to easily apply log scopes to **different** logger instances. For example, if having a central module in an application, that triggers a complex workflow utilizing many classes based on some external criteria, it would be of great help, that every logger instance used throughout the workflow logs the criteria that originally triggered execution. To be more precise, the workflow could be processing a web request and the external criteria a request id. If the logger instance is **not** shared between all classes and processing is handled by different tasks that ignore the **SynchronizationContext**, then creating a log scope at the root of the workflow will only output the criteria for log messages emitted from the entry module. Logger groups allow to create a scope at the root level, that will automatically be applied to all other loggers that share the same group. As a result the trigger criteria would be logged even if all loggers are different instances, as long as they were registered as a group member.
+Logger groups is the concept of grouping multiple **Microsoft.Extensions.ILogger**s together, identifiable via a custom group identifier. The goal is to use those groups to apply certain methods to all the loggers belonging to it. Currently the groups only purpose is to easily apply log scopes to **different** logger instances. For example, if having a central module in an application, that triggers a complex workflow utilizing many classes based on some external criteria, it would be of great help, that every separate logger instance used throughout the workflow logs the criteria that originally triggered execution. To be more precise, the workflow could be processing a web request and the external criteria a request id. If the logger instance is **not** shared between all classes and processing is handled by different tasks that ignore the **SynchronizationContext**, then creating a log scope at the root of the workflow will only output the criteria for log messages emitted from the entry module. Logger groups allow to create a scope at the root level, that will automatically be applied to all other loggers that share the same group. As a result the trigger criteria would be logged even if all loggers are different instances, as long as they were registered as a group member.
 
 ### Usage
 
@@ -321,6 +337,7 @@ class EventHandlerHelper
 ```
 
 
+
 ## Extensions
 
 The `Phoenix.Functionality.Logging.Extensions.Microsoft` package also provides some extension methods for the original **Microsoft.Extensions.ILogger** that help with creating scopes, groups and writing logs.
@@ -362,9 +379,9 @@ logger.Log(1732634211, ex, LogLevel.Error, "An unexpected error occurred.");
 ### Scoping
 
 > [!NOTE]
-> There are two types of extension methods that create scopes. The ones starting with **Create...** will return an `IDisposable` that can be used to remove the scope. The ones starting with **Pin...** will also create a scope, but will return the `ILogger` instance for chaining, thus making it impossible to remove the scope. Those extenion methods can be used when initially setting up logger instances.
+> There are two types of extension methods that create scopes. The ones starting with `Create...` will return an `IDisposable` that can be used to remove the scope. The ones starting with `Pin...` will also create a scope, but will return the `ILogger` instance for chaining, thus making it impossible to remove the scope. Those extenion methods can be used when initially setting up logger instances.
 > 
-> The following examples will only contain the **Create...** methods, as the **Pin...** methods are only counterparts.
+> The following examples will only contain the `Create...` methods, as the `Pin...` methods are only counterparts.
 
 Below are some examples of the extension methods that can be used to create log scopes.
 
@@ -476,23 +493,30 @@ Output:
 
 Groups are explained [here](#Logger-groups).
 
+
+
 ## NoLogger
+
+> [!Caution]
+> Consider using `Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance` instead.
 
 The `Phoenix.Functionality.Logging.Extensions.Microsoft.NoLogger` is a simple null-object that can be accessed via the static `NoLogger.Instance` property and can be used to better implement nullable reference types.
 
-## TraceLogger
 
-The `Phoenix.Functionality.Logging.Extensions.Microsoft.TraceLogger` is a simple **ILogger** implementation that writes its log events to **System.Diagnostics.Trace** and - if available - to the console output. It can be instantiated or directly used via the static `TraceLogger.Instance` property.
+
+## TraceLogger
 
 > [!IMPORTANT]
 > This logger does not support **log scopes** at all.
+
+The `Phoenix.Functionality.Logging.Extensions.Microsoft.TraceLogger` is a simple **ILogger** implementation that writes its log events to **System.Diagnostics.Trace** and - if available - to the console output. It can be instantiated or directly used via the static `TraceLogger.Instance` property.
 ___
 
 # Logging.Extensions.Microsoft.Autofac
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
-| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+| :heavy_check_mark: 8.0 :heavy_check_mark: 10.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
@@ -589,19 +613,21 @@ ___
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
-| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+| :heavy_check_mark: 8.0 :heavy_check_mark: 10.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## General Information
 
 This package contains different helper classes that can be used when logging with [**Serilog**](https://serilog.net).
 
+
+
 ## Settings
 
-With some extension methods of **LoggerSettingsConfiguration** creating a new **LoggerConfiguration** and thus a new **Logger** from a json file is pretty simple.
+By using new extension methods of `LoggerSettingsConfiguration` creating a new `Serilog.LoggerConfiguration` and thus a new Serilog-**Logger** from a JSON file is pretty simple.
 
 ```csharp
 // Get the configuration file.
-var configurationFile = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "serilog.config"));
+var configurationFile = new FileInfo(Path.Combine("PATH_TO_CONFIGURATION", "serilog.config"));
 
 // Build the configuration.
 var configuration = new LoggerConfiguration()
@@ -615,6 +641,8 @@ var configuration = new LoggerConfiguration()
 // Create the logger.
 var logger = configuration.CreateLogger();
 ```
+
+
 
 ## Enrichers
 
@@ -704,7 +732,7 @@ ___
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
-| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+| :heavy_check_mark: 8.0 :heavy_check_mark: 10.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 ## `ArchiveHook`
 
@@ -791,11 +819,38 @@ ___
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
-| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+| :heavy_check_mark: 8.0 :heavy_check_mark: 10.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
-This package provides an adapater for **Microsoft.Extensions.Logging.ILogger** named `FrameworkLogger` that forwards log events to a **Serilog.ILogger**. Most of the implementation is taken from the existing package [**Serilog.Extensions.Logging**](https://github.com/serilog/serilog-extensions-logging/) with one key difference: 
+This package provides an adapater for **Microsoft.Extensions.Logging.ILogger** named `FrameworkLogger`. It forwards log events to an underlying **Serilog.ILogger**. Most of the implementation is taken from the existing package [**Serilog.Extensions.Logging**](https://github.com/serilog/serilog-extensions-logging/) with one key difference: **Log scope handling**.
 
-Whereas **Serilog.Extensions.Logging** uses **System.ThreadingAsyncLocal\<T\>** to add scope to its loggers in a seemingly magical way, this package only uses a simple collection of objects `FrameworkLoggerScopes` that stores the scope. This collection is an internal member of each logger instance and cannot be shared. When using the `FrameworkLogger`  within an application, controlling which logger shares the same scope is now all about which loggers are the same instance and no longer about the execution context of the loggers. Together with the [**logger groups**](#Logger-groups) feature, handling scope becomes more transparent. Additionally it no longer matters in which order scope is added to or removed from a `FrameworkLogger`. Each scope value can be removed from the internal collection at any time.
+## Log Scope Handling
+
+**Serilog.Extensions.Logging** uses `System.Threading.AsyncLocal<T>` to store log scopes. Log scopes are therefore bound to the **execution context** they were created in. For use cases such as request/response services this is a good enough choice. For applications however this may be problematic. More about that after the description on how `FrameworkLogger` handles log scopes.
+
+The `FrameworkLogger` uses an internal class called `FrameworkLoggerScopes` for handling log scopes. It has two different collections where it stores scopes that have been created via `ILogger.BeginScope`:
+
+- A collection for general (independent) log scopes
+- A collection for execution context aware log scopes
+
+The `FrameworkLoggerScopes` class distinguishes between those collections by inspecting the type of the scope. The scope itself can be of any type since the `ILogger.BeginScope` uses a generic parameter for it. By default, every new log scope will be stored in the general collection. Only if the type implements the `IExecutionContextAwareLogScope` interface will the `FrameworkLoggerScopes` use the execution context aware collection to store a scope.
+
+When using the **Phoenix.Functionality.Logging.Extensions.Microsoft** package there are two classes that inherit from `Dictionary<string, object?>` which can be used to specify if a log scope is general or execution context aware.
+
+- `LogScope` 
+- `ExecutionContextAwareLogScope` (which implements `IExecutionContextAwareLogScope`)
+
+> [!TIP]
+> Deciding if a log scope is generally available or strictly bound to an execution context is only a matter of using one of the those two classes.
+
+Now back to the issue with **Serilog**s approach to always use execution context aware scopes: If important information that needs to be added to every log event is obtained by a long running background task, it is impossible to get that information through the bounds of the original execution context (which is the background task alone) to some other logger in a different execution context. Since the `FrameworkLogger` by default stores log scope in a simple collection, that scope can be passed to different loggers without issues.
+
+
+
+## Log Scope Sharing
+
+Since the collections storing log scopes are instance members of the `FrameworkLoggerScopes` class and therefore each instance of a `FrameworkLogger` has its own separate log scope, controlling which logger shares the same scope is either about which loggers are the **same** instance or which loggers belong to the same [**logger group**](#Logger-groups).
+
+
 
 ## IoC (Autofac)
 
@@ -896,7 +951,7 @@ ___
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
-| :heavy_check_mark: 6.0 :heavy_check_mark: 8.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+| :heavy_check_mark: 8.0 :heavy_check_mark: 10.0 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
 
 If using [**Seq**](https://datalust.co/seq) as a sink for **Serilog** it is good practice to use an separate **Api Key** for each application forwarding logs to the **Seq Server** so that authentication and filtering can be handled by the server. Normally those **Api Keys** are manually created via the web frontend of the **Seq Server** and then hard-coded into the application.
 

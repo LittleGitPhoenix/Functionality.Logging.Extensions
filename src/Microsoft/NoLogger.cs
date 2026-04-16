@@ -9,8 +9,12 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 /// <summary>
 /// Null-object <see cref="ILogger"/> accessible via <see cref="NoLogger.Instance"/>.
 /// </summary>
+[Obsolete($"Please use {nameof(global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance)} instead. The 'Instance' property now only forwards to this anyway.")]
 public class NoLogger : ILogger
 {
+	/// <inheritdoc cref="global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance" />
+	public static ILogger Instance => global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+
 	/// <inheritdoc />
 	public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) { }
 
@@ -18,13 +22,7 @@ public class NoLogger : ILogger
 	public bool IsEnabled(LogLevel logLevel) => false;
 
 	/// <inheritdoc />
-	public IDisposable BeginScope<TState>(TState state) => NoDisposable.Instance;
-
-	/// <summary>
-	/// Singleton instance.
-	/// </summary>
-	public static ILogger Instance => LazyLogger.Value;
-	private static readonly Lazy<ILogger> LazyLogger = new(() => new NoLogger(), LazyThreadSafetyMode.ExecutionAndPublication);
+	public IDisposable? BeginScope<TState>(TState state) where TState : notnull => NoDisposable.Instance;
 
 	private NoLogger() { }
 }

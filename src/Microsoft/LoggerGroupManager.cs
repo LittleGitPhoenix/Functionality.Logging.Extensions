@@ -93,7 +93,7 @@ internal static class LoggerGroupManager
 	{
 		var identifier = (GroupIdentifier<TIdentifier>) groupIdentifier;
 		var matchingGroups = LoggerGroupManager.GetMatchingGroups(group => identifier.Equals(group.GroupIdentifier)).Take(1).ToArray();
-		return matchingGroups.Any() ? matchingGroups.FirstOrDefault().LoggerGroup : new LoggerGroup();
+		return matchingGroups.Length != 0 ? matchingGroups.FirstOrDefault().LoggerGroup : new LoggerGroup();
 	}
 
 	/// <summary>
@@ -102,21 +102,13 @@ internal static class LoggerGroupManager
 	/// <returns> A collection of all cached groups. </returns>
 	internal static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetAllGroups()
 	{
-		return LoggerGroupManager
-			.GetMatchingGroups(_ => true)
-			.Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))
-			.ToArray()
-			;
+		return [.. GetMatchingGroups(_ => true).Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))];
 	}
 
 	/// <inheritdoc cref="LoggerExtensions.GetGroups"/>
 	internal static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetGroupsOfLogger(ILogger logger)
     {
-        return LoggerGroupManager
-            .GetMatchingGroups(tuple => tuple.LoggerGroup.Contains(logger))
-            .Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))
-            .ToArray()
-            ;
+        return [.. GetMatchingGroups(tuple => tuple.LoggerGroup.Contains(logger)).Select(tuple => (tuple.GroupIdentifier.Value, tuple.LoggerGroup))];
     }
 
 	/// <summary>
@@ -124,7 +116,7 @@ internal static class LoggerGroupManager
 	/// </summary>
 	/// <param name="loggerGroup"> The <see cref="ILoggerGroup"/> to remove. </param>
 	/// <param name="identifier"> The <see cref="IGroupIdentifier"/> used for lookup in <see cref="Cache"/>. </param>
-	/// <returns> <b>True</b> on success, otherwise <b>false</b>. </returns>
+	/// <returns> <see langword="true"/> on success, otherwise <b>false</b>. </returns>
 	private static bool TryRemoveLoggerGroup(ILoggerGroup loggerGroup, IGroupIdentifier identifier)
 	{
 		if (loggerGroup.Count != 0) return false;
@@ -140,22 +132,22 @@ internal static class LoggerGroupManager
     /// <returns> A collection of groups, that match the <paramref name="predicate"/>. </returns>
     private static IEnumerable<(IGroupIdentifier GroupIdentifier, ILoggerGroup LoggerGroup)> GetMatchingGroups(Predicate<(IGroupIdentifier GroupIdentifier, ILoggerGroup LoggerGroup)> predicate)
     {
-#if NETSTANDARD2_0 || NETSTANDARD1_6 || NETSTANDARD1_5 || NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2 || NETSTANDARD1_1 || NETSTANDARD1_0
-		foreach (var group in Cache)
-		{
-			var tuple = (group.Key, group.Value);
-#else
+#if NETCOREAPP3_0_OR_GREATER
         foreach (var (groupIdentifier, loggerGroup) in Cache)
         {
             var tuple = (groupIdentifierHash: groupIdentifier, loggerGroup);
+#else
+		foreach (var group in Cache)
+		{
+			var tuple = (group.Key, group.Value);
 #endif
             if (predicate.Invoke(tuple)) yield return tuple;
         }
     }
 
-    #endregion
+#endregion
 
-    #region Nested Types
+	#region Nested Types
 
     internal interface IGroupIdentifier
     {
@@ -165,27 +157,27 @@ internal static class LoggerGroupManager
     internal readonly struct GroupIdentifier<TIdentifier> : IGroupIdentifier, IEquatable<IGroupIdentifier>
         where TIdentifier : notnull
     {
-        #region Delegates / Events
-        #endregion
+		#region Delegates / Events
+		#endregion
 
-        #region Constants
-        #endregion
+		#region Constants
+		#endregion
 
-        #region Fields
+		#region Fields
 
         private readonly int _hashCode;
 
-        #endregion
+		#endregion
 
-        #region Properties
+		#region Properties
 
         object IGroupIdentifier.Value => this.Value;
 
         public TIdentifier Value { get; }
 			
-        #endregion
+		#endregion
 
-        #region (De)Constructors
+		#region (De)Constructors
 
         public GroupIdentifier(TIdentifier value)
         {
@@ -201,11 +193,11 @@ internal static class LoggerGroupManager
             return new GroupIdentifier<TIdentifier>(value);
         }
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        #region IEquatable
+		#region IEquatable
 
         /// <summary> The default hash method. </summary>
         /// <returns> A hash value for the current object. </returns>
@@ -257,16 +249,16 @@ internal static class LoggerGroupManager
             return !(x == y);
         }
 
-        #endregion
+		#endregion
 
-        #region Overrides of ValueType
+		#region Overrides of ValueType
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(IGroupIdentifier)}: {this.Value} ({_hashCode})";
 
-        #endregion
+		#endregion
 
-        #endregion
+		#endregion
     }
 
 	#endregion

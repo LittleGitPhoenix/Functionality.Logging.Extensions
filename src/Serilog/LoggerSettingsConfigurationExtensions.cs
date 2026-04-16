@@ -39,11 +39,12 @@ public static class LoggerSettingsConfigurationExtensions
     {
         // Check if the log file
         var workingPath = Directory.GetCurrentDirectory();
-#if NET5_0_OR_GREATER
-        var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
+
+#if NETCOREAPP3_0 || NETCOREAPP3_1
+		//! This is especially needed for .NET Core 3.1 single file published apps, as they run from a temp directory.
+		var applicationPath = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 #else
-			//! This is especially needed for .NET Core 3.1 single file published apps, as they run from a temp directory.
-			var applicationPath = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+        var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
 #endif
         if (workingPath != applicationPath && !serilogConfigurationFile.Exists)
         {
