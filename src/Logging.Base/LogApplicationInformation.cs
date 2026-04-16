@@ -7,6 +7,7 @@ namespace Phoenix.Functionality.Logging.Base;
 /// <summary>
 /// Contains information about an application.
 /// </summary>
+/// <remarks> Construct instances of this class via builder pattern by calling the static <see cref="Create"/> function that returns a <see cref="ILogApplicationInformationBuilder"/> and go from there. </remarks>
 public record LogApplicationInformation()
 {
 	#region Delegates / Events
@@ -21,56 +22,49 @@ public record LogApplicationInformation()
 	#region Properties
 
 	/// <summary> Null-object </summary>
-	public static LogApplicationInformation None { get; }
+	public static LogApplicationInformation None { get; } = new(String.Empty)
+	{
+		Name = String.Empty,
+		NumericIdentifier = 0,
+		AlphanumericIdentifier = String.Empty,
+		AssemblyVersion = null,
+		FileVersion = null,
+		InformationalVersion = null
+	};
 
 	/// <summary> <see cref="LogApplicationInformation"/> instance build with information obtained by the entry assembly. </summary>
-	public static LogApplicationInformation Default { get; }
+	public static LogApplicationInformation Default { get; } = Create().StartingWithApplicationName().Build();
 
 	/// <summary>
 	/// The name of the application.
 	/// </summary>
-	public string Name { get; init; }
+	public string Name { get; private init; }
 
 	/// <summary>
 	/// A unique numeric identifier build from <see cref="Name"/> that can be used for example to register the application with a log target or to enrich log events.
 	/// </summary>
-	public int NumericIdentifier { get; init; }
+	public int NumericIdentifier { get; private init; }
 
 	/// <summary>
-	/// A unique 20 chars long alpha-numeric identifier build from <see cref="Name"/> that can be used for example to register the application with a log target or to enrich log events.
+	/// A unique 20 chars long alphanumeric identifier build from <see cref="Name"/> that can be used for example to register the application with a log target or to enrich log events.
 	/// </summary>
-	public string AlphanumericIdentifier { get; init; }
+	public string AlphanumericIdentifier { get; private init; }
 
 	/// <summary> The assembly version of the running executable, which is specified in the project file as <b>AssemblyVersion</b> (https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-version). </summary>
 	/// <remarks> If the version couldn't be obtained, this will be a zero-version. </remarks>
-	public Version? AssemblyVersion { get; init; }
+	public Version? AssemblyVersion { get; private init; }
 
 	/// <summary> The file version of the running executable, which is specified in the project file as <b>FileVersion</b> (https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-file-version). </summary>
 	/// <remarks> If the version couldn't be obtained, this will be a zero-version. </remarks>
-	public Version? FileVersion { get; init; }
+	public Version? FileVersion { get; private init; }
 
 	/// <summary> The informational version of the running executable, which is specified in the project file as <b>InformationalVersion</b> (https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-informational-version). </summary>
 	/// <remarks> If the version couldn't be obtained, this will be <b>UNKNOWN</b>. </remarks>
-	public string? InformationalVersion { get; init; }
+	public string? InformationalVersion { get; private init; }
 
 	#endregion
 
 	#region (De)Constructors
-
-	static LogApplicationInformation()
-	{
-		None = new LogApplicationInformation()
-		{
-			Name = String.Empty,
-			NumericIdentifier = 0,
-			AlphanumericIdentifier = String.Empty,
-			AssemblyVersion = null,
-			FileVersion = null,
-			InformationalVersion = null
-		};
-
-		Default = LogApplicationInformation.Create().StartingWithApplicationName().Build();
-	}
 
 	/// <summary>
 	/// Constructor
