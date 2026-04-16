@@ -26,9 +26,6 @@ public class SeqServerHelperIntegrationTest
 
 		_title = Guid.NewGuid().ToString();
 		_apiKey = Guid.NewGuid().ToString().Replace("-", String.Empty);
-		//_seqHost = "http://localhost";
-		_seqHost = "http://seq2022.leistner.cc";
-		_seqPort = (ushort) 80;
 	}
 
 	[TearDown]
@@ -41,15 +38,17 @@ public class SeqServerHelperIntegrationTest
 
 	#region Data
 
+#pragma warning disable 8618 // → Always initialized in the 'Setup' method before a test is run.
 	private string _title;
 
 	private string _apiKey;
+#pragma warning restore 8618
 
-	private string _seqHost;
+	private static string SeqHost => TestConfiguration.SeqHost;
 
-	private ushort _seqPort;
+	private static ushort SeqPort => TestConfiguration.SeqPort;
 
-	private const string ConfigurationApiKey = "pYHlGsUQw5RsLSFTJHKF";
+	private static string ConfigurationApiKey => TestConfiguration.ConfigurationApiKey;
 
 	#endregion
 
@@ -61,17 +60,17 @@ public class SeqServerHelperIntegrationTest
 		try
 		{
 			// Act
-			await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey);
+			await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey);
 
 			// Assert
-			var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
+			var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey);
 			Assert.That(apiKeys.Count, Is.EqualTo(1));
 			Assert.That(apiKeys.Single().Title, Is.EqualTo(_title));
 			Assert.That(_apiKey.StartsWith(apiKeys.Single().TokenPrefix), Is.True);
 		}
 		finally
 		{
-			await SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
+			await SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey);
 		}
 	}
 
@@ -81,17 +80,17 @@ public class SeqServerHelperIntegrationTest
 		try
 		{
 			// Act
-			SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+			SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 
 			// Assert
-			var apiKeys = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result;
+			var apiKeys = SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Result;
 			Assert.That(apiKeys.Count, Is.EqualTo(1));
 			Assert.That(apiKeys.Single().Title, Is.EqualTo(_title));
 			Assert.That(_apiKey.StartsWith(apiKeys.Single().TokenPrefix), Is.True);
 		}
 		finally
 		{
-			SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+			SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 		}
 	}
 
@@ -101,16 +100,16 @@ public class SeqServerHelperIntegrationTest
 		try
 		{
 			// Act
-			await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey);
+			await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey);
 
 			// Assert
-			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey)).Single();
+			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey)).Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == "Application" && property.Value.ToString() == _title);
 			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
-			await SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
+			await SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey);
 		}
 	}
 
@@ -120,16 +119,16 @@ public class SeqServerHelperIntegrationTest
 		try
 		{
 			// Act
-			SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+			SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 
 			// Assert
-			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result.Single();
+			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Result.Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == "Application" && property.Value.ToString() == _title);
 			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
-			SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+			SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 		}
 	}
 
@@ -142,14 +141,14 @@ public class SeqServerHelperIntegrationTest
 		try
 		{
 			// Act + Assert
-			Assert.CatchAsync(() => SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, wrongSeqHost, _seqPort, ConfigurationApiKey));
+			Assert.CatchAsync(() => SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, wrongSeqHost, SeqPort, ConfigurationApiKey));
 		}
 		finally
 		{
 			try
 			{
 				// Deletion should only be required if the above test failed.
-				await SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
+				await SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey);
 			}
 			catch { /* ignore */ }
 		}
@@ -164,14 +163,14 @@ public class SeqServerHelperIntegrationTest
 		try
 		{
 			// Act + Assert
-			Assert.Catch(() => SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, wrongSeqHost, _seqPort, ConfigurationApiKey).Wait());
+			Assert.Catch(() => SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, wrongSeqHost, SeqPort, ConfigurationApiKey).Wait());
 		}
 		finally
 		{
 			try
 			{
 				// Deletion should only be required if the above test failed.
-				SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+				SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 			}
 			catch { /* ignore */ }
 		}
@@ -187,21 +186,21 @@ public class SeqServerHelperIntegrationTest
 		{
 			new EventPropertyPart(propertyName, propertyValue)
 		};
-		await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey);
+		await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey);
 
 		try
 		{
 			// Act
-			await SeqServerHelper.AddOrUpdateAppliedPropertiesOfApiKeysAsync(_title, _seqHost, _seqPort, newAppliedProperties, ConfigurationApiKey);
+			await SeqServerHelper.AddOrUpdateAppliedPropertiesOfApiKeysAsync(_title, SeqHost, SeqPort, newAppliedProperties, ConfigurationApiKey);
 
 			// Assert
-			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey)).Single();
+			var apiKeyEntity = (await SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey)).Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == propertyName && property.Value.ToString() == propertyValue);
 			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
-			await SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
+			await SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey);
 		}
 	}
 
@@ -215,21 +214,21 @@ public class SeqServerHelperIntegrationTest
 		{
 			new EventPropertyPart(propertyName, propertyValue)
 		};
-		SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+		SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 
 		try
 		{
 			// Act
-			SeqServerHelper.AddOrUpdateAppliedPropertiesOfApiKeysAsync(_title, _seqHost, _seqPort, newAppliedProperties, ConfigurationApiKey).Wait();
+			SeqServerHelper.AddOrUpdateAppliedPropertiesOfApiKeysAsync(_title, SeqHost, SeqPort, newAppliedProperties, ConfigurationApiKey).Wait();
 
 			// Assert
-			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result.Single();
+			var apiKeyEntity = SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Result.Single();
 			var existingProperty = apiKeyEntity.InputSettings.AppliedProperties.SingleOrDefault(property => property.Name == propertyName && property.Value.ToString() == propertyValue);
 			Assert.That(existingProperty, Is.Not.Null);
 		}
 		finally
 		{
-			SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+			SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 		}
 	}
 
@@ -237,14 +236,14 @@ public class SeqServerHelperIntegrationTest
 	public async Task ApiKeyIsDeletedAsync()
 	{
 		// Arrange
-		await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey);
+		await SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey);
 
 		// Act
-		var deletedCount = await SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
+		var deletedCount = await SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey);
 
 		// Assert
 		Assert.That(deletedCount, Is.EqualTo(1));
-		var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey);
+		var apiKeys = await SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey);
 		Assert.That(apiKeys.Count, Is.EqualTo(0));
 	}
 
@@ -252,14 +251,14 @@ public class SeqServerHelperIntegrationTest
 	public void ApiKeyIsDeletedSync()
 	{
 		// Arrange
-		SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, _seqHost, _seqPort, ConfigurationApiKey).Wait();
+		SeqServerHelper.RegisterApiKeyAsync(_title, _apiKey, SeqHost, SeqPort, ConfigurationApiKey).Wait();
 
 		// Act
-		var deletedCount = SeqServerHelper.DeleteApiKeysAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result;
+		var deletedCount = SeqServerHelper.DeleteApiKeysAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Result;
 
 		// Assert
 		Assert.That(deletedCount, Is.EqualTo(1));
-		var apiKeys = SeqServerHelper.GetApiKeysByTitleAsync(_title, _seqHost, _seqPort, ConfigurationApiKey).Result;
+		var apiKeys = SeqServerHelper.GetApiKeysByTitleAsync(_title, SeqHost, SeqPort, ConfigurationApiKey).Result;
 		Assert.That(apiKeys.Count, Is.EqualTo(0));
 	}
 
@@ -269,7 +268,7 @@ public class SeqServerHelperIntegrationTest
 	[Test]
 	public async Task SendingEventsViaPostSucceedsAsync()
 	{
-		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		using var connection = SeqServerHelper.ConnectToSeq(SeqHost, SeqPort, ConfigurationApiKey);
 		try
 		{
 			// Arrange
@@ -322,7 +321,7 @@ public class SeqServerHelperIntegrationTest
 	[Test]
 	public void SendingEventsViaPostSucceedsSync()
 	{
-		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		using var connection = SeqServerHelper.ConnectToSeq(SeqHost, SeqPort, ConfigurationApiKey);
 		try
 		{
 			// Arrange
@@ -376,7 +375,7 @@ public class SeqServerHelperIntegrationTest
 	[Test]
 	public async Task SendingEventsViaPostFailsBecauseApplicationIsNotRegisteredAsync()
 	{
-		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		using var connection = SeqServerHelper.ConnectToSeq(SeqHost, SeqPort, ConfigurationApiKey);
 		try
 		{
 			// Arrange
@@ -402,7 +401,7 @@ public class SeqServerHelperIntegrationTest
 	[Test]
 	public void SendingEventsViaPostFailsBecauseApplicationIsNotRegisteredSync()
 	{
-		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		using var connection = SeqServerHelper.ConnectToSeq(SeqHost, SeqPort, ConfigurationApiKey);
 		try
 		{
 			// Arrange
@@ -435,7 +434,7 @@ public class SeqServerHelperIntegrationTest
 	public async Task LargeFileIsChunkedBeforeSending()
 	{
 		var logFile = new FileInfo(Path.Combine(Directory.GetCurrentDirectory(), $".{nameof(LargeFileIsChunkedBeforeSending)}.log"));
-		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		using var connection = SeqServerHelper.ConnectToSeq(SeqHost, SeqPort, ConfigurationApiKey);
 		try
 		{
 			// Arrange
@@ -492,7 +491,7 @@ public class SeqServerHelperIntegrationTest
 	public async Task SmallFileIsSendCompletely()
 	{
 		var logFile = new FileInfo(Path.Combine(Directory.GetCurrentDirectory(), $".{nameof(SmallFileIsSendCompletely)}.log"));
-		using var connection = SeqServerHelper.ConnectToSeq(_seqHost, _seqPort, ConfigurationApiKey);
+		using var connection = SeqServerHelper.ConnectToSeq(SeqHost, SeqPort, ConfigurationApiKey);
 		try
 		{
 			// Arrange
