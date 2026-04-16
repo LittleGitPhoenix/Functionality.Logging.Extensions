@@ -48,7 +48,11 @@ public class LogApplicationInformationBuilderTest
 		var applicationInformation = LogApplicationInformation.Create().StartingWithApplicationName().Build();
 
 		// Assert
+#if NETCOREAPP3_0_OR_GREATER
 		Assert.That(applicationInformation.Name, Is.EqualTo(targetIdentifier));
+#else
+		Assert.Inconclusive("Assembly.GetEntryAssembly() returns null for tests in .NET Framework.");
+#endif
 		Console.WriteLine($"Identifier: {applicationInformation.Name}");
 	}
 
@@ -63,7 +67,11 @@ public class LogApplicationInformationBuilderTest
 		var applicationInformation = LogApplicationInformation.Create().StartingWithApplicationName().SeparatedBy(separator).AndMachineName().Build();
 
 		// Assert
+#if NETCOREAPP3_0_OR_GREATER
 		Assert.That(applicationInformation.Name, Is.EqualTo(targetIdentifier));
+#else
+		Assert.Inconclusive("Assembly.GetEntryAssembly() returns null for tests in .NET Framework.");
+#endif
 		Console.WriteLine($"Identifier: {applicationInformation.Name}");
 	}
 
@@ -78,7 +86,11 @@ public class LogApplicationInformationBuilderTest
 		var applicationInformation = LogApplicationInformation.Create().StartingWithApplicationName().SeparatedBy(separator).AndUserDomain().SeparatedBy(separator).AndUserName().Build();
 
 		// Assert
+#if NETCOREAPP3_0_OR_GREATER
 		Assert.That(applicationInformation.Name, Is.EqualTo(targetIdentifier));
+#else
+		Assert.Inconclusive("Assembly.GetEntryAssembly() returns null for tests in .NET Framework.");
+#endif
 		Console.WriteLine($"Identifier: {applicationInformation.Name}");
 	}
 
@@ -93,7 +105,11 @@ public class LogApplicationInformationBuilderTest
 		var applicationInformation = LogApplicationInformation.Create().StartingWithApplicationName().SeparatedBy(separator).AndOperatingSystemInformation(separator).Build();
 
 		// Assert
+#if NETCOREAPP3_0_OR_GREATER
 		Assert.That(applicationInformation.Name, Is.EqualTo(targetIdentifier));
+#else
+		Assert.Inconclusive("Assembly.GetEntryAssembly() returns null for tests in .NET Framework.");
+#endif
 		Console.WriteLine($"Identifier: {applicationInformation.Name}");
 	}
 
@@ -165,7 +181,7 @@ public class LogApplicationInformationBuilderTest
 		Console.WriteLine($"Identifier: {applicationInformation.Name}");
 	}
 
-	#endregion
+#endregion
 
 	#region Numeric Identifier
 
@@ -233,5 +249,5 @@ public class LogApplicationInformationBuilderTest
 
 	#endregion
 
-	#endregion
+#endregion
 }

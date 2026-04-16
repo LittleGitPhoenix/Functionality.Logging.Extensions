@@ -52,7 +52,12 @@ public class LogScopeTest
 
 		// Assert
 		Assert.That(logScope, Has.Count.EqualTo(1));
+#if NETCOREAPP3_0_OR_GREATER
 		Assert.That(logScope.First().Key, Is.EqualTo("ScopeKey"));
+#else
+		// .NET Framework does not support caller argument expression, so the key is the parameter name which is "scopeKey" (lowercase).
+		Assert.That(logScope.First().Key, Is.EqualTo(nameof(scopeKey)));
+#endif
 		Assert.That(logScope.First().Value, Is.EqualTo(scopeKey));
 	}
 	

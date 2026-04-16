@@ -43,6 +43,7 @@ public class LoggerGroupManagerTest
 	{
 		// Arrange
 		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		foreach (var logger in loggers) Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		var groupIdentifier = _fixture.Create<string>();
 			
 		// Act
@@ -52,8 +53,8 @@ public class LoggerGroupManagerTest
 		}
 			
 		// Assert
-		Assert.That(LoggerGroupManager.GetAllGroups(), Has.Length.EqualTo(1));
-		Assert.That(LoggerGroupManager.GetGroup(groupIdentifier), Has.Length.EqualTo(loggers.Length));
+		Assert.That(LoggerGroupManager.GetAllGroups(), Has.Count.EqualTo(1));
+		Assert.That(LoggerGroupManager.GetGroup(groupIdentifier), Has.Count.EqualTo(loggers.Length));
 	}
 
 	[Test]
@@ -61,7 +62,8 @@ public class LoggerGroupManagerTest
     {
         // Arrange
         var loggers = _fixture.CreateMany<ILogger>(count: 6).ToArray();
-        var firstUnevenLogger = loggers[1];
+		foreach (var logger in loggers) Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+		var firstUnevenLogger = loggers[1];
         var evenGroupIdentifier = _fixture.Create<string>();
         var unevenGroupIdentifier = _fixture.Create<int>();
 
@@ -88,7 +90,7 @@ public class LoggerGroupManagerTest
         }
 
         // Assert
-        Assert.That(LoggerGroupManager.GetAllGroups(), Has.Length.EqualTo(2));
+        Assert.That(LoggerGroupManager.GetAllGroups(), Has.Count.EqualTo(2));
         Assert.That(LoggerGroupManager.GetGroup(evenGroupIdentifier), Has.Length.EqualTo(4));
         Assert.That(firstUnevenLogger.AsGroup(unevenGroupIdentifier), Has.Length.EqualTo(3));
 		Assert.Multiple
@@ -100,11 +102,11 @@ public class LoggerGroupManagerTest
 					var logger = loggers[index];
 					if (index == 5)
 					{
-						Assert.That(LoggerGroupManager.GetGroupsOfLogger(logger), Has.Length.EqualTo(2));
+						Assert.That(LoggerGroupManager.GetGroupsOfLogger(logger), Has.Count.EqualTo(2));
 					}
 					else
 					{
-						Assert.That(logger.GetGroups(), Has.Length.EqualTo(1));
+						Assert.That(logger.GetGroups(), Has.Count.EqualTo(1));
 					}
 				}
 			}
@@ -120,6 +122,7 @@ public class LoggerGroupManagerTest
 	{
 		// Arrange
 		var loggers = _fixture.CreateMany<ILogger>(count: 6).ToArray();
+		foreach (var logger in loggers) Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		var firstLogger = loggers.First();
 		var groupIdentifier = _fixture.Create<string>();
 		foreach (var logger in loggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
@@ -140,6 +143,7 @@ public class LoggerGroupManagerTest
 	{
 		// Arrange
 		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		foreach (var logger in loggers) Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		var groupIdentifier = _fixture.Create<string>();
 		foreach (var logger in loggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
 		
@@ -164,6 +168,7 @@ public class LoggerGroupManagerTest
 		var groupIdentifier = _fixture.Create<string>();
 
 		var firstLogger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(firstLogger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		Mock.Get(firstLogger)
 			.Setup(mock => mock.BeginScope(It.IsAny<object>()))
 			.Callback
@@ -181,6 +186,7 @@ public class LoggerGroupManagerTest
 		firstLogger.AddToGroup(groupIdentifier);
 		
 		var secondLogger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(secondLogger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		Mock.Get(secondLogger)
 			.Setup(mock => mock.BeginScope(It.IsAny<object>()))
 			.Callback
@@ -231,11 +237,13 @@ public class LoggerGroupManagerTest
 		var loggerScopes = new ConcurrentDictionary<ILogger, List<(string Key, object Value)>>();
 		var groupIdentifier = _fixture.Create<string>();
 		var existingLoggers = _fixture.CreateMany<ILogger>(count: 6).ToArray();
+		foreach (var logger in existingLoggers) Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		foreach (var logger in existingLoggers) LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, false);
 		var loggerGroup = LoggerGroupManager.GetGroup(groupIdentifier);
 		loggerGroup.Enrich(LogScope.CreateIndependent(("Key", "Value")));
 
 		var newLogger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(newLogger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		Mock.Get(newLogger)
 			.Setup(mock => mock.BeginScope(It.IsAny<object>()))
 			.Callback
@@ -311,7 +319,8 @@ public class LoggerGroupManagerTest
 	{
 		// Arrange
 		var logger = _fixture.Create<ILogger>();
-			
+		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+
 		// Act
 		var groups = LoggerGroupManager.GetGroupsOfLogger(logger);
 			

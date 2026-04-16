@@ -78,6 +78,7 @@ public class LoggerExtensionsTest
 	{
 		// Arrange
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		Mock.Get(logger)
 			.Setup
 			(
@@ -121,6 +122,7 @@ public class LoggerExtensionsTest
 		var user = _fixture.Create<string>();
 		var dataSetId = _fixture.Create<ushort>();
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		var targetOutputMessage = String.Format(resourceManager.GetString(resourceName, destinationCulture), dataSetId);
 		ChangeCulture(cultureIdentifier);
 
@@ -173,6 +175,8 @@ public class LoggerExtensionsTest
 		var groupIdentifier = "MyGroup";
 		var logger1 = _fixture.Create<Mock<ILogger>>().Object;
 		var logger2 = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(logger1).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+		Mock.Get(logger2).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 		logger1.AddToGroup(groupIdentifier);
 		logger2.AddToGroup(groupIdentifier);
 
@@ -193,6 +197,7 @@ public class LoggerExtensionsTest
 			PayLoad = LogScope.CreateIndependent(("Property", "Value"))
 		};
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
 		// Act
 		logger.Log(logEvent);
@@ -210,6 +215,7 @@ public class LoggerExtensionsTest
 			PayLoad = null
 		};
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
+		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
 		// Act
 		logger.Log(logEvent);
