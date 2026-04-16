@@ -17,6 +17,11 @@ ___
 
 - Support for **.NET 6** has been removed since that framework is officially deprecated.
 
+### Changed
+
+- **Serilog.Sinks.Seq 9.0.0** targets **Serilog v4**, which provides built-in batching support via `LoggerSinkConfiguration.Sink(IBatchedLogEventSink, BatchingOptions)`. The previous integration relied on wrapping the seq sink in a `PeriodicBatchingSink` from the separate **Serilog.Sinks.PeriodicBatching** package. This wrapper is no longer needed and has been removed.
+- The internal `SeqBufferSink` (implementing `ILogEventSink`) used as a fallback when initial application registration fails has been replaced by `SeqBufferBatchedSink` (implementing `IBatchedLogEventSink`) to align with the new batching model. It buffers log events while registration is retried in the background and flushes them atomically once registration succeeds, using a `SemaphoreSlim` to prevent race conditions at the transition point.
+
 ### References
 
 :large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**2.0.0**](../../Logging.Base/⬙/CHANGELOG.md#2.0.0)  

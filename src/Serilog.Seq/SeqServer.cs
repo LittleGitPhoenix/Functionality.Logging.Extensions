@@ -120,7 +120,7 @@ public class SeqServer
         }
         catch (OperationCanceledException ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}' was cancelled.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}' was cancelled.", [ex]);
         }
         catch (AggregateException ex) when (ex.InnerExceptions.FirstOrDefault() is SeqServerApplicationRegisterException seqServerApplicationRegisterException)
         {
@@ -128,7 +128,7 @@ public class SeqServer
         }
         catch (Exception ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", [ex]);
         }
     }
 
@@ -197,11 +197,11 @@ public class SeqServer
         }
         catch (OperationCanceledException ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}' was cancelled.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"Registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}' was cancelled.", [ex]);
         }
         catch (Exception ex)
         {
-            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] { ex });
+            throw new SeqServerApplicationRegisterException(apiKey, $"An error occurred registering the application '{applicationInformation.Name}' with the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", [ex]);
         }
         finally
         {
@@ -249,7 +249,7 @@ public class SeqServer
         }
         catch (Exception ex)
         {
-            throw new SeqServerException($"An error occurred while sending the log events to the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] {ex});
+            throw new SeqServerException($"An error occurred while sending the log events to the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", [ex]);
         }
     }
 
@@ -293,7 +293,7 @@ public class SeqServer
         }
         catch (Exception ex)
         {
-            throw new SeqServerException($"An error occurred while sending the log events of {applicationInformation.Name} to the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", new[] {ex});
+            throw new SeqServerException($"An error occurred while sending the log events of {applicationInformation.Name} to the seq server '{this.ConnectionData.Url}'. See the inner exception for more details.", [ex]);
         }
         finally
         {
