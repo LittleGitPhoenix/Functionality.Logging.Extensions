@@ -67,7 +67,7 @@ public static partial class LoggerExtensions
 	/// Emits the given <paramref name="logEvent"/>  to the <paramref name="logger"/>.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/> used to emit the event. If this is <see cref="NoLogger.Instance"/> or <see cref="global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance"/> nothing will be done. </param>
-	/// <param name="logEvent"> The <see cref="ILogEvent"/> to log. If this is <see langword="null"/> or <see cref="LogEvent.NoLogEvent"/> nothing will be done. </param>
+	/// <param name="logEvent"> The <see cref="ILogEvent"/> to log. If this is <see langword="null"/> or <see cref="NoLogEvent"/> nothing will be done. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if <paramref name="logger"/> is <see langword="null"/>. </exception>
 	public static ILogger Log(this ILogger logger, ILogEvent? logEvent)
@@ -77,7 +77,7 @@ public static partial class LoggerExtensions
 	/// Emits the given <paramref name="logEvents"/>  to the <paramref name="logger"/>.
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/> used to emit the event. If this is <see langword="null"/>, <see cref="NoLogger.Instance"/> or <see cref="global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance"/> nothing will be done. </param>
-	/// <param name="logEvents"> The collection of <see cref="ILogEvent"/>s to log. Each event that is <see langword="null"/> or <see cref="LogEvent.NoLogEvent"/> will be ignored. </param>
+	/// <param name="logEvents"> The collection of <see cref="ILogEvent"/>s to log. Each event that is <see langword="null"/> or <see cref="NoLogEvent"/> will be ignored. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
 	public static ILogger Log(this ILogger logger, IEnumerable<ILogEvent> logEvents)
 	{		
@@ -114,8 +114,8 @@ public static partial class LoggerExtensions
 	/// Resolves the log message from resource files and then emits it to the <paramref name="logger"/> and returns the message that was translated into the current ui culture (or its nearest fallback).
 	/// </summary>
 	/// <param name="logger"> The extended <see cref="ILogger"/> used to emit the event. If this is <see langword="null"/>, <see cref="NoLogger.Instance"/> or <see cref="global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance"/> nothing will be done and an empty string will be returned. </param>
-	/// <param name="logEvent"> The <see cref="ILogResourceEvent"/>. If this is <see langword="null"/> or <see cref="LogResourceEvent.NoLogResourceEvent"/> nothing will be done and an empty string will be returned. </param>
-	/// <returns> The translated log message or an empty string if <paramref name="logEvent"/> is <see langword="null"/> or <see cref="LogEvent.NoLogEvent"/>. </returns>
+	/// <param name="logEvent"> The <see cref="ILogResourceEvent"/>. If this is <see langword="null"/> or <see cref="NoLogResourceEvent"/> nothing will be done and an empty string will be returned. </param>
+	/// <returns> The translated log message or an empty string if <paramref name="logEvent"/> is <see langword="null"/> or <see cref="NoLogEvent"/>. </returns>
 	public static string Log(this ILogger logger, ILogResourceEvent logEvent)
 		=> LogEventFromResource(logEvent, logger);
 
@@ -202,7 +202,7 @@ public static partial class LoggerExtensions
 	/// </summary>
 	/// <param name="logEvent"> The <see cref="ILogResourceEvent"/> to log. </param>
 	/// <param name="logger"> The <see cref="ILogger"/> to use. </param>
-	/// <returns> The translated log message or an empty string if <paramref name="logEvent"/> is <see langword="null"/> or <see cref="LogEvent.NoLogEvent"/>. </returns>
+	/// <returns> The translated log message or an empty string if <paramref name="logEvent"/> is <see langword="null"/> or <see cref="NoLogEvent"/>. </returns>
 	[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 	private static string LogEventFromResource(ILogResourceEvent? logEvent, ILogger logger)
 	{		

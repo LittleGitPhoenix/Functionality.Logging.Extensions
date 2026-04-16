@@ -22,7 +22,7 @@ internal static class LoggerGroupManager
 
     #region Fields
 
-    internal static readonly ConcurrentDictionary<IGroupIdentifier, ILoggerGroup> Cache;
+    internal static readonly ConcurrentDictionary<IGroupIdentifier, ILoggerGroup> Cache = new();
 
     #endregion
 
@@ -31,15 +31,6 @@ internal static class LoggerGroupManager
     #endregion
 
     #region (De)Constructors
-
-    static LoggerGroupManager()
-    {
-        // Save parameters.
-
-        // Initialize fields.
-        Cache = new ();
-    }
-
 	#endregion
 
 	#region Methods

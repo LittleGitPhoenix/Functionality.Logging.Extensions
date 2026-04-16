@@ -7,6 +7,8 @@ using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
+//? Move this to the base package???
+
 /// <summary>
 /// Interface for log event data.
 /// </summary>
@@ -167,9 +169,6 @@ public class NoLogEvent : ILogEvent
 {
 	/// <summary> Singleton instance of the <see cref="NoLogEvent"/>. </summary>
 	public static ILogEvent Instance { get; } = new NoLogEvent();
-
-	/// <inheritdoc />
-	public string OutputMessage => String.Empty;
 
 	/// <inheritdoc />
 	public EventId EventId => new(-1, nameof(NoLogEvent));

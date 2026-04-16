@@ -177,6 +177,9 @@ public class NoLogResourceEvent : NoLogEvent, ILogResourceEvent
 	public static new ILogResourceEvent Instance { get; } = new NoLogResourceEvent();
 
 	/// <inheritdoc />
+	public string OutputMessage => String.Empty;
+
+	/// <inheritdoc />
 	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out string outputMessage, out ILogScope? payload)
 	{
 		eventId = this.EventId;
