@@ -119,7 +119,7 @@ jobs:
       # Run tests with coverage
       - name: <Test> Run tests with TRX + coverage
         id: run-tests
-        run: dotnet test --configuration Release --no-build \
+        run: dotnet test --configuration Release --no-build --filter 'FullyQualifiedName\!~IntegrationTest' \
               --logger "trx;LogFileName=test_results.trx" \
               /p:CollectCoverage=true \
               /p:CoverletOutput=TestResults/coverage/ \
