@@ -8,7 +8,7 @@ namespace Microsoft.Test;
 
 public class LogResourceEventTest
 {
-#region Setup
+	#region Setup
 
 #pragma warning disable 8618 // → Always initialized in the 'Setup' method before a test is run.
 	private IFixture _fixture;
