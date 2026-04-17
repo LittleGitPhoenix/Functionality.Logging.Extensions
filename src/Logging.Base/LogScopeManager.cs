@@ -111,8 +111,8 @@ public class LogScopeManager : ILogScopeManager
 
 	#region Nested Types
 
-	sealed class DisposableAction : IDisposable
-    {
+	private sealed class DisposableAction(Action dispose) : IDisposable
+	{
         #region Delegates / Events
         #endregion
 
@@ -121,25 +121,14 @@ public class LogScopeManager : ILogScopeManager
 
         #region Fields
 
-        private readonly Action _dispose;
-
-        #endregion
+		#endregion
 
         #region Properties
 
         public static IDisposable NoDisposableAction { get; } = new DisposableAction(() => { });
 
         #endregion
-
-        #region (De)Constructors
-
-        public DisposableAction(Action dispose)
-        {
-            _dispose = dispose;
-        }
-
-        #endregion
-
+		
         #region Methods
 
         /// <inheritdoc />
@@ -147,7 +136,7 @@ public class LogScopeManager : ILogScopeManager
         {
             try
             {
-                _dispose.Invoke();
+                dispose.Invoke();
             }
             catch (Exception) { /* ignore */ }
         }
