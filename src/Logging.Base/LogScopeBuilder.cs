@@ -8,7 +8,12 @@ using System.Text.RegularExpressions;
 
 namespace Phoenix.Functionality.Logging.Base;
 
+#if NETCOREAPP3_0_OR_GREATER
+// The partial modifier is required for source generated regexes (GeneratedRegex).
 internal static partial class LogScopeBuilder
+#else
+internal static class LogScopeBuilder
+#endif
 {
 	#region Delegates / Events
 	#endregion
@@ -27,7 +32,7 @@ internal static partial class LogScopeBuilder
 
 	#region Methods
 
-#if NETCOREAPP3_0_OR_GREATER	
+#if NETCOREAPP3_0_OR_GREATER
 	public static Dictionary<string, object?> BuildScopeDictionary
 	(
 		object? value1,

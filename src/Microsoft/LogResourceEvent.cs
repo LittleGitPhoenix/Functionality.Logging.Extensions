@@ -27,7 +27,7 @@ public interface ILogResourceEvent : ILogEvent
 	/// <param name="args"> <inheritdoc cref="ILogEvent.Args"/> </param>
 	/// <param name="outputMessage"> <inheritdoc cref="OutputMessage"/> </param>	
 	/// <param name="payload"> <inheritdoc cref="ILogEvent.PayLoad"/> </param>
-	void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out string outputMessage, out ILogScope? payload);
+	void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out string outputMessage, out IPayload? payload);
 }
 
 /// <summary>
@@ -65,7 +65,7 @@ public class LogResourceEvent : LogEvent, ILogResourceEvent
 	} = CultureInfo.CreateSpecificCulture("lo");
 
 	/// <inheritdoc />
-	/// <remarks> The message is build every time the property is accessed. Typically this is only done once. Not pre-loading it has the benefit to dynamically adapt to changes in the UI culture. </remarks>
+	/// <remarks> The message is build every time the property is accessed. Typically, this is only done once. Not preloading it has the benefit to dynamically adapt to changes in the UI culture. </remarks>
 	public string OutputMessage => this.GetOutputMessage();
 
 	#endregion
@@ -120,7 +120,7 @@ public class LogResourceEvent : LogEvent, ILogResourceEvent
 	private static string GetLogMessage(EventId eventId, ResourceManager resourceManager, string resourceName, object?[] args, CultureInfo? logCulture)
 	{
 		return resourceManager.GetString(resourceName, logCulture ?? LogCulture)
-			?? $"No log-message found for resource '{resourceName}' of event id {eventId}. Add the ressource to the resource manager {resourceManager.GetType().FullName}. Arguments where: {GetArgsAsString(args)}";
+			?? $"No log-message found for resource '{resourceName}' of event id {eventId}. Add the resource to the resource manager {resourceManager.GetType().FullName}. Arguments where: {GetArgsAsString(args)}";
 			;
 	}
 
@@ -133,7 +133,7 @@ public class LogResourceEvent : LogEvent, ILogResourceEvent
 		// Get the unformatted output message from resource manager.
 		var unformattedMessage = _resourceManager.GetString(_resourceName);
 
-		if (unformattedMessage is null) return $"No output-message found for resource '{_resourceName}' of event id {base.EventId.Id}. Add the ressource to the resource manager {_resourceManager.GetType().FullName}. Arguments where: {GetArgsAsString(_outputArgs)}";
+		if (unformattedMessage is null) return $"No output-message found for resource '{_resourceName}' of event id {base.EventId.Id}. Add the resource to the resource manager {_resourceManager.GetType().FullName}. Arguments where: {GetArgsAsString(_outputArgs)}";
 
 		// Format the output message.
 		try
@@ -154,7 +154,7 @@ public class LogResourceEvent : LogEvent, ILogResourceEvent
 	}
 
 	/// <inheritdoc />
-	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out string outputMessage, out ILogScope? payload)
+	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out string outputMessage, out IPayload? payload)
 	{
 		eventId = base.EventId;
 		exception = base.Exception;
@@ -180,7 +180,7 @@ public class NoLogResourceEvent : NoLogEvent, ILogResourceEvent
 	public string OutputMessage => String.Empty;
 
 	/// <inheritdoc />
-	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out string outputMessage, out ILogScope? payload)
+	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out string outputMessage, out IPayload? payload)
 	{
 		eventId = this.EventId;
 		exception = this.Exception;

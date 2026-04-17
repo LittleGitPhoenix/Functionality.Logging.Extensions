@@ -42,7 +42,7 @@ public class LogEventTemplate
 	/// </summary>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(ILogScope? payload = null)
+	public ILogEvent Build(IPayload? payload = null)
 		=> CreateLogEvent(this.EventId, this.LogMessage, this.LogLevel, null, payload);
 
 	/// <summary>
@@ -51,7 +51,7 @@ public class LogEventTemplate
 	/// <param name="exception"> The exception to include in the log event. Cannot be <see langword="null"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(Exception exception, ILogScope? payload = null)
+	public ILogEvent Build(Exception exception, IPayload? payload = null)
 		=> CreateLogEvent(this.EventId, this.LogMessage, this.LogLevel, exception, payload);
 
 	/// <summary>
@@ -60,7 +60,7 @@ public class LogEventTemplate
 	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(LogLevel actualLogLevel, ILogScope? payload = null)
+	public ILogEvent Build(LogLevel actualLogLevel, IPayload? payload = null)
 		=> CreateLogEvent(this.EventId, this.LogMessage, actualLogLevel, null, payload);
 
 	/// <summary>
@@ -70,11 +70,11 @@ public class LogEventTemplate
 	/// <param name="exception"> The exception to include in the log event. Cannot be <see langword="null"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(LogLevel actualLogLevel, Exception exception, ILogScope? payload = null)
+	public ILogEvent Build(LogLevel actualLogLevel, Exception exception, IPayload? payload = null)
 		=> CreateLogEvent(this.EventId, this.LogMessage, actualLogLevel, exception, payload);
 
 	[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-	internal static ILogEvent CreateLogEvent(EventId eventId, string logMessage, LogLevel actualLogLevel, Exception? exception, ILogScope? payload, params object?[] argsArray)
+	internal static ILogEvent CreateLogEvent(EventId eventId, string logMessage, LogLevel actualLogLevel, Exception? exception, IPayload? payload, params object?[] argsArray)
 	{
 		return exception is null
 			? new LogEvent(eventId, actualLogLevel, logMessage, argsArray) { PayLoad =  payload }
@@ -148,7 +148,7 @@ public class LogEventTemplate<TArgs>
 	/// <param name="args"> The arguments used to construct the log event. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(TArgs args, ILogScope? payload = null)
+	public ILogEvent Build(TArgs args, IPayload? payload = null)
 		=> LogEventTemplate.CreateLogEvent(this.EventId, this.LogMessage, this.LogLevel, null, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args));
 
 	/// <summary>
@@ -158,7 +158,7 @@ public class LogEventTemplate<TArgs>
 	/// <param name="exception"> The exception to include in the log event. Cannot be <see langword="null"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(TArgs args, Exception exception, ILogScope? payload = null)
+	public ILogEvent Build(TArgs args, Exception exception, IPayload? payload = null)
 		=> LogEventTemplate.CreateLogEvent(this.EventId, this.LogMessage, this.LogLevel, exception, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args));
 
 	/// <summary>
@@ -168,7 +168,7 @@ public class LogEventTemplate<TArgs>
 	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(TArgs args, LogLevel actualLogLevel, ILogScope? payload = null)
+	public ILogEvent Build(TArgs args, LogLevel actualLogLevel, IPayload? payload = null)
 		=> LogEventTemplate.CreateLogEvent(this.EventId, this.LogMessage, actualLogLevel, null, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args));
 
 	/// <summary>
@@ -179,7 +179,7 @@ public class LogEventTemplate<TArgs>
 	/// <param name="exception"> The exception to include in the log event. Cannot be <see langword="null"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <returns> The created <see cref="ILogEvent"/>. </returns>
-	public ILogEvent Build(TArgs args, LogLevel actualLogLevel, Exception exception, ILogScope? payload = null)
+	public ILogEvent Build(TArgs args, LogLevel actualLogLevel, Exception exception, IPayload? payload = null)
 		=> LogEventTemplate.CreateLogEvent(this.EventId, this.LogMessage, actualLogLevel, exception, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args));
 
 	#endregion

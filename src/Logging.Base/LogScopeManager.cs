@@ -88,9 +88,9 @@ public class LogScopeManager : ILogScopeManager
 			() =>
             {
                 try
-                {
-                    if (scopes.ContainsKey(scope)) scopes.Remove(scope);
-                }
+				{
+					scopes.Remove(scope);
+				}
                 catch (Exception) { /* ignore */ }
             }
         );

@@ -194,7 +194,7 @@ public class LoggerExtensionsTest
 		// Arrange
 		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message")
 		{
-			PayLoad = LogScope.CreateIndependent(("Property", "Value"))
+			PayLoad = Payload.Create(("Property", "Value"))
 		};
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
 		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);

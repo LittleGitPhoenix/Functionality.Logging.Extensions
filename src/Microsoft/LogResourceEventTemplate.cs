@@ -31,7 +31,7 @@ public class LogResourceEventTemplate
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, this.LogLevel, null, payload, null, null, actualLogCulture);
 
 	/// <summary>
@@ -41,7 +41,7 @@ public class LogResourceEventTemplate
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(Exception exception, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(Exception exception, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, this.LogLevel, exception, payload, null, null, actualLogCulture);
 
 	/// <summary>
@@ -51,7 +51,7 @@ public class LogResourceEventTemplate
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(LogLevel actualLogLevel, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(LogLevel actualLogLevel, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, actualLogLevel, null, payload, null, null, actualLogCulture);
 
 	/// <summary>
@@ -62,11 +62,11 @@ public class LogResourceEventTemplate
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(LogLevel actualLogLevel, Exception exception, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(LogLevel actualLogLevel, Exception exception, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, actualLogLevel, exception, payload, null, null, actualLogCulture);
 
 	[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-	internal static ILogResourceEvent CreateLogEvent(EventId eventId, System.Resources.ResourceManager resourceManager, string resourceName, LogLevel actualLogLevel, Exception? exception, ILogScope? payload, object?[]? argsArray, object?[]? outputArgs, CultureInfo? actualLogCulture = null)
+	internal static ILogResourceEvent CreateLogEvent(EventId eventId, System.Resources.ResourceManager resourceManager, string resourceName, LogLevel actualLogLevel, Exception? exception, IPayload? payload, object?[]? argsArray, object?[]? outputArgs, CultureInfo? actualLogCulture = null)
 	{
 		return exception is null
 			? new LogResourceEvent(eventId, actualLogLevel, resourceManager, resourceName, argsArray, outputArgs, actualLogCulture) { PayLoad = payload }
@@ -143,7 +143,7 @@ public class LogResourceEventTemplate<TArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, this.LogLevel, null, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), null, actualLogCulture);
 
 	/// <summary>
@@ -154,7 +154,7 @@ public class LogResourceEventTemplate<TArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, Exception exception, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, Exception exception, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, this.LogLevel, exception, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), null, actualLogCulture);
 
 	/// <summary>
@@ -165,7 +165,7 @@ public class LogResourceEventTemplate<TArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, LogLevel actualLogLevel, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, LogLevel actualLogLevel, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, actualLogLevel, null, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), null, actualLogCulture);
 
 	/// <summary>
@@ -177,7 +177,7 @@ public class LogResourceEventTemplate<TArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, LogLevel actualLogLevel, Exception exception, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, LogLevel actualLogLevel, Exception exception, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, actualLogLevel, exception, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), null, actualLogCulture);
 
 	#endregion
@@ -256,7 +256,7 @@ public class LogResourceEventTemplate<TArgs, TOutputArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, this.LogLevel, null, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), LogTemplateHelper<TOutputArgs>.ConvertTupleToObjectArray(outputArgs), actualLogCulture);
 
 	/// <summary>
@@ -268,7 +268,7 @@ public class LogResourceEventTemplate<TArgs, TOutputArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, Exception exception, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, Exception exception, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, this.LogLevel, exception, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), LogTemplateHelper<TOutputArgs>.ConvertTupleToObjectArray(outputArgs), actualLogCulture);
 
 	/// <summary>
@@ -280,7 +280,7 @@ public class LogResourceEventTemplate<TArgs, TOutputArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, LogLevel actualLogLevel, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, LogLevel actualLogLevel, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, actualLogLevel, null, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), LogTemplateHelper<TOutputArgs>.ConvertTupleToObjectArray(outputArgs), actualLogCulture);
 
 	/// <summary>
@@ -293,7 +293,7 @@ public class LogResourceEventTemplate<TArgs, TOutputArgs>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEvent.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <see cref="ILogResourceEvent"/>. </returns>
-	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, LogLevel actualLogLevel, Exception exception, ILogScope? payload = null, CultureInfo? actualLogCulture = null)
+	public ILogResourceEvent Build(TArgs args, TOutputArgs outputArgs, LogLevel actualLogLevel, Exception exception, IPayload? payload = null, CultureInfo? actualLogCulture = null)
 		=> LogResourceEventTemplate.CreateLogEvent(this.EventId, this.ResourceManager, this.ResourceName, actualLogLevel, exception, payload, LogTemplateHelper<TArgs>.ConvertTupleToObjectArray(args), LogTemplateHelper<TOutputArgs>.ConvertTupleToObjectArray(outputArgs), actualLogCulture);
 
 	#endregion

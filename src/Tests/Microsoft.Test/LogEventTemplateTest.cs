@@ -476,7 +476,7 @@ public class LogEventTemplateTest
 		Assert.That(logEvent.Exception, Is.Null);
 
 		// Act + Assert: Payload
-		var payload = LogScope.CreateIndependent(("Property", "Value"));
+		var payload = Payload.Create(("Property", "Value"));
 		logEvent = template.Build(payload);
 		Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
 		Assert.That(logEvent.LogLevel, Is.EqualTo(level));
@@ -543,7 +543,7 @@ public class LogEventTemplateTest
 		Assert.That(logEvent.Exception, Is.Null);
 
 		// Act + Assert: Payload
-		var payload = LogScope.CreateIndependent(("Property", "Value"));
+		var payload = Payload.Create(("Property", "Value"));
 		logEvent = template.Build(args, payload);
 		Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
 		Assert.That(logEvent.LogLevel, Is.EqualTo(level));
@@ -615,7 +615,7 @@ public class LogEventTemplateTest
 		Assert.That(logEvent.Exception, Is.Null);
 
 		// Act + Assert: Payload
-		var payload = LogScope.CreateIndependent(("Property", "Value"));
+		var payload = Payload.Create(("Property", "Value"));
 		logEvent = template.Build(args, payload);
 		Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
 		Assert.That(logEvent.LogLevel, Is.EqualTo(level));
@@ -747,7 +747,7 @@ public class LogEventTemplateTest
 								Assert.That(logEvent.Args, Has.Length.EqualTo(1));
 								Assert.That(logEvent.Args[0], Is.EqualTo(args.RequestId));
 
-								var payload = LogScope.CreateIndependent(("ThreadId", threadIndex));
+								var payload = Payload.Create(("ThreadId", threadIndex));
 								var logEventWithPayload = template.Build(args, payload);
 								Assert.That(logEventWithPayload.PayLoad, Is.EqualTo(payload));
 								Assert.That(logEventWithPayload.Args[0], Is.EqualTo(args.RequestId));

@@ -25,12 +25,12 @@ public interface ILogEvent<TLogLevel, TEventId>
 	/// <summary> Format arguments of <see cref="LogMessage"/>. </summary>
 	object?[] Args { get; }
 
-	/// <summary> Optional <see cref="System.Exception"/>. Default is <b>null</b>. </summary>
+	/// <summary> Optional <see cref="System.Exception"/>. Default is<see langword="null"/>. </summary>
 	Exception? Exception { get; }
 
-	/// <summary> Optional payload that is applied to the log event as scope. Default is <b>null</b>. </summary>
-	/// <remarks> Can be used to add additional key/value pairs to an event even though they are not part of the regular message. </remarks>
-	ILogScope? PayLoad { get; }
+	/// <summary> Optional payload that is applied to the log event as scope. Default is <see langword="null"/>. </summary>
+	/// <remarks> Can be used to add additional key/value pairs directly to an event, just not as part of the regular message. </remarks>
+	IPayload? PayLoad { get; }
 
 	/// <summary>
 	/// Deconstructs the <see cref="eventId"/> into its constituent properties.
@@ -41,5 +41,5 @@ public interface ILogEvent<TLogLevel, TEventId>
 	/// <param name="logMessage"> <inheritdoc cref="args"/> </param>
 	/// <param name="args"> <inheritdoc cref="payload"/> </param>
 	/// <param name="payload"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}"/> </param>
-	void Deconstruct(out TEventId eventId, out Exception? exception, out TLogLevel logLevel, out string logMessage, out object?[] args, out ILogScope? payload);
+	void Deconstruct(out TEventId eventId, out Exception? exception, out TLogLevel logLevel, out string logMessage, out object?[] args, out IPayload? payload);
 }

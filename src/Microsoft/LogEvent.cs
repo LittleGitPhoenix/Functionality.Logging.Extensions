@@ -44,7 +44,7 @@ public class LogEvent : ILogEvent
 	public Exception? Exception { get; }
 
 	/// <inheritdoc />
-	public ILogScope? PayLoad { get; init; }
+	public IPayload? PayLoad { get; init; }
 
 	#endregion
 
@@ -111,7 +111,7 @@ public class LogEvent : ILogEvent
 	//}
 
 	/// <inheritdoc />
-	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out ILogScope? payload)
+	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out IPayload? payload)
 	{
 		eventId = this.EventId;
 		exception = this.Exception;
@@ -148,10 +148,10 @@ public class NoLogEvent : ILogEvent
 	public Exception? Exception => null;
 
 	/// <inheritdoc />
-	public ILogScope? PayLoad => null;
+	public IPayload? PayLoad => null;
 
 	/// <inheritdoc />
-	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out ILogScope? payload)
+	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out IPayload? payload)
 	{
 		eventId = this.EventId;
 		exception = this.Exception;

@@ -143,7 +143,7 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Exception, Is.Null);
 
 			// Act + Assert: Payload
-			var payload = LogScope.CreateIndependent(("Property", "Value"));
+			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build(payload);
 			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
@@ -227,7 +227,7 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Exception, Is.Null);
 
 			// Act + Assert: Payload
-			var payload = LogScope.CreateIndependent(("Property", "Value"));
+			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build((now, Unit.Value), payload);
 			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
@@ -282,7 +282,7 @@ public class LogResourceEventTemplateTest
 			var message = "The id {UserId} belongs to user {UserName}.";
 			var userId = _fixture.Create<int>();
 			var userName = _fixture.Create<string>();
-			var outputMessage = String.Format("The id {0} belongs to user {1}.", userId, userName);
+			var outputMessage = $"The id {userId} belongs to user {userName}.";
 			var template = new LogResourceEventTemplate<(int UserId, string UserName)>
 			{
 				EventId = id,
@@ -317,7 +317,7 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Exception, Is.Null);
 
 			// Act + Assert: Payload
-			var payload = LogScope.CreateIndependent(("Property", "Value"));
+			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build((userId, userName), payload);
 			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
@@ -410,7 +410,7 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Exception, Is.Null);
 
 			// Act + Assert: Payload
-			var payload = LogScope.CreateIndependent(("Property", "Value"));
+			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build((userId, userName), (userName, Unit.Value), payload);
 			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));

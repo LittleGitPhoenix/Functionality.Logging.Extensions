@@ -11,7 +11,7 @@ namespace Phoenix.Functionality.Logging.Base;
 /// </summary>
 /// <remarks>
 /// This enumeration indicates whether an <see cref="ILogScope"/> is independent of the current execution context or if it is aware of and flows with the execution context.
-/// This affects how log data is correlated across asynchronous or multi-threaded operations.
+/// This affects how log data is correlated across asynchronous or multithreaded operations.
 /// </remarks>
 public enum LogScopeType
 {
@@ -27,7 +27,7 @@ public enum LogScopeType
 public interface ILogScope : IDictionary<string, object?>
 {
 	/// <summary> The type of the current log scope. </summary>
-	public LogScopeType Type { get; }
+	LogScopeType Type { get; }
 }
 
 /// <summary>
