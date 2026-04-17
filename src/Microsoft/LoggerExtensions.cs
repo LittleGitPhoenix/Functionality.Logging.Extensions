@@ -9,17 +9,6 @@ using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
-class NoDisposable : IDisposable
-{
-	public static NoDisposable Instance => Lazy.Value;
-	private static readonly Lazy<NoDisposable> Lazy = new Lazy<NoDisposable>(() => new(), LazyThreadSafetyMode.ExecutionAndPublication);
-	
-	private NoDisposable() { }
-
-	/// <inheritdoc />
-	public void Dispose() { }
-}
-
 #if DEBUG && NETCOREAPP3_0_OR_GREATER
 static class Example
 {
@@ -162,15 +151,17 @@ public static partial class LoggerExtensions
 	internal static ILogger Log(ILogEvent? logEvent, ILogger logger)
 	{
 		if (logger is null) throw new ArgumentNullException(nameof(logger));
+#pragma warning disable CS0618 // Type or member is obsolete → Still referenced for backwards compatibility.
 		if (logger == NoLogger.Instance || logger == global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance) return logger;
+#pragma warning restore CS0618 // Type or member is obsolete
 		if (logEvent is null || logEvent == NoLogEvent.Instance) return logger;
 
 		//* If the logger is wrapped within a chaining logger, always use the inner logger. This way the actual logger is always used for logging.
 		//* This improves performance and using the actual logger allows type checking further down the log chain.
-		//* Important: Alwayys(!) return the original logger as to not switch instances.
+		//* Important: Always(!) return the original logger as to not switch instances.
 		var actualLogger = logger as ChainingLogScopeDisposable ?? logger;
 		
-		// Denconstruct the event and log it.
+		// Deconstruct the event and log it.
 		var (eventId, exception, logLevel, logMessage, args, payload) = logEvent;
 
 		// Fast level check before deconstruction & scope creation to avoid overhead.
@@ -205,8 +196,10 @@ public static partial class LoggerExtensions
 	/// <returns> The translated log message or an empty string if <paramref name="logEvent"/> is <see langword="null"/> or <see cref="NoLogEvent"/>. </returns>
 	[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 	private static string LogEventFromResource(ILogResourceEvent? logEvent, ILogger logger)
-	{		
+	{
+#pragma warning disable CS0618 // Type or member is obsolete → Still referenced for backwards compatibility.
 		if (logger is null || logger == NoLogger.Instance || logger == global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance) return String.Empty;
+#pragma warning restore CS0618 // Type or member is obsolete
 		if (logEvent is null || logEvent == NoLogResourceEvent.Instance) return String.Empty;
 
 		// Log
@@ -769,86 +762,5 @@ public static partial class LoggerExtensions
 		where TIdentifier : notnull
 		=> throw new NotSupportedException($"Directly creating scopes for a logger group and logging afterwards is no longer supported. Logger groups can only be used to create scopes but not log to them.");
 
-	#endregion
-}
-
-/// <summary>
-/// A combination of <see cref="ILogger"/> and <see cref="IDisposable"/> used to chain log scopes while still allowing proper disposal of all created scopes as well as continued logging.
-/// </summary>
-/// <remarks> This interface is not intended to be implemented externally. </remarks>
-public interface IChainingLogScopeDisposable : IDisposable, ILogger;
-
-internal class ChainingLogScopeDisposable : IChainingLogScopeDisposable
-{
-	#region Delegates / Events
-	#endregion
-
-	#region Constants
-	#endregion
-
-	#region Fields
-
-	private readonly IDisposable _scope;
-
-	private readonly IDisposable? _nestedScope;
-
-	#endregion
-
-	#region Properties
-
-	internal ILogger Logger { get; }
-
-	#endregion
-
-	#region (De)Constructors
-
-	/// <summary>
-	/// Constructor using <see cref="NoDisposable.Instance"/> as scope.
-	/// </summary>
-	/// <param name="logger"> The logger to associate with this scope. If the <paramref name="logger"/> is already a <see cref="ChainingLogScopeDisposable"/>, its inner logger will be used so that always the original logger persists. Cannot be <see langword="null"/>. </param>
-	public ChainingLogScopeDisposable(ILogger logger)
-		: this(logger, NoDisposable.Instance) { }
-
-	/// <summary>
-	/// Constructor that ensures, that the innermost logger is always available via the <see cref="Logger"/> property and that nested scopes are also properly disposed.
-	/// </summary>
-	/// <remarks>
-	/// This constructor unwraps nested ChainingLogScopeDisposable instances to ensure that the actual underlying logger is always used, even when scopes are nested.
-	/// This allows consistent access to the original logger type and behavior across multiple nested scopes.
-	/// Furthermore, it ensures that all nested scopes are properly disposed of when the outermost scope is disposed.
-	/// </remarks>
-	/// <param name="logger"> The logger to associate with this scope. If the <paramref name="logger"/> is already a <see cref="ChainingLogScopeDisposable"/>, its inner logger will be used so that always the original logger persists. Cannot be <see langword="null"/>. </param>
-	/// <param name="scope"> The disposable logging scope to manage. Cannot be <see langword="null"/>. </param>
-	public ChainingLogScopeDisposable(ILogger logger, IDisposable scope)
-	{
-		// If the logger is wrapped within a chaining logger, always use the inner logger.
-		// This way the actual logger (and its type) is always available even if a ChainingLogScopeDisposable is nested multiple times.
-		var chainingLogger = logger as ChainingLogScopeDisposable;
-
-		this.Logger = chainingLogger?.Logger ?? logger;
-		_scope = scope;
-		_nestedScope = chainingLogger;
-	}
-
-	#endregion
-
-	#region Methods
-	
-	public void Dispose()
-	{
-		_scope.Dispose();
-		_nestedScope?.Dispose();
-	}
-
-	#region ILogger Implementation
-
-	public IDisposable? BeginScope<TState>(TState state) where TState : notnull => this.Logger.BeginScope(state);
-
-	public bool IsEnabled(LogLevel logLevel) => this.Logger.IsEnabled(logLevel);
-	
-	public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) => this.Logger.Log(logLevel, eventId, state, exception, formatter);
-
-	#endregion
-	
 	#endregion
 }
