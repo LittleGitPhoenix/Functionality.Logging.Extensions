@@ -1,7 +1,4 @@
 ﻿using System.Collections;
-using AutoFixture;
-using AutoFixture.AutoMoq;
-using Moq;
 using Phoenix.Functionality.Logging.Base;
 
 namespace Logging.Base.Test;

@@ -96,7 +96,7 @@ static class IdentifierBuilder
             .Concat(Enumerable.Range(48, 10)) // 0-9
             .Concat(Enumerable.Range(65, 26)) // A-Z
             .Concat(Enumerable.Range(97, 26)) // a-z
-            .Select((value, index) => (Index: index, Char: System.Text.Encoding.ASCII.GetString(new[] {(byte) value})[0]))
+            .Select((value, index) => (Index: index, Char: System.Text.Encoding.ASCII.GetString([(byte) value])[0]))
             .ToDictionary
             (
                 anonymous => anonymous.Index,

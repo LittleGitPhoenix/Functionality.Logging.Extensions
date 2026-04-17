@@ -15,55 +15,17 @@ public interface ILogEvent : ILogEvent<LogLevel, EventId>;
 /// <summary>
 /// Wrapper containing log event data.
 /// </summary>
-public class LogEvent : ILogEvent
+public class LogEvent : LogEvent<LogLevel, EventId>, ILogEvent
 {
-	#region Delegates / Events
-	#endregion
-
-	#region Constants
-	#endregion
-
-	#region Fields
-	#endregion
-
-	#region Properties
-	
-	/// <inheritdoc />
-	public EventId EventId { get; }
-
-	/// <inheritdoc />
-	public LogLevel LogLevel { get; }
-
-	/// <inheritdoc />
-	public string LogMessage { get; }
-
-	/// <inheritdoc />
-	public object?[] Args { get; }
-
-	/// <inheritdoc />
-	public Exception? Exception { get; }
-
-	/// <inheritdoc />
-	public IPayload? PayLoad { get; init; }
-
-	#endregion
-
-	#region (De)Constructors
-
 	/// <summary>
 	/// Constructor
 	/// </summary>
 	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
 	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	/// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
-	/// <param name="args"> <inheritdoc cref="Args"/> </param>
+	/// <param name="logMessage"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.LogMessage"/> </param>
+	/// <param name="args"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.Args"/> </param>
 	public LogEvent(EventId eventId, LogLevel logLevel, string logMessage, params object?[] args)
-	{
-		this.EventId = eventId;
-		this.LogLevel = logLevel;
-		this.LogMessage = logMessage;
-		this.Args = args ?? [];
-	}
+		: base(eventId, logLevel, logMessage, args) { }
 
 	/// <summary>
 	/// Constructor with exception
@@ -71,93 +33,20 @@ public class LogEvent : ILogEvent
 	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
 	/// <param name="exception"> <inheritdoc cref="Exception"/> </param>
 	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	/// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
-	/// <param name="args"> <inheritdoc cref="Args"/> </param>
+	/// <param name="logMessage"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.LogMessage"/> </param>
+	/// <param name="args"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.Args"/> </param>
 	public LogEvent(EventId eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
-		: this(eventId, logLevel, logMessage, args)
-	{
-		this.Exception = exception;
-	}
-
-	#endregion
-
-	#region Methods
-
-	///// <summary>
-	///// Creates a new <see cref="LogEvent"/> instance.
-	///// </summary>
-	///// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
-	///// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	///// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
-	///// <param name="args"> <inheritdoc cref="Args"/> </param>
-	///// <returns> A new <see cref="LogEvent"/> instance. </returns>
-	//public static LogEvent Create(EventId eventId, LogLevel logLevel, string logMessage, params object?[] args)
-	//{
-	//	return new LogEvent(eventId, logLevel, logMessage, args);
-	//}
-
-	///// <summary>
-	///// Creates a new <see cref="LogEvent"/> instance with exception.
-	///// </summary>
-	///// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
-	///// <param name="exception"> <inheritdoc cref="Exception"/> </param>
-	///// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	///// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
-	///// <param name="args"> <inheritdoc cref="Args"/> </param>
-	///// <returns> A new <see cref="LogEvent"/> instance. </returns>
-	//public static LogEvent Create(EventId eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
-	//{
-	//	return new LogEvent(eventId, exception, logLevel, logMessage, args);
-	//}
-
-	/// <inheritdoc />
-	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out IPayload? payload)
-	{
-		eventId = this.EventId;
-		exception = this.Exception;
-		logLevel = this.LogLevel;
-		logMessage = this.LogMessage;
-		args = this.Args;
-		payload = this.PayLoad;
-	}
-
-	#endregion
+		: base(eventId, exception, logLevel, logMessage, args) { }
 }
 
 /// <summary>
 /// Represents a <see cref="global::Microsoft.Extensions.Logging"/>-based log event that performs no logging and contains no event data.
 /// </summary>
-public class NoLogEvent : ILogEvent
+public class NoLogEvent : NoLogEvent<NoLogEvent, LogLevel, EventId>, ILogEvent
 {
-	/// <summary> Singleton instance of the <see cref="NoLogEvent"/>. </summary>
-	public static ILogEvent Instance { get; } = new NoLogEvent();
+	/// <inheritdoc />
+	public override EventId EventId => new(-1, nameof(NoLogEvent));
 
 	/// <inheritdoc />
-	public EventId EventId => new(-1, nameof(NoLogEvent));
-
-	/// <inheritdoc />
-	public LogLevel LogLevel => LogLevel.None;
-
-	/// <inheritdoc />
-	public string LogMessage => String.Empty;
-
-	/// <inheritdoc />
-	public object?[] Args => [];
-
-	/// <inheritdoc />
-	public Exception? Exception => null;
-
-	/// <inheritdoc />
-	public IPayload? PayLoad => null;
-
-	/// <inheritdoc />
-	public void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out IPayload? payload)
-	{
-		eventId = this.EventId;
-		exception = this.Exception;
-		logLevel = this.LogLevel;
-		logMessage = this.LogMessage;
-		args = this.Args;
-		payload = this.PayLoad;
-	}
+	public override LogLevel LogLevel => LogLevel.None;
 }

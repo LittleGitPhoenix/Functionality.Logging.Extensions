@@ -1,7 +1,5 @@
 using System.Linq.Expressions;
 using System.Text;
-using AutoFixture;
-using AutoFixture.AutoMoq;
 using Phoenix.Functionality.Logging.Base;
 
 namespace Logging.Base.Test;

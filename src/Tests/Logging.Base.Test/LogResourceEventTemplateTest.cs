@@ -1,11 +1,9 @@
 using System.Globalization;
-using Microsoft.Extensions.Logging;
+using System.Resources;
 using Phoenix.Functionality.Logging.Base;
-using Phoenix.Functionality.Logging.Extensions.Microsoft;
+using l10nLocal = Logging.Base.Test.Localization.l10n;
 
-using l10nLocal = Microsoft.Test.Localization.l10n;
-
-namespace Microsoft.Test;
+namespace Logging.Base.Test;
 
 public class LogResourceEventTemplateTest
 {
@@ -28,11 +26,76 @@ public class LogResourceEventTemplateTest
 	public void AfterEachTest() { }
 
 	[OneTimeTearDown]
-	public void AfterAllTest() { }
+	public void AfterAllTests() { }
 
 	#endregion
 
 	#region Data
+
+	internal enum MyLogLevel
+	{
+		Debug,
+		Information,
+		Warning,
+		Error
+	}
+
+	internal interface IMyLogResourceEvent : ILogResourceEvent<MyLogLevel, int>;
+
+	internal class MyLogResourceEvent : LogResourceEvent<MyLogLevel, int>, IMyLogResourceEvent
+	{
+		public MyLogResourceEvent(int eventId, MyLogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
+			: base(eventId, logLevel, resourceManager, resourceName, args, outputArgs, logCulture) { }
+
+		public MyLogResourceEvent(int eventId, Exception exception, MyLogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
+			: base(eventId, exception, logLevel, resourceManager, resourceName, args, outputArgs, logCulture) { }
+	}
+
+	internal class MyLogResourceEventTemplate : LogResourceEventTemplate<IMyLogResourceEvent, MyLogLevel, int>
+	{
+		/// <inheritdoc />
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		protected internal override IMyLogResourceEvent CreateLogEvent(int eventId, ResourceManager resourceManager, string resourceName, MyLogLevel actualLogLevel, Exception? exception, IPayload? payload, object?[]? argsArray, object?[]? outputArgs, CultureInfo? actualLogCulture = null)
+			=> CreateLogEvent_Internal(eventId, resourceManager, resourceName, actualLogLevel, exception, payload, argsArray, outputArgs, actualLogCulture);
+
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		internal static IMyLogResourceEvent CreateLogEvent_Internal(int eventId, ResourceManager resourceManager, string resourceName, MyLogLevel actualLogLevel, Exception? exception, IPayload? payload, object?[]? argsArray, object?[]? outputArgs, CultureInfo? actualLogCulture = null)
+		{
+			return exception is null
+				? new MyLogResourceEvent(eventId, actualLogLevel, resourceManager, resourceName, argsArray, outputArgs, actualLogCulture) { Payload = payload }
+				: new MyLogResourceEvent(eventId, exception, actualLogLevel, resourceManager, resourceName, argsArray, outputArgs, actualLogCulture) { Payload = payload }
+				;
+		}
+	}
+
+	internal class MyLogResourceEventTemplate<TArgs> : LogResourceEventTemplate<IMyLogResourceEvent, MyLogLevel, int, TArgs>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+		where TArgs : System.Runtime.CompilerServices.ITuple
+#else
+		where TArgs : struct
+#endif
+	{
+		/// <inheritdoc />
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		protected internal override IMyLogResourceEvent CreateLogEvent(int eventId, ResourceManager resourceManager, string resourceName, MyLogLevel actualLogLevel, Exception? exception, IPayload? payload, object?[]? argsArray, object?[]? outputArgs, CultureInfo? actualLogCulture = null)
+			=> MyLogResourceEventTemplate.CreateLogEvent_Internal(eventId, resourceManager, resourceName, actualLogLevel, exception, payload, argsArray, outputArgs, actualLogCulture);
+	}
+
+	internal class MyLogResourceEventTemplate<TArgs, TOutputArgs> : LogResourceEventTemplate<IMyLogResourceEvent, MyLogLevel, int, TArgs, TOutputArgs>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+		where TArgs : System.Runtime.CompilerServices.ITuple
+		where TOutputArgs : System.Runtime.CompilerServices.ITuple
+#else
+		where TArgs : struct
+		where TOutputArgs : struct
+#endif
+	{
+		/// <inheritdoc />
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		protected internal override IMyLogResourceEvent CreateLogEvent(int eventId, ResourceManager resourceManager, string resourceName, MyLogLevel actualLogLevel, Exception? exception, IPayload? payload, object?[]? argsArray, object?[]? outputArgs, CultureInfo? actualLogCulture = null)
+			=> MyLogResourceEventTemplate.CreateLogEvent_Internal(eventId, resourceManager, resourceName, actualLogLevel, exception, payload, argsArray, outputArgs, actualLogCulture);
+	}
+
 	#endregion
 
 	#region Tests
@@ -44,10 +107,10 @@ public class LogResourceEventTemplateTest
 		(
 			() =>
 			{
-				_ = new LogResourceEventTemplate()
+				_ = new MyLogResourceEventTemplate
 				{
 					EventId = 1563058623,
-					LogLevel = LogLevel.Information,
+					LogLevel = MyLogLevel.Information,
 					ResourceManager = l10nLocal.ResourceManager,
 					ResourceName = nameof(l10nLocal.MessageWithoutPlaceholders),
 				};
@@ -58,10 +121,10 @@ public class LogResourceEventTemplateTest
 		(
 			() =>
 			{
-				_ = new LogResourceEventTemplate<(DateTime Now, Unit)>()
+				_ = new MyLogResourceEventTemplate<(DateTime Now, Unit)>
 				{
 					EventId = 985934159,
-					LogLevel = LogLevel.Information,
+					LogLevel = MyLogLevel.Information,
 					ResourceManager = l10nLocal.ResourceManager,
 					ResourceName = nameof(l10nLocal.MessageWithOnePlaceholder),
 				};
@@ -72,10 +135,10 @@ public class LogResourceEventTemplateTest
 		(
 			() =>
 			{
-				_ = new LogResourceEventTemplate<(int UserId, string UserName)>()
+				_ = new MyLogResourceEventTemplate<(int UserId, string UserName)>
 				{
 					EventId = 1907215190,
-					LogLevel = LogLevel.Information,
+					LogLevel = MyLogLevel.Information,
 					ResourceManager = l10nLocal.ResourceManager,
 					ResourceName = nameof(l10nLocal.MessageWithMatchingPlaceholders),
 				};
@@ -86,10 +149,10 @@ public class LogResourceEventTemplateTest
 		(
 			() =>
 			{
-				_ = new LogResourceEventTemplate<(string UserName, int UserId), (string UserName, Unit)>()
+				_ = new MyLogResourceEventTemplate<(int UserId, string UserName), (string UserName, Unit)>
 				{
 					EventId = 1207208689,
-					LogLevel = LogLevel.Information,
+					LogLevel = MyLogLevel.Information,
 					ResourceManager = l10nLocal.ResourceManager,
 					ResourceName = nameof(l10nLocal.MessageWithDifferentPlaceholders),
 				};
@@ -103,17 +166,16 @@ public class LogResourceEventTemplateTest
 	[Category("LogEventBuilding")]
 	public void LogResourceEventCanBeBuild()
 	{
-		// Change the ui to english culture to ensure resource lookup works as expected.
 		var previousCulture = CultureInfo.CurrentUICulture;
 		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
 		try
 		{
 			// Arrange
 			var id = _fixture.Create<int>();
-			var level = LogLevel.Information;
-			var message = "The default message.";
+			var level = MyLogLevel.Information;
+			var logMessage = "The default message.";
 			var outputMessage = "Hello World";
-			var template = new LogResourceEventTemplate
+			var template = new MyLogResourceEventTemplate
 			{
 				EventId = id,
 				LogLevel = level,
@@ -123,52 +185,52 @@ public class LogResourceEventTemplateTest
 
 			// Act + Assert: Direct Build.
 			var logEvent = template.Build();
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Is.Empty);
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Different log level
-			var logLevel = LogLevel.Debug;
+			// Act + Assert: Different log level.
+			var logLevel = MyLogLevel.Debug;
 			logEvent = template.Build(logLevel);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Is.Empty);
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Payload
+			// Act + Assert: Payload.
 			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build(payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Is.Empty);
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.EqualTo(payload));
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Exception
+			// Act + Assert: Exception.
 			var exception = new Exception();
 			logEvent = template.Build(exception);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Is.Empty);
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.EqualTo(exception));
 
-			// Act + Assert: Everything		
+			// Act + Assert: Everything.
 			logEvent = template.Build(logLevel, exception, payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Is.Empty);
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.EqualTo(payload));
@@ -184,18 +246,17 @@ public class LogResourceEventTemplateTest
 	[Category("LogEventBuilding")]
 	public void LogResourceEventWithSingleParameterCanBeBuild()
 	{
-		// Change the ui to english culture to ensure resource lookup works as expected.
 		var previousCulture = CultureInfo.CurrentUICulture;
 		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
 		try
 		{
 			// Arrange
 			var id = _fixture.Create<int>();
-			var level = LogLevel.Information;
-			var message = "Current time is {Now}.";
-			var now = DateTime.UtcNow;
+			var level = MyLogLevel.Information;
+			var logMessage = "Current time is {Now}.";
+			var now = new DateTime(2024, 6, 15, 10, 30, 0);
 			var outputMessage = $"Current time is {now}.";
-			var template = new LogResourceEventTemplate<(DateTime Now, Unit)>
+			var template = new MyLogResourceEventTemplate<(DateTime Now, Unit)>
 			{
 				EventId = id,
 				LogLevel = level,
@@ -205,56 +266,56 @@ public class LogResourceEventTemplateTest
 
 			// Act + Assert: Direct Build.
 			var logEvent = template.Build((now, Unit.Value));
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(1));
 			Assert.That(logEvent.Args[0], Is.EqualTo(now));
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Different log level
-			var logLevel = LogLevel.Debug;
+			// Act + Assert: Different log level.
+			var logLevel = MyLogLevel.Debug;
 			logEvent = template.Build((now, Unit.Value), logLevel);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(1));
 			Assert.That(logEvent.Args[0], Is.EqualTo(now));
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Payload
+			// Act + Assert: Payload.
 			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build((now, Unit.Value), payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(1));
 			Assert.That(logEvent.Args[0], Is.EqualTo(now));
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.EqualTo(payload));
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Exception
+			// Act + Assert: Exception.
 			var exception = new Exception();
 			logEvent = template.Build((now, Unit.Value), exception);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(1));
 			Assert.That(logEvent.Args[0], Is.EqualTo(now));
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.EqualTo(exception));
 
-			// Act + Assert: Everything		
+			// Act + Assert: Everything.
 			logEvent = template.Build((now, Unit.Value), logLevel, exception, payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(1));
 			Assert.That(logEvent.Args[0], Is.EqualTo(now));
 			Assert.That(logEvent.OutputMessage, Is.EqualTo(outputMessage));
@@ -271,19 +332,18 @@ public class LogResourceEventTemplateTest
 	[Category("LogEventBuilding")]
 	public void LogResourceEventWithMultipleMatchingParametersCanBeBuild()
 	{
-		// Change the ui to english culture to ensure resource lookup works as expected.
 		var previousCulture = CultureInfo.CurrentUICulture;
 		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
 		try
 		{
 			// Arrange
 			var id = _fixture.Create<int>();
-			var level = LogLevel.Information;
-			var message = "The id {UserId} belongs to user {UserName}.";
+			var level = MyLogLevel.Information;
+			var logMessage = "The id {UserId} belongs to user {UserName}.";
 			var userId = _fixture.Create<int>();
 			var userName = _fixture.Create<string>();
 			var outputMessage = $"The id {userId} belongs to user {userName}.";
-			var template = new LogResourceEventTemplate<(int UserId, string UserName)>
+			var template = new MyLogResourceEventTemplate<(int UserId, string UserName)>
 			{
 				EventId = id,
 				LogLevel = level,
@@ -293,9 +353,9 @@ public class LogResourceEventTemplateTest
 
 			// Act + Assert: Direct Build.
 			var logEvent = template.Build((userId, userName));
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -303,12 +363,12 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Different log level
-			var logLevel = LogLevel.Debug;
+			// Act + Assert: Different log level.
+			var logLevel = MyLogLevel.Debug;
 			logEvent = template.Build((userId, userName), logLevel);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -316,12 +376,12 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Payload
+			// Act + Assert: Payload.
 			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build((userId, userName), payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -329,12 +389,12 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.EqualTo(payload));
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Exception
+			// Act + Assert: Exception.
 			var exception = new Exception();
 			logEvent = template.Build((userId, userName), exception);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -342,11 +402,11 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.EqualTo(exception));
 
-			// Act + Assert: Everything		
+			// Act + Assert: Everything.
 			logEvent = template.Build((userId, userName), logLevel, exception, payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -364,19 +424,18 @@ public class LogResourceEventTemplateTest
 	[Category("LogEventBuilding")]
 	public void LogResourceEventWithMultipleDifferentParametersCanBeBuild()
 	{
-		// Change the ui to english culture to ensure resource lookup works as expected.
 		var previousCulture = CultureInfo.CurrentUICulture;
 		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
 		try
 		{
 			// Arrange
 			var id = _fixture.Create<int>();
-			var level = LogLevel.Information;
-			var message = "The user {UserName} with id {UserId} is a human.";
+			var level = MyLogLevel.Information;
+			var logMessage = "The user {UserName} with id {UserId} is a human.";
 			var userId = _fixture.Create<int>();
 			var userName = _fixture.Create<string>();
 			var outputMessage = $"The user {userName} is a human.";
-			var template = new LogResourceEventTemplate<(int UserId, string UserName), (string UserName, Unit)>
+			var template = new MyLogResourceEventTemplate<(int UserId, string UserName), (string UserName, Unit)>
 			{
 				EventId = id,
 				LogLevel = level,
@@ -386,9 +445,9 @@ public class LogResourceEventTemplateTest
 
 			// Act + Assert: Direct Build.
 			var logEvent = template.Build((userId, userName), (userName, Unit.Value));
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -396,12 +455,12 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Different log level
-			var logLevel = LogLevel.Debug;
+			// Act + Assert: Different log level.
+			var logLevel = MyLogLevel.Debug;
 			logEvent = template.Build((userId, userName), (userName, Unit.Value), logLevel);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -409,12 +468,12 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Payload
+			// Act + Assert: Payload.
 			var payload = Payload.Create(("Property", "Value"));
 			logEvent = template.Build((userId, userName), (userName, Unit.Value), payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -422,12 +481,12 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.EqualTo(payload));
 			Assert.That(logEvent.Exception, Is.Null);
 
-			// Act + Assert: Exception
+			// Act + Assert: Exception.
 			var exception = new Exception();
 			logEvent = template.Build((userId, userName), (userName, Unit.Value), exception);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(level));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -435,11 +494,11 @@ public class LogResourceEventTemplateTest
 			Assert.That(logEvent.Payload, Is.Null);
 			Assert.That(logEvent.Exception, Is.EqualTo(exception));
 
-			// Act + Assert: Everything		
+			// Act + Assert: Everything.
 			logEvent = template.Build((userId, userName), (userName, Unit.Value), logLevel, exception, payload);
-			Assert.That(logEvent.EventId.Id, Is.EqualTo(id));
+			Assert.That(logEvent.EventId, Is.EqualTo(id));
 			Assert.That(logEvent.LogLevel, Is.EqualTo(logLevel));
-			Assert.That(logEvent.LogMessage, Is.EqualTo(message));
+			Assert.That(logEvent.LogMessage, Is.EqualTo(logMessage));
 			Assert.That(logEvent.Args, Has.Length.EqualTo(2));
 			Assert.That(logEvent.Args[0], Is.EqualTo(userId));
 			Assert.That(logEvent.Args[1], Is.EqualTo(userName));
@@ -455,39 +514,35 @@ public class LogResourceEventTemplateTest
 
 	#endregion
 
+	#region Culture
+
 	[Test]
-	[Category("CustomLogResource")]
-	public void LogResourceCanBeSpecifiedGlobally()
+	[Category("Culture")]
+	public void LogMessageUsesLogCultureAndOutputMessageUsesUiCulture()
 	{
-		// Change the ui to english culture to ensure resource lookup works as expected.
 		var previousCulture = CultureInfo.CurrentUICulture;
-		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
 		try
 		{
 			// Arrange
-			var id = _fixture.Create<int>();
-			var level = LogLevel.Information;
-			var template = new LogResourceEventTemplate
+			var template = new MyLogResourceEventTemplate
 			{
-				EventId = id,
-				LogLevel = level,
+				EventId = _fixture.Create<int>(),
+				LogLevel = MyLogLevel.Information,
 				ResourceManager = l10nLocal.ResourceManager,
 				ResourceName = nameof(l10nLocal.MessageWithoutPlaceholders),
 			};
 
-			// Act + Assert: No overriden culture.
+			// Act + Assert: English UI culture.
+			CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
 			var logEvent = template.Build();
 			Assert.That(logEvent.LogMessage, Is.EqualTo("The default message."));
+			Assert.That(logEvent.OutputMessage, Is.EqualTo("Hello World"));
 
-			// Act + Assert: Other culture.
-			LogResourceEventSettings.LogCulture = CultureInfo.GetCultureInfo("de");
-			logEvent = template.Build();
-			Assert.That(logEvent.LogMessage, Is.EqualTo("Hallo Welt"));
-
-			// Act + Assert: Explicitly use NUll.
-			LogResourceEventSettings.LogCulture = null!;
+			// Act + Assert: German UI culture.
+			CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
 			logEvent = template.Build();
 			Assert.That(logEvent.LogMessage, Is.EqualTo("The default message."));
+			Assert.That(logEvent.OutputMessage, Is.Not.EqualTo("Hello World"));
 		}
 		finally
 		{
@@ -496,36 +551,29 @@ public class LogResourceEventTemplateTest
 	}
 
 	[Test]
-	[Category("CustomLogResource")]
-	public void LogResourceCanBeSpecifiedPerCall()
+	[Category("Culture")]
+	public void LogCultureCanBeOverriddenPerCall()
 	{
-		// Change the ui to english culture to ensure resource lookup works as expected.
 		var previousCulture = CultureInfo.CurrentUICulture;
 		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
 		try
 		{
 			// Arrange
-			var id = _fixture.Create<int>();
-			var level = LogLevel.Information;
-			var template = new LogResourceEventTemplate
+			var template = new MyLogResourceEventTemplate
 			{
-				EventId = id,
-				LogLevel = level,
+				EventId = _fixture.Create<int>(),
+				LogLevel = MyLogLevel.Information,
 				ResourceManager = l10nLocal.ResourceManager,
 				ResourceName = nameof(l10nLocal.MessageWithoutPlaceholders),
 			};
 
-			// Act + Assert: No overriden culture.
+			// Act + Assert: Default log culture (lo).
 			var logEvent = template.Build();
 			Assert.That(logEvent.LogMessage, Is.EqualTo("The default message."));
 
-			// Act + Assert: Other culture.
+			// Act + Assert: Override log culture to German.
 			logEvent = template.Build(actualLogCulture: CultureInfo.GetCultureInfo("de"));
-			Assert.That(logEvent.LogMessage, Is.EqualTo("Hallo Welt"));
-
-			// Act + Assert: Explicit NUll as culture.
-			logEvent = template.Build(actualLogCulture: null);
-			Assert.That(logEvent.LogMessage, Is.EqualTo("The default message."));
+			Assert.That(logEvent.LogMessage, Is.Not.EqualTo("The default message."));
 		}
 		finally
 		{
@@ -535,71 +583,5 @@ public class LogResourceEventTemplateTest
 
 	#endregion
 
-#if !NETSTANDARD2_1_OR_GREATER && !NETCOREAPP3_0_OR_GREATER
-	#region Constructor Validation
-
-	[Test]
-	[Category("ConstructorValidation")]
-	public void LogResourceEventThrowsForInvalidStructTypes()
-	{
-		Assert.Throws<InvalidOperationException>
-		(
-			() =>
-			{
-				_ = new LogResourceEventTemplate<int>()
-				{
-					EventId = _fixture.Create<int>(),
-					LogLevel = LogLevel.Information,
-					ResourceManager = l10nLocal.ResourceManager,
-					ResourceName = nameof(l10nLocal.MessageWithOnePlaceholder),
-				};			
-			}
-		);
-
-		Assert.Throws<InvalidOperationException>
-		(
-			() =>
-			{
-				_ = new LogResourceEventTemplate<int, (int Value, Unit)>()
-				{
-					EventId = _fixture.Create<int>(),
-					LogLevel = LogLevel.Information,
-					ResourceManager = l10nLocal.ResourceManager,
-					ResourceName = nameof(l10nLocal.MessageWithDifferentPlaceholders),
-				};
-			}
-		);
-
-		Assert.Throws<InvalidOperationException>
-		(
-			() =>
-			{
-				_ = new LogResourceEventTemplate<(int UserId, string UserName), Guid>()
-				{
-					EventId = _fixture.Create<int>(),
-					LogLevel = LogLevel.Information,
-					ResourceManager = l10nLocal.ResourceManager,
-					ResourceName = nameof(l10nLocal.MessageWithDifferentPlaceholders),
-				};
-			}
-		);
-
-		Assert.Throws<InvalidOperationException>
-		(
-			() =>
-			{
-				_ = new LogResourceEventTemplate<int, Guid>()
-				{
-					EventId = _fixture.Create<int>(),
-					LogLevel = LogLevel.Information,
-					ResourceManager = l10nLocal.ResourceManager,
-					ResourceName = nameof(l10nLocal.MessageWithDifferentPlaceholders),
-				};
-			}
-		);
-
-	}
-
 	#endregion
-#endif
 }

@@ -1,6 +1,4 @@
-﻿using AutoFixture;
-using AutoFixture.AutoMoq;
-using Phoenix.Functionality.Logging.Base;
+﻿using Phoenix.Functionality.Logging.Base;
 
 namespace Logging.Base.Test;
 

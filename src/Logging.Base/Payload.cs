@@ -7,12 +7,12 @@ using System.Linq.Expressions;
 namespace Phoenix.Functionality.Logging.Base;
 
 /// <summary>
-/// Marker interface for log scopes that are used as <see cref="ILogEvent{TLogLevel,TEventId}.PayLoad"/> for log events. This is used to easily distinguish them from other scopes and to implicitly set their <see cref="LogScopeType"/> to <see cref="LogScopeType.ExecutionContextAware"/>. As such, the values of this interface are directly linked only to a single log event and must not influence anything else (e.g. in parallel workflows).
+/// Marker interface for log scopes that are used as <see cref="ILogEvent{TLogLevel,TEventId}.Payload"/> for log events. This is used to easily distinguish them from other scopes and to implicitly set their <see cref="LogScopeType"/> to <see cref="LogScopeType.ExecutionContextAware"/>. As such, the values of this interface are directly linked only to a single log event and must not influence anything else (e.g. in parallel workflows).
 /// </summary>
 public interface IPayload : ILogScope;
 
 /// <summary>
-/// This is a specialized <see cref="LogScope"/> that is used as <see cref="ILogEvent{TLogLevel,TEventId}.PayLoad"/> for log events. As such it's values are directly linked only to a single log event and must not influence anything else (e.g. in parallel workflows). Therefore, its <see cref="LogScopeType"/> is implicitly set to <see cref="LogScopeType.ExecutionContextAware"/> and cannot be changed.
+/// This is a specialized <see cref="LogScope"/> that is used as <see cref="ILogEvent{TLogLevel,TEventId}.Payload"/> for log events. As such it's values are directly linked only to a single log event and must not influence anything else (e.g. in parallel workflows). Therefore, its <see cref="LogScopeType"/> is implicitly set to <see cref="LogScopeType.ExecutionContextAware"/> and cannot be changed.
 /// </summary>
 public class Payload : LogScope, IPayload
 {

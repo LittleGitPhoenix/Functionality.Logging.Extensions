@@ -9,7 +9,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 /// <summary>
 /// Null-object <see cref="ILogger"/> accessible via the <see cref="NoLogger.Instance"/> property.
 /// </summary>
-[Obsolete($"Please use {nameof(Microsoft)}.{nameof(global::Microsoft.Extensions)}.{nameof(global::Microsoft.Extensions.Logging)}.{nameof(global::Microsoft.Extensions.Logging.Abstractions)}.{nameof(global::Microsoft.Extensions.Logging.Abstractions.NullLogger)}.{nameof(global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance)} instead. The 'Instance' property now only forwards to this anyway.")]
+[Obsolete($"Please use {nameof(global::Microsoft.Extensions.Logging.Abstractions)}.{nameof(global::Microsoft.Extensions.Logging.Abstractions.NullLogger)}.{nameof(global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance)} instead. The 'Instance' property now only forwards to this anyway.")]
 public class NoLogger : ILogger
 {
 	/// <inheritdoc cref="global::Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance" />

@@ -95,7 +95,7 @@ public class LoggerExtensionsTest
 			;
 
 		// Act + Assert
-		Assert.DoesNotThrow(() => LoggerExtensions.Log(logger, (EventId) 0, new Exception(), LogLevel.Information, _fixture.Create<string>(), _fixture.Create<LogScope?>(), _fixture.Create<string>(), _fixture.Create<string>()));
+		Assert.DoesNotThrow(() => logger.Log((EventId) 0, new Exception(), LogLevel.Information, _fixture.Create<string>(), _fixture.Create<LogScope?>(), _fixture.Create<string>(), _fixture.Create<string>()));
 	}
 
 	/// <summary>
@@ -194,7 +194,7 @@ public class LoggerExtensionsTest
 		// Arrange
 		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message")
 		{
-			PayLoad = Payload.Create(("Property", "Value"))
+			Payload = Payload.Create(("Property", "Value"))
 		};
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
 		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
@@ -212,7 +212,7 @@ public class LoggerExtensionsTest
 		// Arrange
 		var logEvent = new LogEvent(0, LogLevel.Debug, "My Message")
 		{
-			PayLoad = null
+			Payload = null
 		};
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
 		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);

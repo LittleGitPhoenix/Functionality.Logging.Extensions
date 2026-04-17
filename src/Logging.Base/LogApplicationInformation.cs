@@ -41,12 +41,12 @@ public record LogApplicationInformation()
 	public string Name { get; private init; }
 
 	/// <summary>
-	/// A unique numeric identifier build from <see cref="Name"/> that can be used for example to register the application with a log target or to enrich log events.
+	/// A unique numeric identifier build from <see cref="Name"/> that could be used to register the application with a log target or to enrich log events.
 	/// </summary>
 	public int NumericIdentifier { get; private init; }
 
 	/// <summary>
-	/// A unique 20 chars long alphanumeric identifier build from <see cref="Name"/> that can be used for example to register the application with a log target or to enrich log events.
+	/// A unique 20 chars long alphanumeric identifier build from <see cref="Name"/> that could be used to register the application with a log target or to enrich log events.
 	/// </summary>
 	public string AlphanumericIdentifier { get; private init; }
 
