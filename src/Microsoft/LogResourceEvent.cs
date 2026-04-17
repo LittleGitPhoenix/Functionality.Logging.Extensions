@@ -17,6 +17,11 @@ public interface ILogResourceEvent : ILogResourceEvent<LogLevel, EventId>, ILogE
 /// <summary>
 /// Wrapper containing log event data obtained from a <see cref="System.Resources.ResourceManager"/>.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class LogResourceEvent : LogResourceEvent<LogLevel, EventId>, ILogResourceEvent
 {
 	/// <summary>
@@ -50,6 +55,11 @@ public class LogResourceEvent : LogResourceEvent<LogLevel, EventId>, ILogResourc
 /// <summary>
 /// Represents a log resource event that performs no logging and contains no event data.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class NoLogResourceEvent : NoLogResourceEvent<NoLogResourceEvent, LogLevel, EventId>, ILogResourceEvent
 {
 	/// <inheritdoc />

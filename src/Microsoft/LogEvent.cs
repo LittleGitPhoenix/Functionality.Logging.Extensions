@@ -15,6 +15,11 @@ public interface ILogEvent : ILogEvent<LogLevel, EventId>;
 /// <summary>
 /// Wrapper containing log event data.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class LogEvent : LogEvent<LogLevel, EventId>, ILogEvent
 {
 	/// <summary>
@@ -42,6 +47,11 @@ public class LogEvent : LogEvent<LogLevel, EventId>, ILogEvent
 /// <summary>
 /// Represents a <see cref="global::Microsoft.Extensions.Logging"/>-based log event that performs no logging and contains no event data.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class NoLogEvent : NoLogEvent<NoLogEvent, LogLevel, EventId>, ILogEvent
 {
 	/// <inheritdoc />

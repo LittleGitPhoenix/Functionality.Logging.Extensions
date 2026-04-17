@@ -10,6 +10,11 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 /// <summary>
 /// Represents a reusable template for creating <see cref="ILogEvent"/> instances from predefined event information.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class LogEventTemplate : LogEventTemplate<ILogEvent, LogLevel, EventId>
 {
 	/// <inheritdoc />
@@ -35,6 +40,11 @@ public class LogEventTemplate : LogEventTemplate<ILogEvent, LogLevel, EventId>
 /// The generic parameter enforces the shape of arguments passed to the log event, reducing runtime errors and improving code clarity.
 /// </remarks>
 /// <typeparam name="TArgs"> The type of the arguments tuple to be used with the log event. Must be a <see cref="ValueTuple"/> or a <b>System.Runtime.CompilerServices.ITuple</b>, representing the parameters to be formatted into the log message. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class LogEventTemplate<TArgs> : LogEventTemplate<ILogEvent, LogLevel, EventId, TArgs>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
 	where TArgs : System.Runtime.CompilerServices.ITuple

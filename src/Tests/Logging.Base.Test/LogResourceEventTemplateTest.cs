@@ -574,6 +574,10 @@ public class LogResourceEventTemplateTest
 			// Act + Assert: Override log culture to German.
 			logEvent = template.Build(actualLogCulture: CultureInfo.GetCultureInfo("de"));
 			Assert.That(logEvent.LogMessage, Is.Not.EqualTo("The default message."));
+
+			// Act + Assert: Explicit null as culture.
+			logEvent = template.Build(actualLogCulture: null);
+			Assert.That(logEvent.LogMessage, Is.EqualTo("The default message."));
 		}
 		finally
 		{
@@ -581,7 +585,112 @@ public class LogResourceEventTemplateTest
 		}
 	}
 
+	[Test]
+	[Category("Culture")]
+	public void LogCultureCanBeSpecifiedGlobally()
+	{
+		var previousCulture = CultureInfo.CurrentUICulture;
+		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+		try
+		{
+			// Arrange
+			var template = new MyLogResourceEventTemplate
+			{
+				EventId = _fixture.Create<int>(),
+				LogLevel = MyLogLevel.Information,
+				ResourceManager = l10nLocal.ResourceManager,
+				ResourceName = nameof(l10nLocal.MessageWithoutPlaceholders),
+			};
+
+			// Act + Assert: No overridden culture.
+			var logEvent = template.Build();
+			Assert.That(logEvent.LogMessage, Is.EqualTo("The default message."));
+
+			// Act + Assert: Other culture.
+			LogResourceEventSettings.LogCulture = CultureInfo.GetCultureInfo("de");
+			logEvent = template.Build();
+			Assert.That(logEvent.LogMessage, Is.Not.EqualTo("The default message."));
+
+			// Act + Assert: Explicitly use null.
+			LogResourceEventSettings.LogCulture = null!;
+			logEvent = template.Build();
+			Assert.That(logEvent.LogMessage, Is.EqualTo("The default message."));
+		}
+		finally
+		{
+			LogResourceEventSettings.LogCulture = null!;
+			CultureInfo.CurrentUICulture = previousCulture;
+		}
+	}
+
 	#endregion
+
+#if !NETSTANDARD2_1_OR_GREATER && !NETCOREAPP3_0_OR_GREATER
+	#region Constructor Validation
+
+	[Test]
+	[Category("ConstructorValidation")]
+	public void LogResourceEventThrowsForInvalidStructTypes()
+	{
+		Assert.Throws<InvalidOperationException>
+		(
+			() =>
+			{
+				_ = new MyLogResourceEventTemplate<int>
+				{
+					EventId = _fixture.Create<int>(),
+					LogLevel = MyLogLevel.Information,
+					ResourceManager = l10nLocal.ResourceManager,
+					ResourceName = nameof(l10nLocal.MessageWithOnePlaceholder),
+				};
+			}
+		);
+
+		Assert.Throws<InvalidOperationException>
+		(
+			() =>
+			{
+				_ = new MyLogResourceEventTemplate<int, (int Value, Unit)>
+				{
+					EventId = _fixture.Create<int>(),
+					LogLevel = MyLogLevel.Information,
+					ResourceManager = l10nLocal.ResourceManager,
+					ResourceName = nameof(l10nLocal.MessageWithDifferentPlaceholders),
+				};
+			}
+		);
+
+		Assert.Throws<InvalidOperationException>
+		(
+			() =>
+			{
+				_ = new MyLogResourceEventTemplate<(int UserId, string UserName), Guid>
+				{
+					EventId = _fixture.Create<int>(),
+					LogLevel = MyLogLevel.Information,
+					ResourceManager = l10nLocal.ResourceManager,
+					ResourceName = nameof(l10nLocal.MessageWithDifferentPlaceholders),
+				};
+			}
+		);
+
+		Assert.Throws<InvalidOperationException>
+		(
+			() =>
+			{
+				_ = new MyLogResourceEventTemplate<int, Guid>
+				{
+					EventId = _fixture.Create<int>(),
+					LogLevel = MyLogLevel.Information,
+					ResourceManager = l10nLocal.ResourceManager,
+					ResourceName = nameof(l10nLocal.MessageWithDifferentPlaceholders),
+				};
+			}
+		);
+	}
+
+	#endregion
+#endif
 
 	#endregion
 }
