@@ -311,7 +311,7 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger EnrichPermantently(this ILogger logger, ILogScope? scope)
+	public static ILogger EnrichPermanently(this ILogger logger, ILogScope? scope)
 		=> logger.Enrich(scope);
 
 	/// <summary>
@@ -443,7 +443,7 @@ public static partial class LoggerExtensions
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained even though its value is specified. </exception>
 	/// <remarks> This method exists only because creating an implicit or explicit conversion operator in <see cref="LogScope"/> that has those parameters is not possible. </remarks>
-	public static ILogger EnrichPermantently
+	public static ILogger EnrichPermanently
 	(
 		this ILogger logger,
 		LogScopeType type,
@@ -600,9 +600,9 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
+	[Obsolete($"Use {nameof(EnrichPermanently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope(this ILogger logger, LogScope? scope)
-		=> logger.EnrichPermantently(scope);
+		=> logger.EnrichPermanently(scope);
 
 	/// <summary>
 	/// Creates a new logging scope with named values that is not removable.
@@ -610,11 +610,11 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scopedValues"> Collection of named values. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
+	[Obsolete($"Use {nameof(EnrichPermanently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope(this ILogger logger, params (string Identifier, object? Value)[] scopedValues)
 	{
 		var scopes = new LogScope(scopedValues);
-		return logger.EnrichPermantently(scopes);
+		return logger.EnrichPermanently(scopes);
 	}
 
 	/// <summary>
@@ -623,11 +623,11 @@ public static partial class LoggerExtensions
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scopedValues"> The <see cref="System.Linq.Expressions.Expression"/>s used to build the named values. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
+	[Obsolete($"Use {nameof(EnrichPermanently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope(this ILogger logger, params System.Linq.Expressions.Expression<Func<object>>[] scopedValues)
 	{
 		var scopes = new LogScope(scopedValues);
-		return logger.EnrichPermantently(scopes);
+		return logger.EnrichPermanently(scopes);
 	}
 
 #if NETCOREAPP3_0_OR_GREATER
@@ -658,7 +658,7 @@ public static partial class LoggerExtensions
 	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained even though its value is specified. </exception>
-	[Obsolete($"Use {nameof(EnrichPermantently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
+	[Obsolete($"Use {nameof(EnrichPermanently)} instead. This is necessary in order to specify the {nameof(LogScopeType)}. This function will use {nameof(LogScopeType.Independent)} as default value.")]
 	public static ILogger PinScope
 	(
 		this ILogger logger,
@@ -685,7 +685,7 @@ public static partial class LoggerExtensions
 		bool cleanCallerArgument = true
 	)
 		=>
-		logger.EnrichPermantently
+		logger.EnrichPermanently
 		(
 			LogScopeType.Independent,
 			value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
