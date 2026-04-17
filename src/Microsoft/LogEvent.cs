@@ -7,45 +7,10 @@ using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
-//? Move this to the base package???
-
 /// <summary>
-/// Interface for log event data.
+/// Interface for a <see cref="global::Microsoft.Extensions.Logging"/>-based log event data.
 /// </summary>
-public interface ILogEvent
-{
-	/// <summary> The <see cref="EventId"/> of the event. </summary>
-	EventId EventId { get; }
-
-	/// <summary>
-	/// The events <see cref="global::Microsoft.Extensions.Logging.LogLevel"/>.
-	/// </summary>
-	LogLevel LogLevel { get; }
-
-	/// <summary> The message to log. </summary>
-	string LogMessage { get; }
-
-	/// <summary> Format arguments of <see cref="LogMessage"/>. </summary>
-	object?[] Args { get; }
-
-	/// <summary> Optional <see cref="System.Exception"/>. Default is <b>null</b>. </summary>
-	Exception? Exception { get; }
-
-	/// <summary> Optional payload that is applied to the log event as scope. Default is <b>null</b>. </summary>
-	/// <remarks> Can be used to add additional key/value pairs to an event even though they are not part of the regular message. </remarks>
-	ILogScope? PayLoad { get; }
-
-	/// <summary>
-	/// Deconstructs the <see cref="ILogEvent"/> into its constituent properties.
-	/// </summary>
-	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
-	/// <param name="exception"> <inheritdoc cref="Exception"/> </param>
-	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	/// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
-	/// <param name="args"> <inheritdoc cref="Args"/> </param>
-	/// <param name="payload"> <inheritdoc cref="PayLoad"/> </param>
-	void Deconstruct(out EventId eventId, out Exception? exception, out LogLevel logLevel, out string logMessage, out object?[] args, out ILogScope? payload);
-}
+public interface ILogEvent : ILogEvent<LogLevel, EventId>;
 
 /// <summary>
 /// Wrapper containing log event data.
@@ -62,10 +27,7 @@ public class LogEvent : ILogEvent
 	#endregion
 
 	#region Properties
-
-	///// <summary> Null-object </summary>
-	//public static ILogEvent NoLogEvent { get; } = new LogEvent(default, LogLevel.None, String.Empty);
-
+	
 	/// <inheritdoc />
 	public EventId EventId { get; }
 
@@ -163,7 +125,7 @@ public class LogEvent : ILogEvent
 }
 
 /// <summary>
-/// Represents a log event that performs no logging and contains no event data.
+/// Represents a <see cref="global::Microsoft.Extensions.Logging"/>-based log event that performs no logging and contains no event data.
 /// </summary>
 public class NoLogEvent : ILogEvent
 {
