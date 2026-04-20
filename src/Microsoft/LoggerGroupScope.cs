@@ -20,7 +20,6 @@ internal sealed class LoggerGroupScope : IDisposable
 
 	private int _disposed;
 
-	//internal readonly IDictionary<string, object?> _scopes;
 	internal readonly ILogScope _scope;
 
 	private readonly Action<LoggerGroupScope> _disposedCallback;
@@ -39,7 +38,6 @@ internal sealed class LoggerGroupScope : IDisposable
 
 	#region (De)Constructors
 
-	//public LoggerGroupScope(IReadOnlyCollection<ILogger> loggers, IDictionary<string, object?> scopes, Action<LoggerGroupScope> disposedCallback)
 	public LoggerGroupScope(IReadOnlyCollection<ILogger> loggers, ILogScope scope, Action<LoggerGroupScope> disposedCallback)
 	{
 		_scope = scope;
@@ -49,7 +47,11 @@ internal sealed class LoggerGroupScope : IDisposable
 		(
 			loggers.Select
 			(
-				logger => new KeyValuePair<WeakReference<ILogger>, List<IDisposable>>(key: new WeakReference<ILogger>(logger), value: [ logger.BeginScope((IDictionary<string, object?>) scope) ])
+				logger => new KeyValuePair<WeakReference<ILogger>, List<IDisposable>>
+					(
+						key: new WeakReference<ILogger>(logger),
+						value: [ logger.BeginScope(scope) ]
+					)
 			)
 		);
 	}
@@ -159,7 +161,6 @@ internal sealed class LoggerGroupScope : IDisposable
 				.ForEach(this.SaveDispose)
 				;
 			_disposables.Clear();
-			_scope.Clear();
 		
 			_disposedCallback.Invoke(this);
 		}

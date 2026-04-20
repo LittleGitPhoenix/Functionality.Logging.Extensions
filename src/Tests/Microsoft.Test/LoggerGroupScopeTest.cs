@@ -33,7 +33,7 @@ public class LoggerGroupScopeTest
 	#region Tests
 
 	/// <summary>
-	/// Checks that the dispose callback is invoked if a <see cref="LoggerGroupScope"/> is disposed. Additionally checks, that dispose is only executed once.
+	/// Checks that the dispose callback is invoked if a <see cref="LoggerGroupScope"/> is disposed. Additionally, checks that dispose is only executed once.
 	/// </summary>
 	[Test]
 	public void DisposingLoggerGroupScopeInvokesCallback()
@@ -80,7 +80,7 @@ public class LoggerGroupScopeTest
 
 		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
 		var loggerGroupScope = new LoggerGroupScope(loggers, scope, disposedCallback);
-		var originalScopesAmount = loggerGroupScope._scope.Count;
+		var originalScopesAmount = loggerGroupScope._scope.Count();
 		var originalDisposableAmount = loggerGroupScope._disposables.Count;
 
 		// Act

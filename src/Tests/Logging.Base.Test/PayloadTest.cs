@@ -117,8 +117,8 @@ public class PayloadTest
 
 		// Assert
 		Assert.That(payload, Has.Count.EqualTo(2));
-		Assert.That(payload["Name"], Is.EqualTo("Alice"));
-		Assert.That(payload["Age"], Is.EqualTo(30));
+		Assert.That(payload.First(pair => pair.Key == "Name").Value, Is.EqualTo("Alice"));
+		Assert.That(payload.First(pair => pair.Key == "Age").Value, Is.EqualTo(30));
 	}
 
 	[Test]
@@ -130,7 +130,7 @@ public class PayloadTest
 
 		// Assert
 		Assert.That(payload, Has.Count.EqualTo(1));
-		Assert.That(payload["NullKey"], Is.Null);
+		Assert.That(payload.First(pair => pair.Key == "NullKey").Value, Is.Null);
 	}
 
 	[Test]
@@ -142,9 +142,9 @@ public class PayloadTest
 
 		// Assert
 		Assert.That(payload, Has.Count.EqualTo(3));
-		Assert.That(payload["A"], Is.EqualTo(1));
-		Assert.That(payload["B"], Is.EqualTo(2));
-		Assert.That(payload["C"], Is.EqualTo(3));
+		Assert.That(payload.First(pair => pair.Key == "A").Value, Is.EqualTo(1));
+		Assert.That(payload.First(pair => pair.Key == "B").Value, Is.EqualTo(2));
+		Assert.That(payload.First(pair => pair.Key == "C").Value, Is.EqualTo(3));
 	}
 
 	#endregion
@@ -163,8 +163,8 @@ public class PayloadTest
 
 		// Assert
 		Assert.That(payload, Has.Count.EqualTo(2));
-		Assert.That(payload["Name"], Is.EqualTo("Alice"));
-		Assert.That(payload["Age"], Is.EqualTo(30));
+		Assert.That(payload.First(pair => pair.Key == "Name").Value, Is.EqualTo("Alice"));
+		Assert.That(payload.First(pair => pair.Key == "Age").Value, Is.EqualTo(30));
 	}
 
 	[Test]
@@ -179,7 +179,7 @@ public class PayloadTest
 
 		// Assert
 		Assert.That(payload, Has.Count.EqualTo(1));
-		Assert.That(payload["NullKey"], Is.Null);
+		Assert.That(payload.First(pair => pair.Key == "NullKey").Value, Is.Null);
 	}
 
 	#endregion
@@ -195,8 +195,8 @@ public class PayloadTest
 
 		// Assert
 		Assert.That(payload, Has.Count.EqualTo(2));
-		Assert.That(payload[nameof(this.StringProperty)], Is.EqualTo(this.StringProperty));
-		Assert.That(payload[nameof(this.NumericProperty)], Is.EqualTo(this.NumericProperty));
+		Assert.That(payload.First(pair => pair.Key == nameof(this.StringProperty)).Value, Is.EqualTo(this.StringProperty));
+		Assert.That(payload.First(pair => pair.Key == nameof(this.NumericProperty)).Value, Is.EqualTo(this.NumericProperty));
 	}
 
 	[Test]
@@ -208,7 +208,7 @@ public class PayloadTest
 
 		// Assert
 		Assert.That(payload, Has.Count.EqualTo(1));
-		Assert.That(payload[nameof(this.StringProperty)], Is.EqualTo(this.StringProperty));
+		Assert.That(payload.First(pair => pair.Key == nameof(this.StringProperty)).Value, Is.EqualTo(this.StringProperty));
 	}
 
 	#endregion
