@@ -9,7 +9,7 @@ namespace Phoenix.Functionality.Logging.Base;
 /// <summary>
 /// Interface for log scopes.
 /// </summary>
-public interface ILogScope : IEnumerable<KeyValuePair<string, object>>
+public interface ILogScope : IEnumerable<KeyValuePair<string, object?>>
 {
 	/// <summary> The type of the current log scope. </summary>
 	LogScopeType Type { get; }
