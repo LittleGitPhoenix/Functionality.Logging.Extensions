@@ -2,6 +2,8 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
+using System.Collections.Concurrent;
+
 namespace Phoenix.Functionality.Logging.Base;
 
 /// <summary>
@@ -42,9 +44,11 @@ public class LogScopeManager : ILogScopeManager
 	#region Fields
 
 	private int _scopeOrder;
-	
-	private readonly Dictionary<object, int> _scopes;
-	
+
+	// This must be thread-safe as Independent scopes are deliberately shared across all execution contexts and threads and therefore concurrent access is highly probable.
+	private readonly ConcurrentDictionary<object, int> _scopes;
+
+	// This does not need to be thread-safe as ExecutionContextAware scopes are only accessible within the execution context they were created in and therefore concurrent access is not possible.
 	private readonly AsyncLocal<Dictionary<object, int>> _executionContextAwareScopes;
 
 	#endregion
@@ -62,7 +66,7 @@ public class LogScopeManager : ILogScopeManager
 		// Save parameters.
 
 		// Initialize fields.
-		_scopes = new();
+		_scopes = new();  // ConcurrentDictionary — thread-safe for Independent scopes accessed from multiple execution contexts.
 		_executionContextAwareScopes = new();
 	}
 
@@ -77,19 +81,23 @@ public class LogScopeManager : ILogScopeManager
         if (scope is null) return DisposableAction.NoDisposableAction;
 
 		// Determine which collection to use.
-		var scopes = scope is ILogScope logScope && logScope.Type == LogScopeType.ExecutionContextAware ? _executionContextAwareScopes.Value ??= [] : _scopes;
+		IDictionary<object, int> scopes = scope is ILogScope logScope && logScope.Type == LogScopeType.ExecutionContextAware ? _executionContextAwareScopes.Value ??= [] : _scopes;
 		
-        // Only add unique items.		
-		if (!scopes.ContainsKey(scope)) scopes.Add(scope, Interlocked.Increment(ref _scopeOrder));
+		// Only add unique items.
+		if (scopes is ConcurrentDictionary<object, int> concurrentScopes)
+			concurrentScopes.TryAdd(scope, Interlocked.Increment(ref _scopeOrder));
+		else if (!scopes.ContainsKey(scope))
+			scopes.Add(scope, Interlocked.Increment(ref _scopeOrder));
 
 		// Return disposable that will remove the scope.
 		return new DisposableAction
 		(
 			() =>
-            {
-                try
+			{
+				try
 				{
-					scopes.Remove(scope);
+					if (scopes is ConcurrentDictionary<object, int> cd) cd.TryRemove(scope, out _);
+					else scopes.Remove(scope);
 				}
                 catch (Exception) { /* ignore */ }
             }
