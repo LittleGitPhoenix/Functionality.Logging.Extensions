@@ -29,4 +29,4 @@ public interface ILogLevelConverter<TSourceLogLevel, TTargetLogLevel>
 /// </summary>
 /// <typeparam name="TLogLevel"> The type of the single log level. </typeparam>
 public interface INoLogLevelConverter<TLogLevel> : ILogLevelConverter<TLogLevel, TLogLevel>
-	where TLogLevel : Enum { }
+	where TLogLevel : Enum;

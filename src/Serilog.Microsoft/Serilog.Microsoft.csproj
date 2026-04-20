@@ -11,7 +11,7 @@
 		<Authors>Felix Leistner</Authors>
 		<Company>Little Phoenix</Company>
 		<Copyright>2026</Copyright>
-		<Description>Containes helper functionality for using Microsoft.Extensions.Logging on top of Serilog.</Description>
+		<Description>⚠️ DEPRECATED - Instead use 'SerilogLoggerProvider' from the 'Serilog.Extensions.Logging' package together with the 'LogScopeHandlingLogger' from the 'Phoenix.Functionality.Logging.Extensions.Microsoft' package. ⚠️ Containes helper functionality for using Microsoft.Extensions.Logging on top of Serilog.</Description>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeSymbols>true</IncludeSymbols>

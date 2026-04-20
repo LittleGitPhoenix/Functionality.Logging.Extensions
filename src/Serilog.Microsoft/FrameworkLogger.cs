@@ -20,6 +20,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft;
 /// Implementation of an <see cref="IFrameworkLogger"/> that pipes events through <see cref="Serilog"/>.
 /// </summary>
 /// <remarks> Based on https://github.com/serilog/serilog-extensions-logging/blob/v3.1.0/src/Serilog.Extensions.Logging/Extensions/Logging/SerilogLogger.cs (v3.1.0) </remarks>
+[Obsolete($"This implementation of an 'Microsoft.Extensions.LoggingILogger' should no longer be used. Instead use Serilog's 'SerilogLoggerProvider' from the 'Serilog.Extensions.Logging' package together with the 'LogScopeHandlingLogger' from the 'Phoenix.Functionality.Logging.Extensions.Microsoft' package. More about this can be found in the README.")]
 public class FrameworkLogger : IFrameworkLogger
 {
     #region Delegates / Events

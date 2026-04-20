@@ -12,7 +12,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft;
 /// Two-way converter for Microsoft.Extensions.Logging.<see cref="LogLevel"/> and Serilog.Events.<see cref="LogEventLevel"/>.
 /// </summary>
 /// <remarks> Can be used via <see cref="SerilogToMicrosoftLogLevelConverter.Instance"/>. </remarks>
-public class SerilogToMicrosoftLogLevelConverter : ILogLevelConverter<LogEventLevel, LogLevel>
+internal class SerilogToMicrosoftLogLevelConverter : ILogLevelConverter<LogEventLevel, LogLevel>
 {
 	/// <summary>
 	/// Singleton instance.
