@@ -48,7 +48,7 @@ static class Example
 /// <summary>
 /// Provides extension methods for <see cref="ILogger"/>.
 /// </summary>
-public static partial class LoggerExtensions
+public static class LoggerExtensions
 {
 	#region Logging
 
@@ -293,8 +293,7 @@ public static partial class LoggerExtensions
 	{
 		return logScope is null
 			? new ChainingLogScopeDisposable(logger)
-			: new ChainingLogScopeDisposable(logger, logger.BeginScope((IDictionary<string, object?>) logScope)!)
-			?? new ChainingLogScopeDisposable(logger)
+			: new ChainingLogScopeDisposable(logger, logger.BeginScope(logScope)!) //! Don't cast the scope to anything (like IEnumerable<KeyValuePair<string, object>>) here already. Casting (if done at all) should be done as near to actually emitting the log as possible.
 			;
 	}
 
@@ -331,10 +330,7 @@ public static partial class LoggerExtensions
 	/// </example>
 	public static IChainingLogScopeDisposable Use(this ILogger logger)
 	{
-		return logger is IChainingLogScopeDisposable chainingLogger
-			? chainingLogger
-			: new ChainingLogScopeDisposable(logger)
-			;
+		return logger as IChainingLogScopeDisposable ?? new ChainingLogScopeDisposable(logger);
 	}
 
 #if NETCOREAPP3_0_OR_GREATER
