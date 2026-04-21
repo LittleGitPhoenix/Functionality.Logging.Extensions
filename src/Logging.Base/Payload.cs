@@ -12,10 +12,13 @@ namespace Phoenix.Functionality.Logging.Base;
 public interface IPayload : ILogScope;
 
 /// <summary>
-/// This is a specialized <see cref="LogScope"/> that is used as <see cref="ILogEvent{TLogLevel,TEventId}.Payload"/> for log events. As such it's values are directly linked only to a single log event and must not influence anything else (e.g. in parallel workflows). Therefore, its <see cref="LogScopeType"/> is implicitly set to <see cref="LogScopeType.ExecutionContextAware"/> and cannot be changed.
+/// This is a specialized <see cref="ILogScope"/> that is used as <see cref="ILogEvent{TLogLevel,TEventId}.Payload"/> for log events. As such it's values are directly linked only to a single log event and must not influence anything else (e.g. in parallel workflows). Therefore, its <see cref="LogScopeType"/> is implicitly set to <see cref="LogScopeType.ExecutionContextAware"/> and cannot be changed.
 /// </summary>
-public class Payload : LogScope, IPayload
+public class Payload : Dictionary<string, object?>, IPayload
 {
+	/// <inheritdoc />
+	public LogScopeType Type => LogScopeType.ExecutionContextAware;
+
 	/// <summary>
 	/// Constructor
 	/// </summary>
@@ -24,7 +27,8 @@ public class Payload : LogScope, IPayload
 	/// <para> This constructor can be used to directly pass a <see cref="Dictionary{TKey,TValue}"/> to the base class of this class. </para>
 	/// <para> It is required as otherwise the constructor with the object parameters would be used, leading to the scope's key/value pairs being merged into a single entry in a new dictionary created by that constructor. </para>
 	/// </remarks>
-	protected Payload(IDictionary<string, object?> dictionary) : base(LogScopeType.ExecutionContextAware, dictionary) { }
+	protected Payload(IDictionary<string, object?> dictionary) : base(dictionary) { }
+	
 
 #if NETCOREAPP3_0_OR_GREATER
 	/// <summary>
