@@ -56,7 +56,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
 	/// <returns> The logging scope. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained while its value is specified. </exception>
-	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.Independent)} as default value.")]
+	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.ExecutionContextAware)} as default value.")]
 	public LogScope
 	(
 		object? value1,
@@ -91,7 +91,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 			)
 		)
 	{
-		this.Type = LogScopeType.Independent;
+		this.Type = LogScopeType.ExecutionContextAware;
 	}
 #endif
 
@@ -99,22 +99,22 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// Constructor
 	/// </summary>
 	/// <param name="scopedValues"> Collection of named values. </param>
-	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.Independent)} as default value.")]
+	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.ExecutionContextAware)} as default value.")]
 	public LogScope(params (string Identifier, object? Value)[] scopedValues)
 		: base(LogScopeBuilder.BuildScopeDictionary(scopedValues))
 	{
-		this.Type = LogScopeType.Independent;
+		this.Type = LogScopeType.ExecutionContextAware;
 	}
 
 	/// <summary>
 	/// Constructor
 	/// </summary>
 	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
-	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.Independent)} as default value.")]
+	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.ExecutionContextAware)} as default value.")]
 	public LogScope(params Expression<Func<object>>[] scopedValues)
 		: base(LogScopeBuilder.BuildScopeDictionary(scopedValues))
 	{
-		this.Type = LogScopeType.Independent;
+		this.Type = LogScopeType.ExecutionContextAware;
 	}
 
 	/// <summary>

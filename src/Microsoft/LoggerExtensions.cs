@@ -12,6 +12,10 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 #if DEBUG && NETCOREAPP3_0_OR_GREATER
 static class Example
 {
+#if !DEBUG
+remove this class!
+#endif
+
 	//# Unit Test: Check that multiple Enrich calls can be chained and that they all are properly disposed.
 	//# Unit Test: Check that the actual logger of a ChainingLogScopeDisposable is always the initial logger even if multiple nested instance are used.
 	//# Unit Test: Check that Log uses the actual logger in case of a ChainingLogScopeDisposable but still returns the chained one.
@@ -45,10 +49,10 @@ static class Example
 }
 #endif
 
-/// <summary>
-/// Provides extension methods for <see cref="ILogger"/>.
-/// </summary>
-public static class LoggerExtensions
+	/// <summary>
+	/// Provides extension methods for <see cref="ILogger"/>.
+	/// </summary>
+	public static class LoggerExtensions
 {
 	#region Logging
 
@@ -210,74 +214,6 @@ public static class LoggerExtensions
 	}
 
 	#endregion
-
-	#endregion
-
-	#region Groups
-
-	/// <summary>
-	/// Adds the <paramref name="logger"/> to the group identified by <paramref name="groupIdentifier"/>.
-	/// </summary>
-	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifier"/>. </typeparam>
-	/// <param name="logger"> The <see cref="ILogger"/> to add. </param>
-	/// <param name="groupIdentifier"> The group identifier used when adding. </param>
-	/// <param name="applyExistingScope"> Should existing scopes be applied tho the <paramref name="logger"/>. Default is <see langword="true"/>. </param>
-	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger AddToGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier, bool applyExistingScope = true)
-		where TIdentifier : notnull
-		=> LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, applyExistingScope);
-
-	/// <summary>
-	/// Adds the <paramref name="logger"/> to all groups identified by <paramref name="groupIdentifiers"/>.
-	/// </summary>
-	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifiers"/>. </typeparam>
-	/// <param name="logger"> The <see cref="ILogger"/> to add. </param>
-	/// <param name="applyExistingScope"> Should existing scopes be applied tho the <paramref name="logger"/>. Default is <see langword="true"/>. </param>
-	/// <param name="groupIdentifiers"> A collection of group identifiers. </param>
-	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger AddToGroups<TIdentifier>(this ILogger logger, bool applyExistingScope = true, params TIdentifier[] groupIdentifiers)
-		where TIdentifier : notnull
-	{
-		foreach (var groupIdentifier in groupIdentifiers) logger.AddToGroup(groupIdentifier, applyExistingScope);
-		return logger;
-	}
-
-	/// <summary>
-	/// Removes the <paramref name="logger"/> from the group identified by <paramref name="groupIdentifier"/>.
-	/// </summary>
-	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifier"/>. </typeparam>
-	/// <param name="logger"> The <see cref="ILogger"/> to remove. </param>
-	/// <param name="groupIdentifier"> The group identifier used when removing. </param>
-	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger RemoveFromGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
-		where TIdentifier : notnull
-		=> LoggerGroupManager.RemoveLoggerFromGroup(logger, groupIdentifier);
-
-	/// <summary>
-	/// Removes the <paramref name="logger"/> from all its groups.
-	/// </summary>
-	/// <param name="logger"> The <see cref="ILogger"/> to remove. </param>
-	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
-	public static ILogger RemoveFromAllGroups(this ILogger logger)
-		=> LoggerGroupManager.RemoveFromAllGroups(logger);
-
-	/// <summary>
-	/// Return all groups that the <paramref name="logger"/> is a part of.
-	/// </summary>
-	/// <param name="logger"> The <see cref="ILogger"/> whose groups to get.. </param>
-	/// <returns> A collection of groups, where the <paramref name="logger"/> is a part of. </returns>
-	public static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetGroups(this ILogger logger)
-		=> LoggerGroupManager.GetGroupsOfLogger(logger);
-
-	/// <summary>
-	/// Returns the <see cref="ILoggerGroup"/> for <paramref name="groupIdentifier"/>.
-	/// </summary>
-	/// <param name="logger"> The extended <see cref="ILogger"/> whose groups to get. </param>
-	/// <param name="groupIdentifier"> The group identifier of used to obtain the grouped loggers. </param>
-	/// <returns> The <see cref="ILoggerGroup"/> containing the grouped loggers or an empty group. </returns>
-	public static ILoggerGroup AsGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
-		where TIdentifier : notnull
-		=> LoggerGroupManager.GetGroup(groupIdentifier);
 
 	#endregion
 
@@ -472,6 +408,75 @@ public static class LoggerExtensions
 		);
 	}
 #endif
+
+	#endregion
+
+	#region Groups
+
+	/// <summary>
+	/// Adds the <paramref name="logger"/> to the group identified by <paramref name="groupIdentifier"/>.
+	/// </summary>
+	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifier"/>. </typeparam>
+	/// <param name="logger"> The <see cref="ILogger"/> to add. </param>
+	/// <param name="groupIdentifier"> The group identifier used when adding. </param>
+	/// <param name="applyExistingScope"> Should existing scopes be applied tho the <paramref name="logger"/>. Default is <see langword="true"/>. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger AddToGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier, bool applyExistingScope = true)
+		where TIdentifier : notnull
+		=> LoggerGroupManager.AddLoggerToGroup(logger, groupIdentifier, applyExistingScope);
+
+	/// <summary>
+	/// Adds the <paramref name="logger"/> to all groups identified by <paramref name="groupIdentifiers"/>.
+	/// </summary>
+	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifiers"/>. </typeparam>
+	/// <param name="logger"> The <see cref="ILogger"/> to add. </param>
+	/// <param name="applyExistingScope"> Should existing scopes be applied tho the <paramref name="logger"/>. Default is <see langword="true"/>. </param>
+	/// <param name="groupIdentifiers"> A collection of group identifiers. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger AddToGroups<TIdentifier>(this ILogger logger, bool applyExistingScope = true, params TIdentifier[] groupIdentifiers)
+		where TIdentifier : notnull
+	{
+		foreach (var groupIdentifier in groupIdentifiers)
+			logger.AddToGroup(groupIdentifier, applyExistingScope);
+		return logger;
+	}
+
+	/// <summary>
+	/// Removes the <paramref name="logger"/> from the group identified by <paramref name="groupIdentifier"/>.
+	/// </summary>
+	/// <typeparam name="TIdentifier"> The type of the <paramref name="groupIdentifier"/>. </typeparam>
+	/// <param name="logger"> The <see cref="ILogger"/> to remove. </param>
+	/// <param name="groupIdentifier"> The group identifier used when removing. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger RemoveFromGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
+		where TIdentifier : notnull
+		=> LoggerGroupManager.RemoveLoggerFromGroup(logger, groupIdentifier);
+
+	/// <summary>
+	/// Removes the <paramref name="logger"/> from all its groups.
+	/// </summary>
+	/// <param name="logger"> The <see cref="ILogger"/> to remove. </param>
+	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	public static ILogger RemoveFromAllGroups(this ILogger logger)
+		=> LoggerGroupManager.RemoveFromAllGroups(logger);
+
+	/// <summary>
+	/// Return all groups that the <paramref name="logger"/> is a part of.
+	/// </summary>
+	/// <param name="logger"> The <see cref="ILogger"/> whose groups to get.. </param>
+	/// <returns> A collection of groups, where the <paramref name="logger"/> is a part of. </returns>
+	public static IReadOnlyCollection<(object GroupIdentifier, ILoggerGroup LoggerGroup)> GetGroups(this ILogger logger)
+		=> LoggerGroupManager.GetGroupsOfLogger(logger);
+
+	/// <summary>
+	/// Returns the <see cref="ILoggerGroup"/> for <paramref name="groupIdentifier"/>.
+	/// </summary>
+	/// <param name="logger"> The extended <see cref="ILogger"/> whose groups to get. </param>
+	/// <param name="groupIdentifier"> The group identifier of used to obtain the grouped loggers. </param>
+	/// <returns> The <see cref="ILoggerGroup"/> containing the grouped loggers or an empty group. </returns>
+	public static ILoggerGroup AsGroup<TIdentifier>(this ILogger logger, TIdentifier groupIdentifier)
+		where TIdentifier : notnull
+		=> LoggerGroupManager.GetGroup(groupIdentifier);
 
 	#endregion
 

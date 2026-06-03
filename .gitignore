@@ -317,4 +317,5 @@ __pycache__/
 # ╔════════════════════════════════╗
 # ║ Project specific PHOENIX Rules ║
 # ╚════════════════════════════════╝
+
 /src/Tests/Microsoft.Test/ReadmeClasses.cs

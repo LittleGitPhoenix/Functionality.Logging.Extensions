@@ -66,7 +66,7 @@ public class LogScopeManager : ILogScopeManager
 		// Save parameters.
 
 		// Initialize fields.
-		_scopes = new();  // ConcurrentDictionary — thread-safe for Independent scopes accessed from multiple execution contexts.
+		_scopes = new();  // ConcurrentDictionary - thread-safe for Independent scopes accessed from multiple execution contexts.
 		_executionContextAwareScopes = new();
 	}
 
@@ -81,13 +81,16 @@ public class LogScopeManager : ILogScopeManager
         if (scope is null) return DisposableAction.NoDisposableAction;
 
 		// Determine which collection to use.
-		IDictionary<object, int> scopes = scope is ILogScope logScope && logScope.Type == LogScopeType.ExecutionContextAware ? _executionContextAwareScopes.Value ??= [] : _scopes;
+		IDictionary<object, int> scopes = scope is not ILogScope logScope 
+										? _executionContextAwareScopes.Value ??= []     // Not an ILogScope, treat as execution context-aware by default.
+										:  logScope.Type == LogScopeType.ExecutionContextAware
+											? _executionContextAwareScopes.Value ??= [] // Execution context-aware ILogScope, use execution context-aware collection.
+											: _scopes                                   // Independent ILogScope, use global collection.
+											;
 		
 		// Only add unique items.
-		if (scopes is ConcurrentDictionary<object, int> concurrentScopes)
-			concurrentScopes.TryAdd(scope, Interlocked.Increment(ref _scopeOrder));
-		else if (!scopes.ContainsKey(scope))
-			scopes.Add(scope, Interlocked.Increment(ref _scopeOrder));
+		if (scopes is ConcurrentDictionary<object, int> concurrentScopes) concurrentScopes.TryAdd(scope, Interlocked.Increment(ref _scopeOrder));
+		else if (!scopes.ContainsKey(scope)) scopes.Add(scope, Interlocked.Increment(ref _scopeOrder));
 
 		// Return disposable that will remove the scope.
 		return new DisposableAction

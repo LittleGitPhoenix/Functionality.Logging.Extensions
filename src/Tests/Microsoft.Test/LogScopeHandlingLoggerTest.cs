@@ -57,19 +57,19 @@ public class LogScopeHandlingLoggerTest
 			_logger = logger;
 
 			// Every(!) log event must carry the user id as a log scope.
-			// Therefore, the log scope must be created as independent (not execution context aware) as otherwise only the task that created the dialog would have the user id in its log scope, but not other tasks that are running in parallel and also log events related to the same dialog.
+			// Therefore, the log scope must be created as independent (not execution context aware) as otherwise only the task that created the dialog would have the user id in its log scope, but not other tasks that are running in parallel and also emit log events related to the same dialog.
 #if NETCOREAPP3_0_OR_GREATER
 			_logScope = logger.Enrich(LogScope.CreateIndependent(userId));
-			_logger.Log(InitialLogEventTemplate.Build((userId, Unit.Value)));
+			logger.Log(InitialLogEventTemplate.Build((userId, Unit.Value)));
 #else
 			_logScope = logger.Enrich(LogScope.CreateIndependent((nameof(userId), userId)));
-			_logger.Log(InitialLogEventTemplate.Build((userId, Unit.Value)));
+			logger.Log(InitialLogEventTemplate.Build((userId, Unit.Value)));
 #endif
 		}
 
 		internal void Handle(int callbackId, string result)
 		{
-			// The log scope of the callback id must be execution context aware, so that logs from multiple parallel callbacks can differentiate themselves by their callback id.
+			// The log scope containing the callback id must be execution context aware, so that logs from multiple parallel callbacks can differentiate themselves by their callback id.
 #if NETCOREAPP3_0_OR_GREATER
 			using (_logger.Enrich(LogScope.CreateAware(callbackId)))
 #else

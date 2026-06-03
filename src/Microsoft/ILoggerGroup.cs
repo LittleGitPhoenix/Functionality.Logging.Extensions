@@ -137,7 +137,7 @@ public interface ILoggerGroup : IReadOnlyCollection<ILogger>, IDisposable
 	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
 	/// <returns> The logging scope. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained even though its value is specified. </exception>
-	public IDisposable Enrich
+	IDisposable Enrich
 	(
 		LogScopeType type,
 		object? value1,

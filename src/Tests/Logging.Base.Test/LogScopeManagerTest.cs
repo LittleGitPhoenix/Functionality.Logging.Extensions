@@ -30,7 +30,7 @@ public class LogScopeManagerTest
 
 	#region Data
 
-	/// <summary> Test implementation of IExecutionContextAwareLogScope </summary>
+	/// <summary> Test implementation of <see cref="ILogScope"/> that is always <see cref="LogScopeType.ExecutionContextAware"/>. </summary>
 	private class TestExecutionContextAwareScope : ILogScope
 	{
 		public LogScopeType Type => LogScopeType.ExecutionContextAware;
@@ -219,7 +219,6 @@ public class LogScopeManagerTest
 	/// Tests the core functionality of <see cref="AsyncLocal{T}"/> in <see cref="LogScopeManager"/> by ensuring:
 	/// </para>
 	/// <list type="bullet">
-	/// <item><description> Regular scopes are visible to all execution contexts (main thread and tasks). </description></item>
 	/// <item><description> Execution context-aware scopes are only visible within their own execution context. </description></item>
 	/// <item><description> Task 1 cannot see Task 2's execution context-aware scope and vice versa. </description></item>
 	/// <item><description> The main thread cannot see any task's execution context-aware scopes. </description></item>
@@ -231,11 +230,9 @@ public class LogScopeManagerTest
 	[Test]
 	public async Task ExecutionContextAwareScopesAreRespected()
 	{
-		// Arrange		
+		// Arrange
 		var scopes = new LogScopeManager();
-		
-		// Create a simple test scope that implements IExecutionContextAwareLogScope.
-		var regularScope = "RegularScope";
+
 		var executionContextAwareScope1 = new TestExecutionContextAwareScope("Task1-Scope");
 		var executionContextAwareScope2 = new TestExecutionContextAwareScope("Task2-Scope");
 
@@ -243,14 +240,11 @@ public class LogScopeManagerTest
 		var mainThreadResult = new List<object>();
 		var task1Result = new List<object>();
 		var task2Result = new List<object>();
-		
+
 		// Synchronization to ensure both tasks reach the same point before collecting results.
 		var barrier = new SemaphoreSlim(0, 2);
-		
-		// Act
-		// Add a regular scope in the main context.
-		scopes.AddScope(regularScope);
 
+		// Act
 		// Task 1: Add execution context-aware scope and collect results.
 		var task1 = Task.Run
 		(
@@ -260,11 +254,11 @@ public class LogScopeManagerTest
 
 				// Signal that this task is ready.
 				barrier.Release();
-				
+
 				// Wait for the other task to also be ready.
 				await barrier.WaitAsync();
-								
-				// Extract the actual scope objects
+
+				// Extract the actual scope objects.
 				foreach (var scope in scopes.GetScopeValues())
 				{
 					task1Result.Add(scope);
@@ -278,14 +272,14 @@ public class LogScopeManagerTest
 			async () =>
 			{
 				scopes.AddScope(executionContextAwareScope2);
-			
+
 				// Signal that this task is ready.
 				barrier.Release();
-				
+
 				// Wait for the other task to also be ready.
 				await barrier.WaitAsync();
 
-				// Extract the actual scope objects
+				// Extract the actual scope objects.
 				foreach (var scope in scopes.GetScopeValues())
 				{
 					task2Result.Add(scope);
@@ -307,19 +301,16 @@ public class LogScopeManagerTest
 		(
 			() =>
 			{
-				// Main thread should only see the regular scope (no execution context-aware scopes from tasks).
-				Assert.That(mainThreadResult, Does.Contain(regularScope), "Main thread should see the regular scope");
+				// Main thread should see no scopes (all were added inside tasks, not in the main execution context).
 				Assert.That(mainThreadResult, Does.Not.Contain(executionContextAwareScope1), "Main thread should NOT see Task 1's execution context-aware scope");
 				Assert.That(mainThreadResult, Does.Not.Contain(executionContextAwareScope2), "Main thread should NOT see Task 2's execution context-aware scope");
-			
-				// Task 1 should only see its own execution context-aware scope + regular scope.
+
+				// Task 1 should only see its own execution context-aware scope.
 				Assert.That(task1Result, Does.Contain(executionContextAwareScope1), "Task 1 should see its own execution context-aware scope");
-				Assert.That(task1Result, Does.Contain(regularScope), "Task 1 should see the regular scope");
 				Assert.That(task1Result, Does.Not.Contain(executionContextAwareScope2), "Task 1 should NOT see Task 2's execution context-aware scope");
 
-				// Task 2 should only see its own execution context-aware scope + regular scope.
+				// Task 2 should only see its own execution context-aware scope.
 				Assert.That(task2Result, Does.Contain(executionContextAwareScope2), "Task 2 should see its own execution context-aware scope");
-				Assert.That(task2Result, Does.Contain(regularScope), "Task 2 should see the regular scope");
 				Assert.That(task2Result, Does.Not.Contain(executionContextAwareScope1), "Task 2 should NOT see Task 1's execution context-aware scope");
 			}
 		);
@@ -454,12 +445,120 @@ public class LogScopeManagerTest
 			}
 		);
 	}
-
 	
+	/// <summary>
+	/// Verifies that non-<see cref="ILogScope"/> scopes (plain objects/strings) are treated as execution context-aware by default
+	/// and are therefore isolated between sibling tasks that are each spawned from a context with no pre-existing scopes.
+	/// </summary>
 	[Test]
-	public async Task MultipleLoggersShareScopeWhenInSameExecutionContext()
+	public async Task NonILogScopesAreTreatedAsExecutionContextAwareByDefault()
 	{
-		
+		// Arrange
+		var scopes = new LogScopeManager();
+		var task1Scope = "Task1-PlainScope";
+		var task2Scope = "Task2-PlainScope";
+
+		var task1Result = new List<object>();
+		var task2Result = new List<object>();
+
+		var barrier = new SemaphoreSlim(0, 2);
+
+		// Act
+		var task1 = Task.Run
+		(
+			async () =>
+			{
+				scopes.AddScope(task1Scope);
+
+				barrier.Release();
+				await barrier.WaitAsync();
+
+				foreach (var scope in scopes.GetScopeValues())
+				{
+					task1Result.Add(scope);
+				}
+			}
+		);
+
+		var task2 = Task.Run
+		(
+			async () =>
+			{
+				scopes.AddScope(task2Scope);
+
+				barrier.Release();
+				await barrier.WaitAsync();
+
+				foreach (var scope in scopes.GetScopeValues())
+				{
+					task2Result.Add(scope);
+				}
+			}
+		);
+
+		await Task.WhenAll(task1, task2);
+
+		// Assert
+		Assert.Multiple
+		(
+			() =>
+			{
+				Assert.That(task1Result, Does.Contain(task1Scope), "Task 1 should see its own plain scope.");
+				Assert.That(task1Result, Does.Not.Contain(task2Scope), "Task 1 should NOT see Task 2's plain scope.");
+
+				Assert.That(task2Result, Does.Contain(task2Scope), "Task 2 should see its own plain scope.");
+				Assert.That(task2Result, Does.Not.Contain(task1Scope), "Task 2 should NOT see Task 1's plain scope.");
+			}
+		);
+	} 
+	
+	/// <summary>
+	/// Verifies that a child task's execution context-aware scope does not bleed back into the parent context.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// This test currently <b>fails</b> because <see cref="LogScopeManager"/> uses a mutable <see cref="Dictionary{TKey, TValue}"/> as the
+	/// <see cref="AsyncLocal{T}.Value"/>. When the parent adds a scope first, the <see cref="AsyncLocal{T}.Value"/> is initialised to a
+	/// dictionary instance <c>D1</c>. Any child task spawned afterward inherits a reference to the <b>same</b> <c>D1</c> — not a copy.
+	/// When the child then adds its own scope it mutates <c>D1</c> directly, making the new entry instantly visible to the parent context
+	/// as well.
+	/// </para>
+	/// <para>
+	/// The correct behaviour (and the intended contract of <see cref="LogScopeType.ExecutionContextAware"/>) is that scope additions in a
+	/// child context are <b>never</b> visible to the parent or to sibling contexts.
+	/// </para>
+	/// </remarks>
+	[Test]
+	public async Task ChildScopeDoesNotBleedIntoParent()
+	{
+		// Arrange
+		var scopes = new LogScopeManager();
+		var parentScope = new TestExecutionContextAwareScope("Parent-Scope");
+		var childScope = new TestExecutionContextAwareScope("Child-Scope");
+
+		var parentResultAfterChild = new List<object>();
+
+		// Act
+
+		// Parent adds its scope first — this initialises AsyncLocal.Value to a Dictionary instance D1.
+		scopes.AddScope(parentScope);
+
+		// Child task is spawned AFTER the parent's scope exists, so it inherits a reference to D1.
+		// The child adds its own scope, which (under the current broken implementation) mutates D1.
+		await Task.Run(() => scopes.AddScope(childScope));
+
+		// Parent reads its scopes after the child has finished.
+		parentResultAfterChild.AddRange(scopes.GetScopeValues());
+
+		// Assert
+		Assert.Multiple
+		(
+			() =>
+			{
+				Assert.That(parentResultAfterChild, Does.Contain(parentScope), "Parent should still see its own scope.");
+				Assert.That(parentResultAfterChild, Does.Not.Contain(childScope), "Parent should NOT see the child task's scope (no bleed-back).");
+			}
+		);
 	}
 
 	/// <summary>

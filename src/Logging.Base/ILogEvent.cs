@@ -28,7 +28,7 @@ public interface ILogEvent<TLogLevel, TEventId>
 	/// <summary> Optional <see cref="System.Exception"/>. Default is<see langword="null"/>. </summary>
 	Exception? Exception { get; }
 
-	/// <summary> Optional payload that is applied to the log event as scope. Default is <see langword="null"/>. </summary>
+	/// <summary> Optional <see cref="IPayload"/> that is applied to the log event as scope. Default is <see langword="null"/>. </summary>
 	/// <remarks> Can be used to add additional key/value pairs directly to an event, just not as part of the regular message. </remarks>
 	IPayload? Payload { get; }
 

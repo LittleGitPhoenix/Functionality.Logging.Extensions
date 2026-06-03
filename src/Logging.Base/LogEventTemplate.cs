@@ -65,6 +65,7 @@ public abstract class LogEventTemplateBase<TLogEvent, TLogLevel, TEventId>
 /// <summary>
 /// Represents a reusable template for creating generic <typeparamref name="TLogEvent"/> instances from predefined event information.
 /// </summary>
+/// <remarks> Use this template if no placeholders are used in the message. </remarks>
 /// <typeparam name="TLogEvent"> The type of the log event. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
@@ -133,7 +134,7 @@ public abstract class LogEventTemplate<TLogEvent, TLogLevel, TEventId> : LogEven
 /// Represents a reusable template for creating <typeparamref name="TLogEvent"/> instances with a strongly-typed template for creating structured log events with a fixed set of arguments.
 /// </summary>
 /// <remarks>
-/// Use this class to define reusable log event templates with a specific argument structure, enabling efficient and type-safe logging.
+/// Use this template if placeholders are used in the message. If only a single placeholder is used, then (due to tuples requiring at least two elements), the second element must be <see cref="Unit"/>.
 /// The generic parameter enforces the shape of arguments passed to the log event, reducing runtime errors and improving code clarity.
 /// </remarks>
 /// <typeparam name="TLogEvent"> The type of the log event. </typeparam>

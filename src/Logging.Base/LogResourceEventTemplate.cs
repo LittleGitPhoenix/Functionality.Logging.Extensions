@@ -57,6 +57,7 @@ public abstract class LogResourceEventTemplateBase<TLogResourceEvent, TLogLevel,
 /// <summary>
 /// Represents a reusable template for creating <typeparamref name="TLogResourceEvent"/> instances from predefined event information obtained from a <see cref="System.Resources.ResourceManager"/>.
 /// </summary>
+/// <remarks> Use this template if no placeholders are used in the message. </remarks>
 /// <typeparam name="TLogResourceEvent"> The type of the resource event that this template creates. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
@@ -110,7 +111,8 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 /// Represents a reusable template for creating <typeparamref name="TLogResourceEvent"/> instances from predefined event information obtained from a <see cref="System.Resources.ResourceManager"/>.
 /// </summary>
 /// <remarks>
-/// This template should be used if the output message either has no format parameters or if it uses the same parameters as the log message.
+/// Use this template if the <b>same</b> placeholders are used in the log and output message or if the output message uses no placeholders at all.
+/// If only a single placeholder is used, then (due to tuples requiring at least two elements), the second element must be <see cref="Unit"/>.
 /// </remarks>
 /// <typeparam name="TLogResourceEvent"> The type of the resource event that this template creates. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
@@ -211,7 +213,7 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 /// Represents a reusable template for creating <typeparamref name="TLogResourceEvent"/> instances from predefined event information obtained from a <see cref="System.Resources.ResourceManager"/>.
 /// </summary>
 /// <remarks>
-/// This template should be used if the output message has different format parameters then the log message.
+/// Use this template if the log message uses <b>different</b> placeholders then the output message.
 /// </remarks>
 /// <typeparam name="TLogResourceEvent"> The type of the resource event that this template creates. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
