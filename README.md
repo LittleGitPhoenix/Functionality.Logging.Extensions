@@ -434,13 +434,109 @@ As established in the introduction, there are two fundamentally different types 
 
 ### Handling
 
-Just having two different types of log scopes is only one part necessary to make ambient scopes work. The other is having a system that knows about those types and then acting (or storing) them in a way that meets their intent. This is the task of an `ILogScopeManager` that stores the scope for an logger and applies it to the log events that are emitted through that logger. The specific `LogScopeManager` of this library is aware of `ILogScope`s and stores such depending on their `LogScopeType` in ways that they are either applied to log events in general (`LogScopeType.Independent`) or only if the log event that is emitted originated in the same execution context (`LogScopeType.ExecutionContextAware`).
+Just having two different types of log scopes is only one part necessary to make ambient scopes work. The other is having a system that knows about those types and then acting (or storing) them in a way that meets their intent. This is the task of an `ILogScopeManager` that stores the scope for a logger and applies it to the log events that are emitted through that logger. The specific `LogScopeManager` of this library is aware of `ILogScope`s and stores them depending on their `LogScopeType`:
+
+- **`LogScopeType.Independent`**
+
+	Stored in a single shared `ConcurrentDictionary`. Every log event emitted through any execution context sees these scopes.
+
+- **`LogScopeType.ExecutionContextAware`**
+
+	Stored using copy-on-write `AsyncLocal<T>` semantics. Each `AddScope` call creates a new dictionary snapshot and assigns it only to the current execution-context slot. Parent and sibling contexts retain their own snapshots. Disposing the returned `IDisposable` restores the previous snapshot, making scope management behave like a stack.
 
 > [!NOTE]
 >
-> The `LogScopeManager` threads other ambient scope that is not an `ILogScope` as execution context aware.
+> To enable loggers to use the `LogScopeManager` and thus enabling proper handling for the two ambient scope types at all, special implementations of loggers need to be created. One such is the [**`LogScopeHandlingLogger`**](#LogScopeHandlingLogger) - a `Microsoft.Extensions.Logging.ILogger`.
 
-To enable loggers to use the `LogScopeManager` and thus enabling proper handling for the two ambient scope types at all, special implementations of loggers need to be created. One such is the [**`LogScopeHandlingLogger`**](#LogScopeHandlingLogger) - an `Microsoft.Extensions.Logging.ILogger`.
+> [!IMPORTANT]
+>
+> The `LogScopeManager` treats ambient scope that is not an `ILogScope` (e.g. a plain string) as execution context-aware by default.
+
+
+
+#### Isolation Levels
+
+Understanding _which_ `LogScopeType` to use requires distinguishing two separate isolation problems:
+
+**Horizontal: Concurrent operations on the same class instance**
+
+A **singleton class** handles many concurrent operations (e.g. a web API handler receiving 1000 parallel HTTP requests). Each operation must carry its own scope data (e.g. a trace id) without leaking into other operations. `LogScopeType.ExecutionContextAware` solves this as each request is run in its own execution context, so each context slot holds only that request's scope data.
+
+**Vertical: Class hierarchy (Parent → Child)**
+
+A parent class calls a child class. Both share the same `ILogger` instance. The child adds a scope. This scope must **not** appear in log events emitted by the parent after the child finishes. This problem **cannot** be solved by `LogScopeType` alone. The recommended solution is to give each class its own `ILogger` instance (and therefore its own `LogScopeManager`) and group them via `ILoggerGroup` when shared scope is needed.
+
+> [!CAUTION]
+>
+> **Known limitation: Synchronous preamble bleed-back**
+>
+> `ExecutionContextAware` isolation only takes effect once the .NET runtime creates a new execution context (e.g. via `Task.Run` or a truly yielding `await`). If a child method adds its scope *before* its first actual suspension point, both caller and callee share the same execution context at that moment. The `AsyncLocal` assignment therefore overwrites the caller's slot directly. Additionally, if the scope is disposed on a thread-pool continuation thread (common with `ConfigureAwait(false)`), the restore applies to that continuation's context and not to the original caller's slot. The caller is permanently left carrying the child's scope.
+>
+> This example shows the two problems:
+>
+> ```c#
+> class Parent(ILogger logger)
+> {
+> 	async Task Execute()
+> 	{
+> 		var parentScope = LogScope.CreateAware("ParentScope");
+> 		using (logger.Enrich(parentScope))
+> 		{
+> 			var child = new Child(logger);
+> 			var childTask = child.Execute();
+> 			while (!childTask.IsCompleted)
+> 			{
+> 				await Task.Delay(1000);
+> 				// This log event does contain both scopes.
+> 				logger.LogInformation("Work in progress...");
+> 			}
+> 			// This log event could still contain both scopes.
+> 			// That depends on whether the child disposed its scope on the original thread
+> 			// or not (which is controlled only by the runtime).
+> 			logger.LogInformation("Work done.");
+> 		}
+> 	}
+> }
+> 
+> class Child(ILogger logger)
+> {
+> 	public async Task Execute()
+> 	{
+> 		// Scope is created in the same execution context.
+> 		var childScope = LogScope.CreateAware("ChildScope");
+> 		using (logger.Enrich(childScope))
+> 		{
+> 			// Only here is a new execution context created.
+> 			await Task.Delay(10000).ConfigureAwait(false);
+> 		}
+> 		// After the using block it is likely that the child scope isn't removed from the
+> 		// original execution context because 'ConfigureAwait(false)' runs the dispose logic
+> 		// on the child's continuation thread.
+> 	}
+> }
+> ```
+>
+> **This is a structural .NET limitation.** The logger has no control over when a new execution context is created. The recommended mitigation is the architecture described above: separate `ILogger` per class, grouped via `ILoggerGroup`.
+
+
+
+### Choosing a LogScopeType
+
+Use the following two questions to pick the right type every time:
+
+- Scope that belongs to **this execution** (a request, an operation, a unit of work) → `LogScopeType.ExecutionContextAware` / `LogScope.CreateAware(...)`
+- Scope that belongs to **this logger forever** (service name, version, environment) → `LogScopeType.Independent` / `LogScope.CreateIndependent(...)`
+
+The four canonical scenarios are:
+
+| Scenario | Logger setup | `LogScopeType` | Typical data |
+|---|---|---|---|
+| Concurrent operations on one class | Single `ILogger` (e.g. singleton) | `ExecutionContextAware` | Request trace id, correlation id |
+| Static metadata for one class | Single `ILogger` | `Independent` | Service name, version, environment |
+| Static metadata shared across classes | `ILoggerGroup` | `Independent` | Subsystem name, build number |
+| Per-operation scope shared across classes | `ILoggerGroup` | `ExecutionContextAware` | Request trace id applied to all loggers in the group |
+
+
 
 ### Creation
 

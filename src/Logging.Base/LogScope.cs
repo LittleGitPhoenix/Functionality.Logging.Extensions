@@ -7,8 +7,42 @@ using System.Linq.Expressions;
 namespace Phoenix.Functionality.Logging.Base;
 
 /// <summary>
-/// Interface for log scopes.
+/// Represents a named collection of key-value pairs that enrich log events with contextual data.
 /// </summary>
+/// <remarks>
+/// <para>
+/// The <see cref="LogScopeType"/> property controls how the scope is stored and which log events it reaches:
+/// </para>
+/// <list type="bullet">
+/// <item><description>
+/// <b><see cref="LogScopeType.Independent"/></b> - stored in a globally shared collection. Every log event
+/// emitted through the same logger sees this scope regardless of which thread or execution context is active.
+/// Suitable for static, lifetime-long metadata (service name, version, environment).
+/// </description></item>
+/// <item><description>
+/// <b><see cref="LogScopeType.ExecutionContextAware"/></b> - stored using copy-on-write
+/// <see cref="System.Threading.AsyncLocal{T}"/> semantics. Only log events emitted from the same execution
+/// context (or child contexts spawned after the scope was added) see this scope. Suitable for per-operation
+/// data (trace id, request id, correlation id).
+/// </description></item>
+/// </list>
+/// <para>
+/// <b>Two dimensions of isolation:</b>
+/// </para>
+/// <list type="bullet">
+/// <item><description>
+/// <b>Horizontal (concurrent operations, same class instance)</b> - a single logger instance handles many
+/// concurrent operations (e.g. 1000 parallel HTTP requests hitting a singleton). Use
+/// <see cref="LogScopeType.ExecutionContextAware"/> so each operation only sees its own scope data.
+/// </description></item>
+/// <item><description>
+/// <b>Vertical (class hierarchy, parent → child)</b> - scope added in a child class must not appear in parent
+/// class log events. This cannot be solved by <see cref="LogScopeType"/> alone; it requires each class to have
+/// its own <c>ILogger</c> instance (and therefore its own scope manager). Classes that need to share scope
+/// should be grouped via <c>ILoggerGroup</c>.
+/// </description></item>
+/// </list>
+/// </remarks>
 public interface ILogScope : IEnumerable<KeyValuePair<string, object?>>
 {
 	/// <summary> The type of the current log scope. </summary>
@@ -333,6 +367,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.Independent"/>.
 	/// </summary>
 	/// <param name="scopedValues"> Collection of named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this logger forever</b> - static, lifetime-long metadata such as service name, version, or environment that must appear on every log event regardless of execution context. </remarks>
 	public static ILogScope CreateIndependent(params (string Identifier, object? Value)[] scopedValues)
 		=> Create(LogScopeType.Independent, scopedValues);
 
@@ -340,6 +375,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.ExecutionContextAware"/>.
 	/// </summary>
 	/// <param name="scopedValues"> Collection of named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this execution</b> - per-request or per-operation data such as a trace id that must only appear on log events emitted from the same execution context. </remarks>
 	public static ILogScope CreateAware(params (string Identifier, object? Value)[] scopedValues)
 		=> Create(LogScopeType.ExecutionContextAware, scopedValues);
 
@@ -355,6 +391,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.Independent"/>.
 	/// </summary>
 	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this logger forever</b> - static, lifetime-long metadata such as service name, version, or environment that must appear on every log event regardless of execution context. </remarks>
 	public static ILogScope CreateIndependent(params Expression<Func<object>>[] scopedValues)
 		=> Create(LogScopeType.Independent, scopedValues);
 
@@ -362,6 +399,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.ExecutionContextAware"/>.
 	/// </summary>
 	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this execution</b> - per-request or per-operation data such as a trace id that must only appear on log events emitted from the same execution context. </remarks>
 	public static ILogScope CreateAware(params Expression<Func<object>>[] scopedValues)
 		=> Create(LogScopeType.ExecutionContextAware, scopedValues);
 
@@ -377,6 +415,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.Independent"/>.
 	/// </summary>
 	/// <param name="dictionary"> A dictionary of scope values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this logger forever</b> - static, lifetime-long metadata such as service name, version, or environment that must appear on every log event regardless of execution context. </remarks>
 	public static ILogScope CreateIndependent(IDictionary<string, object?> dictionary)
 		=> new LogScope(LogScopeType.Independent, dictionary);
 
@@ -384,6 +423,7 @@ public class LogScope : Dictionary<string, object?>, ILogScope
 	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.ExecutionContextAware"/>.
 	/// </summary>
 	/// <param name="dictionary"> A dictionary of scope values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this execution</b> - per-request or per-operation data such as a trace id that must only appear on log events emitted from the same execution context. </remarks>
 	public static ILogScope CreateAware(IDictionary<string, object?> dictionary)
 		=> new LogScope(LogScopeType.ExecutionContextAware, dictionary);
 

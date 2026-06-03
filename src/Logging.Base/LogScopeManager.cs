@@ -14,9 +14,34 @@ public interface ILogScopeManager
 	/// <summary>
 	/// Adds the <paramref name="scope"/> to the internal collection.
 	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// <b>ExecutionContextAware</b> scopes use copy-on-write semantics.
+	/// Each call creates a new <see cref="System.Collections.Generic.Dictionary{TKey,TValue}"/> that inherits all currently-visible entries and then assigns it to <see cref="System.Threading.AsyncLocal{T}.Value"/>.
+	/// This assignment only modifies the current execution-context slot; parent and sibling contexts retain their own snapshots.
+	/// </para>
+	/// <para>
+	/// <b>Known limitation:</b> if a child method adds its scope <em>before</em> its first real suspension point (i.e. before an actual <c>Task.Run</c> or a truly yielding <c>await</c>),
+	/// both caller and callee share the same execution context at that point. The assignment therefore overwrites the caller's slot. When the scope is later disposed (often on a different
+	/// thread-pool thread due to <c>ConfigureAwait(false)</c>) the restore applies to that continuation's context, not to the original caller's slot, leaving the caller permanently carrying the child's scope.
+	/// This is a structural .NET limitation. The recommended mitigation is to give each class its own <c>ILogger</c> instance and group them via <c>ILoggerGroup</c>.
+	/// </para>
+	/// </remarks>
 	/// <typeparam name="TState"> The type of the scope. </typeparam>
 	/// <param name="scope"> The scope to add. </param>
-	/// <returns> An <see cref="IDisposable"/> that will remove the scope when it is disposed. </returns>
+	/// <returns>
+	/// An <see cref="IDisposable"/> that removes or restores the scope when disposed.
+	/// <list type="bullet">
+	/// <item><description>
+	/// For <see cref="LogScopeType.ExecutionContextAware"/> scopes (and non-<see cref="ILogScope"/> values): disposing
+	/// restores the <see cref="System.Threading.AsyncLocal{T}"/> slot to the snapshot that existed before this scope
+	/// was added. The restore applies to whichever execution context <c>Dispose</c> is called on.
+	/// </description></item>
+	/// <item><description>
+	/// For <see cref="LogScopeType.Independent"/> scopes: disposing removes the scope from the shared global collection.
+	/// </description></item>
+	/// </list>
+	/// </returns>
 	IDisposable AddScope<TState>(TState scope) where TState : notnull;
 
 	/// <summary>
@@ -30,8 +55,38 @@ public interface ILogScopeManager
 /// Manages the collection of active log scopes. Provides functionality to add and retrieve scope values, supporting both execution context-aware and global scopes.
 /// </summary>
 /// <remarks>
-/// This class supports both execution context-aware scopes (which flow with async operations) and global scopes.
-/// Scopes are ordered to ensure correct nesting when logging. Thread safety is provided for concurrent operations.
+/// <para>
+/// Scopes are categorised by their <see cref="LogScopeType"/> and stored accordingly:
+/// </para>
+/// <list type="bullet">
+/// <item><description>
+/// <b><see cref="LogScopeType.Independent"/></b> — stored in a single shared <see cref="ConcurrentDictionary{TKey,TValue}"/>.
+/// Every log event emitted through any execution context sees these scopes. Suitable for static, lifetime-long metadata
+/// such as service name, version, or environment.
+/// </description></item>
+/// <item><description>
+/// <b><see cref="LogScopeType.ExecutionContextAware"/></b> (and non-<see cref="ILogScope"/> values) — stored using copy-on-write <see cref="System.Threading.AsyncLocal{T}"/> semantics.
+/// Each <see cref="AddScope{TState}"/> call creates a new dictionary snapshot and assigns it to the current execution-context slot only. Parent and sibling contexts are unaffected.
+/// Suitable for per-request or per-operation data such as a trace identifier.
+/// </description></item>
+/// </list>
+/// <para>
+/// <b>Choosing a <see cref="LogScopeType"/>:</b>
+/// </para>
+/// <list type="bullet">
+/// <item><description>
+/// Scope that belongs to <em>this execution</em> (a request, an operation, a unit of work) →
+/// <see cref="LogScopeType.ExecutionContextAware"/> / <see cref="LogScope.CreateAware(System.Collections.Generic.IDictionary{string,object?})"/>.
+/// </description></item>
+/// <item><description>
+/// Scope that belongs to <em>this logger forever</em> (service name, version, environment) →
+/// <see cref="LogScopeType.Independent"/> / <see cref="LogScope.CreateIndependent(System.Collections.Generic.IDictionary{string,object?})"/>.
+/// </description></item>
+/// </list>
+/// <para>
+/// <b>Known limitation:</b> execution-context isolation only takes effect once the .NET runtime creates a new execution context (e.g. via <c>Task.Run</c> or a truly yielding <c>await</c>).
+/// Scope added in a child method before its first suspension point modifies the caller's slot directly and may not be correctly restored. See <see cref="AddScope{TState}"/> for a full explanation.
+/// </para>
 /// </remarks>
 public class LogScopeManager : ILogScopeManager
 {
@@ -48,8 +103,18 @@ public class LogScopeManager : ILogScopeManager
 	// This must be thread-safe as Independent scopes are deliberately shared across all execution contexts and threads and therefore concurrent access is highly probable.
 	private readonly ConcurrentDictionary<object, int> _scopes;
 
-	// This does not need to be thread-safe as ExecutionContextAware scopes are only accessible within the execution context they were created in and therefore concurrent access is not possible.
-	private readonly AsyncLocal<Dictionary<object, int>> _executionContextAwareScopes;
+	// Uses copy-on-write semantics:
+	// Each AddScope call captures the current Value, creates a fresh Dictionary that inherits all existing entries, then assigns the new instance to AsyncLocal.Value.
+	// This assignment is per-slot. It only modifies the current execution context and never touches parent or sibling contexts.
+	// The dispose closure restores the previous snapshot, effectively popping the scope like a stack.
+	//
+	// Known limitation:
+	// If a child method adds its scope BEFORE its first real suspension point (i.e. before an actual Task.Run or the first yielding await),
+	// it runs on the same thread and in the same execution context as the caller. The assignment therefore overwrites the caller's slot directly.
+	// The restore-on-dispose will execute on whatever thread the child's continuation is scheduled on (often a thread-pool thread when ConfigureAwait(false) is used),
+	// so the caller's slot is never restored. This is a structural .NET limitation: the logger cannot control when or whether a new execution context is created.
+	// The recommended mitigation is to give each class its own ILogger instance and group them via ILoggerGroup.
+	private readonly AsyncLocal<Dictionary<object, int>?> _executionContextAwareScopes;
 
 	#endregion
 
@@ -76,36 +141,56 @@ public class LogScopeManager : ILogScopeManager
 
 	/// <inheritdoc />
 	public IDisposable AddScope<TState>(TState scope) where TState : notnull
-    {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        if (scope is null) return DisposableAction.NoDisposableAction;
+	{
+		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+		if (scope is null) return DisposableAction.NoDisposableAction;
 
-		// Determine which collection to use.
-		IDictionary<object, int> scopes = scope is not ILogScope logScope 
-										? _executionContextAwareScopes.Value ??= []     // Not an ILogScope, treat as execution context-aware by default.
-										:  logScope.Type == LogScopeType.ExecutionContextAware
-											? _executionContextAwareScopes.Value ??= [] // Execution context-aware ILogScope, use execution context-aware collection.
-											: _scopes                                   // Independent ILogScope, use global collection.
-											;
-		
-		// Only add unique items.
-		if (scopes is ConcurrentDictionary<object, int> concurrentScopes) concurrentScopes.TryAdd(scope, Interlocked.Increment(ref _scopeOrder));
-		else if (!scopes.ContainsKey(scope)) scopes.Add(scope, Interlocked.Increment(ref _scopeOrder));
+		// Determine whether this scope is Independent (global ConcurrentDictionary) or ExecutionContextAware (AsyncLocal copy-on-write).
+		var isExecutionContextAware = scope is not ILogScope logScope || logScope.Type == LogScopeType.ExecutionContextAware;
 
-		// Return disposable that will remove the scope.
-		return new DisposableAction
-		(
-			() =>
-			{
-				try
+		if (isExecutionContextAware)
+		{
+			// Copy-on-write:
+			// Capture the current slot value as the restore point, then build a fresh dictionary that inherits all existing entries.
+			// Assigning a new instance to AsyncLocal.Value only modifies the current execution-context slot.
+			// Parent and sibling contexts retain their own snapshots.
+			var previous = _executionContextAwareScopes.Value;
+			var newDict = previous is null
+				? new Dictionary<object, int>()
+				: new Dictionary<object, int>(previous)
+				;
+
+			// Only add unique items.
+			if (!newDict.ContainsKey(scope)) newDict.Add(scope, Interlocked.Increment(ref _scopeOrder));
+
+			// Assign the new dictionary to the current execution-context slot.
+			_executionContextAwareScopes.Value = newDict;
+
+			// Return a disposable that restores the previous snapshot in whatever execution context Dispose is called on.
+			return new DisposableAction
+			(
+				() =>
 				{
-					if (scopes is ConcurrentDictionary<object, int> cd) cd.TryRemove(scope, out _);
-					else scopes.Remove(scope);
+					try { _executionContextAwareScopes.Value = previous; }
+					catch (Exception) { /* ignore */ }
 				}
-                catch (Exception) { /* ignore */ }
-            }
-        );
-    }
+			);
+		}
+		else
+		{
+			// Independent scopes use a single shared ConcurrentDictionary that is visible across all execution contexts.
+			_scopes.TryAdd(scope, Interlocked.Increment(ref _scopeOrder));
+
+			return new DisposableAction
+			(
+				() =>
+				{
+					try { _scopes.TryRemove(scope, out _); }
+					catch (Exception) { /* ignore */ }
+				}
+			);
+		}
+	}
 
 	/// <inheritdoc />
 	public IEnumerable<object> GetScopeValues()
@@ -124,24 +209,8 @@ public class LogScopeManager : ILogScopeManager
 
 	private sealed class DisposableAction(Action dispose) : IDisposable
 	{
-        #region Delegates / Events
-        #endregion
-
-        #region Constants
-        #endregion
-
-        #region Fields
-
-		#endregion
-
-        #region Properties
-
         public static IDisposable NoDisposableAction { get; } = new DisposableAction(() => { });
-
-        #endregion
 		
-        #region Methods
-
         /// <inheritdoc />
         public void Dispose()
         {
@@ -151,8 +220,6 @@ public class LogScopeManager : ILogScopeManager
             }
             catch (Exception) { /* ignore */ }
         }
-
-        #endregion
     }
 
     #endregion
