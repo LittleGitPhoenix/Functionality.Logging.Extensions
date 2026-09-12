@@ -1,5 +1,5 @@
 # ╔═══════════════════════════╗
-# ║ PHOENIX .gitignore v1.3.0 ║
+# ║ PHOENIX .gitignore v1.5.0 ║
 # ╚═══════════════════════════╝
 
 ## Ignore Visual Studio temporary files, build results, and
@@ -298,6 +298,9 @@ __pycache__/
 # ║ Global PHOENIX Custom Rules ║
 # ╚═════════════════════════════╝
 
+# Environment-specific appsettings (only appsettings.json is tracked)
+**/appsettings.*.json
+
 # .editorconfig at project level (at least two nested folders)
 /src/**/.editorconfig
 
@@ -314,8 +317,12 @@ __pycache__/
 **/wwwroot/lib/
 **/wwwroot/schemas/
 
+# Development-only files and configurations (not to be committed)
+.development/
+
 # ╔════════════════════════════════╗
 # ║ Project specific PHOENIX Rules ║
 # ╚════════════════════════════════╝
 
-/src/Tests/Microsoft.Test/ReadmeClasses.cs
+# Specification / design documents (contain environment-specific details).
+spec/
