@@ -77,6 +77,9 @@ internal sealed class LoggerGroup : ILoggerGroup
 		lock (_loggersLock)
 		{
 			this.CleanLoggers(logger);
+		}
+		lock (_groupScopesLock)
+		{
 			_groupScopes.ForEach(scope => scope.RemoveLogger(logger));
 		}
 	}
@@ -98,14 +101,23 @@ internal sealed class LoggerGroup : ILoggerGroup
 				if (isAlive && logger is not null && !Object.ReferenceEquals(logger, loggerToRemove)) activeLoggers.Add(logger);
 				else deadLoggers.Add(weakLogger);
 			}
-			deadLoggers.ForEach
-			(
-				weakLogger =>
+			deadLoggers.ForEach(weakLogger => _loggers.Remove(weakLogger));
+			if (deadLoggers.Count > 0)
+			{
+				var potentiallyEmptyScopes = new List<LoggerGroupScope>();
+				lock (_groupScopesLock)
 				{
-					_loggers.Remove(weakLogger);
-					lock (_groupScopesLock) _groupScopes.ForEach(scope => scope.CleanLoggers());
+					_groupScopes.ForEach
+					(
+						scope =>
+						{
+							scope.CleanLoggers();
+							if (scope._disposables.IsEmpty) potentiallyEmptyScopes.Add(scope);
+						}
+					);
 				}
-			);
+				potentiallyEmptyScopes.ForEach(scope => scope.TryDisposeThisScope());
+			}
 			return activeLoggers;
 		}
 	}

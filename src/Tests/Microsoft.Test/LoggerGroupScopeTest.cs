@@ -93,6 +93,49 @@ public class LoggerGroupScopeTest
 		Assert.That(originalDisposableAmount, Is.EqualTo(loggers.Length));                 //* One disposable per logger.
 		Assert.That(loggerGroupScope._disposables, Has.Count.EqualTo(loggers.Length - 1)); //! Should be one less as before, because the logger was removed.
 	}
+
+	/// <summary>
+	/// Checks that adding a logger to a <see cref="LoggerGroupScope"/> applies the scope to the new logger and tracks it.
+	/// </summary>
+	[Test]
+	public void AddingLoggerAppliesScopeAndTracksLogger()
+	{
+		// Arrange
+		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		var scope = LogScope.CreateIndependent(("TestScope", "TestValue"));
+		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
+		var loggerGroupScope = new LoggerGroupScope(loggers, scope, disposedCallback);
+		var newLogger = _fixture.Create<Mock<ILogger>>().Object;
+
+		// Act
+		loggerGroupScope.AddLogger(newLogger);
+
+		// Assert
+		Mock.Get(newLogger).Verify(mock => mock.BeginScope(It.IsAny<It.IsAnyType>()), Times.Once);
+		Assert.That(loggerGroupScope._disposables, Has.Count.EqualTo(loggers.Length + 1));
+	}
+
+	/// <summary>
+	/// Checks that adding a logger to an already disposed <see cref="LoggerGroupScope"/> does nothing.
+	/// </summary>
+	[Test]
+	public void AddingLoggerToDisposedScopeDoesNothing()
+	{
+		// Arrange
+		var loggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+		var scope = LogScope.CreateIndependent(("TestScope", "TestValue"));
+		var disposedCallback = Mock.Of<Action<LoggerGroupScope>>();
+		var loggerGroupScope = new LoggerGroupScope(loggers, scope, disposedCallback);
+		loggerGroupScope.Dispose();
+		var newLogger = _fixture.Create<Mock<ILogger>>().Object;
+
+		// Act
+		loggerGroupScope.AddLogger(newLogger);
+
+		// Assert
+		Mock.Get(newLogger).Verify(mock => mock.BeginScope(It.IsAny<It.IsAnyType>()), Times.Never);
+		Assert.That(loggerGroupScope._disposables, Is.Empty);
+	}
 	
 	#endregion
 }

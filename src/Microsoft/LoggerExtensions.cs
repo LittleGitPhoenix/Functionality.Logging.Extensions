@@ -239,8 +239,20 @@ remove this class!
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
+	/// <remarks>
+	/// <para>
+	/// <b>Permanently</b> means the <see cref="IDisposable"/> returned by <see cref="ILogger.BeginScope{TState}"/> is intentionally discarded, so the scope is never explicitly removed.
+	/// </para>
+	/// <para>
+	/// This guarantee only holds in full when <paramref name="scope"/> uses <see cref="LogScopeType.Independent"/>: the scope is stored in a globally shared collection and will appear on every log event from the logger regardless of execution context.
+	/// When using <see cref="LogScopeType.ExecutionContextAware"/>, the scope is stored per execution context via <see cref="System.Threading.AsyncLocal{T}"/> and will only be visible to the current and child execution contexts — the <b>permanent</b> semantics do not fully apply.
+	/// </para>
+	/// </remarks>
 	public static ILogger EnrichPermanently(this ILogger logger, ILogScope? scope)
-		=> logger.Enrich(scope);
+	{
+		if (scope is not null) _ = logger.BeginScope(scope);
+		return logger;
+	}
 
 	/// <summary>
 	/// This is a special helper method that can be used at the end of a logging chain to cast the <see cref="ILogger"/> back into an <see cref="IChainingLogScopeDisposable"/>.
@@ -367,7 +379,14 @@ remove this class!
 	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
 	/// <returns> The same <see cref="ILogger"/> instance for chaining. </returns>
 	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained even though its value is specified. </exception>
-	/// <remarks> This method exists only because creating an implicit or explicit conversion operator in <see cref="LogScope"/> that has those parameters is not possible. </remarks>
+	/// <remarks>
+	/// <para> This method exists only because creating an implicit or explicit conversion operator in <see cref="LogScope"/> that has those parameters is not possible. </para>
+	/// <para>
+	/// <b>Permanently</b> means the <see cref="IDisposable"/> returned by <see cref="ILogger.BeginScope{TState}"/> is intentionally discarded, so the scope is never explicitly removed.
+	/// This guarantee only holds in full when <paramref name="type"/> is <see cref="LogScopeType.Independent"/>: the scope is stored in a globally shared collection and will appear on every log event from the logger regardless of execution context.
+	/// When using <see cref="LogScopeType.ExecutionContextAware"/>, the scope is stored per execution context via <see cref="System.Threading.AsyncLocal{T}"/> and will only be visible to the current and child execution contexts — the <b>permanent</b> semantics do not fully apply.
+	/// </para>
+	/// </remarks>
 	public static ILogger EnrichPermanently
 	(
 		this ILogger logger,
@@ -395,9 +414,9 @@ remove this class!
 		bool cleanCallerArgument = true
 	)
 	{
-		return logger.Enrich
+		//? Will the names be passed or will they be overridden by the CallerArgumentExpression attribute of the Create function?
+		_ = logger.BeginScope
 		(
-			//? Will the names be passed or will they be overridden by the CallerArgumentExpression attribute of the Create function?
 			LogScope.Create
 			(
 				type,
@@ -406,6 +425,7 @@ remove this class!
 				cleanCallerArgument
 			)
 		);
+		return logger;
 	}
 #endif
 

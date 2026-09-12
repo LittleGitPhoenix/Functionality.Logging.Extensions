@@ -50,7 +50,7 @@ internal sealed class LoggerGroupScope : IDisposable
 				logger => new KeyValuePair<WeakReference<ILogger>, List<IDisposable>>
 					(
 						key: new WeakReference<ILogger>(logger),
-						value: [ logger.BeginScope(scope) ]
+						value: logger.BeginScope(scope) is { } disposable ? [ disposable ] : []
 					)
 			)
 		);
@@ -66,15 +66,15 @@ internal sealed class LoggerGroupScope : IDisposable
 		{
 			if (_disposed == 1) return;
 
-			var disposable = logger.BeginScope((IDictionary<string, object?>) _scope);
+			var disposable = logger.BeginScope(_scope);
 			var loggers = this.CleanLoggers();
 			if (loggers.TryGetValue(logger, out var disposables))
 			{
-				disposables.Add(disposable);
+				if (disposable is not null) disposables.Add(disposable);
 			}
 			else
 			{
-				_disposables.GetOrAdd(new WeakReference<ILogger>(logger), [ disposable ]);
+				_disposables.GetOrAdd(new WeakReference<ILogger>(logger), disposable is not null ? [ disposable ] : []);
 			}
 		}
 	}
@@ -131,7 +131,7 @@ internal sealed class LoggerGroupScope : IDisposable
 	/// Tries to dispose this instance (thus triggering the <see cref="_disposedCallback"/>) if it no longer contains any disposables.
 	/// </summary>
 	/// <returns> <see langword="true"/> on success, otherwise <b>false</b>. </returns>
-	private void TryDisposeThisScope()
+	internal void TryDisposeThisScope()
 	{
 		lock (_disposablesLock)
 		{

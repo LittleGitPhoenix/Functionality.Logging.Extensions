@@ -82,5 +82,33 @@ public class LoggerGroupTest
 		Mock.Get(newLogger).Verify(mock => mock.BeginScope(It.IsAny<It.IsAnyType>()), applyExistingScope ? Times.Once : Times.Never);
 	}
 
+	/// <summary>
+	/// Checks that a <see cref="LoggerGroupScope"/> is automatically disposed when all its loggers are garbage collected.
+	/// </summary>
+	[Test]
+	public void GroupScopeIsAutoDisposedWhenAllLoggersAreGarbageCollected()
+	{
+		// Arrange
+		var loggerGroup = new LoggerGroup();
+		LoggerGroupScope? groupScope;
+
+		void SetupGroupWithScope()
+		{
+			var tempLoggers = _fixture.CreateMany<ILogger>(count: 3).ToArray();
+			foreach (var tempLogger in tempLoggers) loggerGroup.AddLogger(tempLogger);
+			groupScope = (LoggerGroupScope) loggerGroup.Enrich(LogScope.CreateIndependent(("TestScope", "TestValue")));
+			//! tempLoggers go out of scope here and become eligible for GC.
+		}
+
+		SetupGroupWithScope();
+		GC.Collect();
+
+		// Act: trigger CleanLoggers via any operation on the group
+		loggerGroup.AddLogger(_fixture.Create<ILogger>(), applyExistingScope: false);
+
+		// Assert
+		Assert.That(groupScope!._disposables, Is.Empty);
+	}
+
 	#endregion
 }

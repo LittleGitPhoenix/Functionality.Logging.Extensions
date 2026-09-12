@@ -642,16 +642,6 @@ logger.Log(logEvent);
 
 
 
-## Log Level Conversion
-
-The `ILogLevelConverter<TSourceLogLevel, TTargetLogLevel>` interface defined in this package can be implemented when it is necessary to convert log levels from different logging systems (e.g. from **Serilog** to **Microsoft**).
-
-Currently the following specific implementations are available:
-
-| Converter Name                        | Conversion                           | Package                                          |
-| ------------------------------------- | ------------------------------------ | ------------------------------------------------ |
-| `SerilogToMicrosoftLogLevelConverter` | Serilog :left_right_arrow: Microsoft | Phoenix.Functionality.Logging.Extensions.Serilog |
-
 ___
 
 # Logging.Extensions.Microsoft
@@ -750,7 +740,7 @@ using
 }
 ```
 
-Then there is a special option that allows to **permanently enrich** a logger with scope. An example would be the application name or the application version. Such data will not change during the lifetime of any application. The method is named `EnrichPermanently`. It does not return an `IDisposable` but the same logger that was enriched. This is mostly used during orchestration where scope will be pinned to a logger forever.
+Then there is a special option that allows to **permanently enrich** a logger with scope. An example would be the application name or the application version. Such data will not change during the lifetime of any application. The method is named `EnrichPermanently`. It does not return an `IDisposable` but the same logger that was enriched. This is mostly used during orchestration where scope will be pinned to a logger forever. Note that the **permanent** guarantee only holds in full when using `LogScope.CreateIndependent`. When using `LogScope.CreateAware`, the scope is stored per execution context and will only be visible to the current and child execution contexts. It will not appear on log events from unrelated execution contexts.
 
 ```c#
 var applicationName = LogApplicationInformation.Default.Name;
