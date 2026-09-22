@@ -68,4 +68,52 @@ public class ArchiveHookTest
         Assert.That(testDirectory.Directory.GetFiles(), Has.Length.EqualTo(1));
         Assert.That(testDirectory.Directory.GetDirectories(), Has.Length.EqualTo(1));
     }
+
+    [Test]
+    public void Check_If_OnFileDeleting_Archives_File_In_Log_File_Directory()
+    {
+        // Arrange
+        using var testDirectory = new TestDirectory();
+        var logFile = testDirectory.CreateFile("some.log", "content");
+        var archiveHook = new ArchiveHook();
+
+        // Act
+        archiveHook.OnFileDeleting(logFile.FullName);
+
+        // Assert
+        var archiveFile = new FileInfo(Path.Combine(testDirectory.Directory.FullName, "some.zip"));
+        Assert.That(archiveFile.Exists, Is.True);
+        using var archive = System.IO.Compression.ZipFile.OpenRead(archiveFile.FullName);
+        Assert.That(archive.Entries, Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public void Check_If_OnFileDeleting_Creates_Configured_Archive_Directory()
+    {
+        // Arrange
+        using var testDirectory = new TestDirectory();
+        var archiveDirectory = new DirectoryInfo(Path.Combine(testDirectory.Directory.FullName, "archive"));
+        var logFile = testDirectory.CreateFile("some.log", "content");
+        var archiveHook = new ArchiveHook(archiveDirectory: archiveDirectory);
+
+        // Act
+        archiveHook.OnFileDeleting(logFile.FullName);
+
+        // Assert
+        var archiveFile = new FileInfo(Path.Combine(archiveDirectory.FullName, "some.zip"));
+        Assert.That(archiveDirectory.Exists, Is.True);
+        Assert.That(archiveFile.Exists, Is.True);
+    }
+
+    [Test]
+    public void Check_If_OnFileDeleting_Suppresses_Archiving_Errors()
+    {
+        // Arrange
+        using var testDirectory = new TestDirectory();
+        var missingLogFilePath = Path.Combine(testDirectory.Directory.FullName, "missing.log");
+        var archiveHook = new ArchiveHook();
+
+        // Act and Assert
+        Assert.DoesNotThrow(() => archiveHook.OnFileDeleting(missingLogFilePath));
+    }
 }
