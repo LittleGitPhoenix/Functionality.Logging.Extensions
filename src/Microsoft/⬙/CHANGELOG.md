@@ -29,6 +29,7 @@ ___
 ### References
 
 :white_circle: Microsoft.Extensions.Logging.Abstractions **10.0.0**  
+:white_circle: Phoenix.Functionality.Logging.Base **2.0.0**  
 :red_circle: ~~Microsoft.Extensions.Logging~~  
 ___
 
