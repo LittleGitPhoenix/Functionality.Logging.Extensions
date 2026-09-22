@@ -52,6 +52,11 @@ public interface ILogScope : IEnumerable<KeyValuePair<string, object?>>
 /// <summary>
 /// Wrapper containing data about a logging scope.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Scope data carrier whose factories delegate to LogScopeBuilder.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class LogScope : Dictionary<string, object?>, ILogScope
 {
 	#region Properties

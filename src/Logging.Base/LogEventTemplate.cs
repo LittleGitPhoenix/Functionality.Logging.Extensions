@@ -10,6 +10,11 @@ namespace Phoenix.Functionality.Logging.Base;
 /// <typeparam name="TLogEvent"> The type of the log event. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Abstract template contract and shared property storage.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class LogEventTemplateBase<TLogEvent, TLogLevel, TEventId>
 	where TLogEvent : ILogEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum
@@ -71,6 +76,11 @@ public abstract class LogEventTemplateBase<TLogEvent, TLogLevel, TEventId>
 /// <typeparam name="TLogEvent"> The type of the log event. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Template overloads only forward data to the concrete event factory.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class LogEventTemplate<TLogEvent, TLogLevel, TEventId> : LogEventTemplateBase<TLogEvent, TLogLevel, TEventId>
 	where TLogEvent : ILogEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum
@@ -143,6 +153,11 @@ public abstract class LogEventTemplate<TLogEvent, TLogLevel, TEventId> : LogEven
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
 /// <typeparam name="TArgs"> The type of the arguments tuple to be used with the log event. Must be a <see cref="ValueTuple"/> or a <b>System.Runtime.CompilerServices.ITuple</b>, representing the parameters to be formatted into the log message. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Template overloads only convert arguments and forward data to the concrete event factory.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class LogEventTemplate<TLogEvent, TLogLevel, TEventId, TArgs> : LogEventTemplateBase<TLogEvent, TLogLevel, TEventId>
 	where TLogEvent : ILogEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum

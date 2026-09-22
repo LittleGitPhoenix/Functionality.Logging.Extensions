@@ -11,6 +11,11 @@ namespace Phoenix.Functionality.Logging.Base;
 /// The <see cref="Unit"/> type is commonly used in scenarios where a method or operation conceptually returns no value, such as in functional programming patterns.
 /// It can be used as a placeholder for generic type parameters when no result is required.
 /// </remarks>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Marker value type without executable behavior.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public struct Unit
 {
 	/// <summary>

@@ -49,6 +49,11 @@ public interface ILogEvent<TLogLevel, TEventId>
 /// </summary>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Data carrier with constructors and deconstruction only.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class LogEvent<TLogLevel, TEventId> : ILogEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum
 	where TEventId : struct
@@ -139,6 +144,11 @@ public class LogEvent<TLogLevel, TEventId> : ILogEvent<TLogLevel, TEventId>
 /// <typeparam name="TActual"> The actual type. Used for the static <see cref="Instance"/> </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Null-object data carrier with boilerplate defaults.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class NoLogEvent<TActual, TLogLevel, TEventId> : ILogEvent<TLogLevel, TEventId>
 	where TActual : NoLogEvent<TActual, TLogLevel, TEventId>, new()
 	where TLogLevel : struct, Enum

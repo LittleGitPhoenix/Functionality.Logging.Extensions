@@ -12,6 +12,11 @@ namespace Phoenix.Functionality.Logging.Base;
 /// <typeparam name="TLogResourceEvent"> The type of the resource event that this template creates. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Abstract template contract and shared property storage.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class LogResourceEventTemplateBase<TLogResourceEvent, TLogLevel, TEventId>
 	where TLogResourceEvent : ILogResourceEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum
@@ -65,6 +70,11 @@ public abstract class LogResourceEventTemplateBase<TLogResourceEvent, TLogLevel,
 /// <typeparam name="TLogResourceEvent"> The type of the resource event that this template creates. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Template overloads only forward data to the concrete event factory.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEventId> : LogResourceEventTemplateBase<TLogResourceEvent, TLogLevel, TEventId>
 	where TLogResourceEvent : ILogResourceEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum
@@ -122,6 +132,11 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
 /// <typeparam name="TArgs"> The type of the arguments tuple to be used with the log event. Must be a <see cref="ValueTuple"/> or a <b>System.Runtime.CompilerServices.ITuple</b>, representing the parameters to be formatted into the log message. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Template overloads only convert arguments and forward data to the concrete event factory.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEventId, TArgs> : LogResourceEventTemplateBase<TLogResourceEvent, TLogLevel, TEventId>
 	where TLogResourceEvent : ILogResourceEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum
@@ -224,6 +239,11 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
 /// <typeparam name="TArgs"> The type of the arguments tuple to be used with the log event. Must be a <see cref="ValueTuple"/> or a <b>System.Runtime.CompilerServices.ITuple</b>, representing the parameters to be formatted into the log message. </typeparam>
 /// <typeparam name="TOutputArgs"> The type of the arguments tuple to be used to create the output message. Must be a <see cref="ValueTuple"/> or a <b>System.Runtime.CompilerServices.ITuple</b>, representing the parameters to be formatted into the output message. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Template overloads only convert arguments and forward data to the concrete event factory.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEventId, TArgs, TOutputArgs> : LogResourceEventTemplateBase<TLogResourceEvent, TLogLevel, TEventId>
 	where TLogResourceEvent : ILogResourceEvent<TLogLevel, TEventId>
 	where TLogLevel : struct, Enum

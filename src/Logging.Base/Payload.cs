@@ -14,6 +14,11 @@ public interface IPayload : ILogScope;
 /// <summary>
 /// This is a specialized <see cref="ILogScope"/> that is used as <see cref="ILogEvent{TLogLevel,TEventId}.Payload"/> for log events. As such it's values are directly linked only to a single log event and must not influence anything else (e.g. in parallel workflows). Therefore, its <see cref="LogScopeType"/> is implicitly set to <see cref="LogScopeType.ExecutionContextAware"/> and cannot be changed.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Data carrier whose factory methods delegate to LogScopeBuilder.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class Payload : Dictionary<string, object?>, IPayload
 {
 	/// <inheritdoc />

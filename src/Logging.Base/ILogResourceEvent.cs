@@ -183,6 +183,11 @@ public class LogResourceEvent<TLogLevel, TEventId> : LogEvent<TLogLevel, TEventI
 /// <typeparam name="TActual"> The actual type. Used for the static <see cref="NoLogEvent{TActual,TLogLevel,TEventId}.Instance"/> property. </typeparam>
 /// <typeparam name="TLogLevel"> The type of the log level. </typeparam>
 /// <typeparam name="TEventId"> The type of the event id. </typeparam>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Null-object data carrier with boilerplate defaults.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public abstract class NoLogResourceEvent<TActual, TLogLevel, TEventId> : NoLogEvent<TActual, TLogLevel, TEventId>, ILogResourceEvent<TLogLevel, TEventId>
 	where TActual : NoLogResourceEvent<TActual, TLogLevel, TEventId>, new()
 	where TLogLevel : struct, Enum
