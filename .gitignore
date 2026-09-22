@@ -1,5 +1,5 @@
 # ╔═══════════════════════════╗
-# ║ PHOENIX .gitignore v1.5.0 ║
+# ║ PHOENIX .gitignore v1.6.0 ║
 # ╚═══════════════════════════╝
 
 ## Ignore Visual Studio temporary files, build results, and
@@ -319,6 +319,9 @@ __pycache__/
 
 # Development-only files and configurations (not to be committed)
 .development/
+
+# VS Code workspace files.
+*.code-workspace
 
 # ╔════════════════════════════════╗
 # ║ Project specific PHOENIX Rules ║
