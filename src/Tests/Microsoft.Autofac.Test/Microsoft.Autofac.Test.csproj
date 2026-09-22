@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net10.0;net462</TargetFrameworks>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+		<!-- net462 needs Mono to run on the GitHub Actions Linux runner, which isn't installed there. -->
+		<TargetFrameworks Condition="'$(GITHUB_ACTIONS)' != 'true'">$(TargetFrameworks);net462</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
