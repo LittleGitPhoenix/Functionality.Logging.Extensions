@@ -106,4 +106,69 @@ public class LoggerSettingsConfigurationExtensionsTest
             if (defaultConfigFile.Exists) defaultConfigFile.Delete();
         }
     }
+
+    /// <summary>
+    /// Verifies that malformed JSON is wrapped in a <see cref="SerilogSettingsException"/>.
+    /// </summary>
+    [Test]
+    public void Check_Malformed_File_Throws()
+    {
+        // Arrange
+        using var testDirectory = new TestDirectory();
+        var settingsFile = testDirectory.CreateFile("serilog.config", "{ malformed");
+
+        // Act
+        var exception = Assert.Throws<SerilogSettingsException>(() => new LoggerConfiguration().ReadFrom.JsonFile(settingsFile));
+
+        // Assert
+        Assert.That(exception, Is.Not.Null);
+        Assert.That(exception!.InnerException, Is.Not.Null);
+    }
+
+    /// <summary>
+    /// Verifies that a missing configuration file in the application directory is reported when it cannot be copied.
+    /// </summary>
+    [Test]
+    public void Check_Missing_Default_File_Throws()
+    {
+        // Arrange
+        var applicationDirectory = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+        var configFileName = $"missing-{Guid.NewGuid():N}.config";
+        using var testDirectory = new TestDirectory();
+        var originalDirectory = Directory.GetCurrentDirectory();
+
+        try
+        {
+            Directory.SetCurrentDirectory(testDirectory.Directory.FullName);
+
+            // Act
+            var exception = Assert.Throws<SerilogSettingsException>(() => new LoggerConfiguration().ReadFrom.JsonFile(configFileName));
+
+            // Assert
+            Assert.That(exception, Is.Not.Null);
+            Assert.That(exception!.Message, Does.Contain(configFileName));
+            Assert.That(exception.Message, Does.Contain(applicationDirectory.FullName));
+        }
+        finally
+        {
+            Directory.SetCurrentDirectory(originalDirectory);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a missing custom section falls back to the default Serilog section.
+    /// </summary>
+    [Test]
+    public void Check_Missing_Custom_Section_Uses_Default_Section()
+    {
+        // Arrange
+        using var testDirectory = new TestDirectory();
+        var settingsFile = testDirectory.CreateFile("serilog.config", this.ValidConfigurationContent);
+
+        // Act
+        var configuration = new LoggerConfiguration().ReadFrom.JsonFile(settingsFile, "CustomSerilog");
+
+        // Assert
+        Assert.That(configuration, Is.Not.Null);
+    }
 }

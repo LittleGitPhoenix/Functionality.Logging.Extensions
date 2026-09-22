@@ -13,6 +13,11 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 /// <summary>
 /// <see cref="ILogEventEnricher"/> that adds the application version as property <b>ApplicationVersion</b> to log events.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Deprecated legacy enricher replaced by ApplicationInformationEnricher.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 [Obsolete("Use 'ApplicationInformationEnricher' instead.")]
 public sealed class ApplicationVersionEnricher : ILogEventEnricher
 {
