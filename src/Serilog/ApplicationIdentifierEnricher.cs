@@ -13,7 +13,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 /// <summary>
 /// <see cref="ILogEventEnricher"/> that adds a unique alpha-numeric application identifier as property <b>ApplicationIdentifier</b> to log events.
 /// </summary>
-[Obsolete("Use 'ApplicationInformationEnricher' instead.")]
+[Obsolete($"Use {nameof(ApplicationInformationEnricher)} instead.")]
 public sealed class ApplicationIdentifierEnricher : ILogEventEnricher
 {
     #region Delegates / Events
@@ -79,7 +79,7 @@ public static partial class LoggerEnrichmentConfigurationExtensions
 	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
 	/// <param name="applicationIdentifier"> The unique identifier. </param>
 	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
-	[Obsolete("Use 'WithApplicationInformation' instead.")]
+	[Obsolete($"Use {nameof(LoggerEnrichmentConfigurationExtensions.WithApplicationInformation)} instead.")]
 	public static LoggerConfiguration WithApplicationIdentifier(this LoggerEnrichmentConfiguration enrich, string applicationIdentifier)
     {
         if (enrich is null) throw new ArgumentNullException(nameof(enrich));
@@ -92,7 +92,7 @@ public static partial class LoggerEnrichmentConfigurationExtensions
 	/// <param name="enrich"> The extended <see cref="LoggerEnrichmentConfiguration"/>. </param>
 	/// <param name="values"> A collection of strings from which an unique alphanumeric identifier is created. The order of the values is not relevant for building the identifier. </param>
 	/// <returns> The <see cref="LoggerConfiguration"/> for further chaining. </returns>
-	[Obsolete("Use 'WithApplicationInformation' instead.")]
+	[Obsolete($"Use {nameof(LoggerEnrichmentConfigurationExtensions.WithApplicationInformation)} instead.")]
 	public static LoggerConfiguration WithApplicationIdentifier(this LoggerEnrichmentConfiguration enrich, params string[] values)
     {
         if (enrich is null) throw new ArgumentNullException(nameof(enrich));

@@ -33,14 +33,14 @@ public interface ILogEvent<TLogLevel, TEventId>
 	IPayload? Payload { get; }
 
 	/// <summary>
-	/// Deconstructs the <see cref="eventId"/> into its constituent properties.
+	/// Deconstructs the <see cref="ILogEvent{TLogLevel, TEventId}"/> into its constituent properties.
 	/// </summary>
-	/// <param name="eventId"> <inheritdoc cref="exception"/> </param>
-	/// <param name="exception"> <inheritdoc cref="logLevel"/> </param>
-	/// <param name="logLevel"> <inheritdoc cref="logMessage"/> </param>
-	/// <param name="logMessage"> <inheritdoc cref="args"/> </param>
-	/// <param name="args"> <inheritdoc cref="payload"/> </param>
-	/// <param name="payload"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}"/> </param>
+	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
+	/// <param name="exception"> <inheritdoc cref="Exception"/> </param>
+	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
+	/// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
+	/// <param name="args"> <inheritdoc cref="Args"/> </param>
+	/// <param name="payload"> <inheritdoc cref="Payload"/> </param>
 	void Deconstruct(out TEventId eventId, out Exception? exception, out TLogLevel logLevel, out string logMessage, out object?[] args, out IPayload? payload);
 }
 

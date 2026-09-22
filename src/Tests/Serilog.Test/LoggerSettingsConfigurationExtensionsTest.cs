@@ -64,15 +64,18 @@ public class LoggerSettingsConfigurationExtensionsTest
 
         // Assert: LogLevel
         var levelSwitchField = type.GetField("_levelSwitch", BindingFlags.Instance | BindingFlags.NonPublic);
-        var levelSwitch = (LoggingLevelSwitch) levelSwitchField?.GetValue(logger);
+		Assert.That(levelSwitchField, Is.Not.Null, "Expected _levelSwitch field to be present");
+        var levelSwitch = (LoggingLevelSwitch) levelSwitchField!.GetValue(logger)!;
         Assert.That(levelSwitch?.MinimumLevel, Is.EqualTo(LogEventLevel.Fatal));
 
         // Assert: Sinks
         var aggregateSinkField = type.GetField("_sink", BindingFlags.Instance | BindingFlags.NonPublic);
-        var aggregateSink = (ILogEventSink) aggregateSinkField?.GetValue(logger);
+		Assert.That(aggregateSinkField, Is.Not.Null, "Expected _sink field to be present");
+        var aggregateSink = (ILogEventSink) aggregateSinkField!.GetValue(logger)!;
         type = aggregateSink?.GetType();
         var sinksField = type?.GetField("_sinks", BindingFlags.Instance | BindingFlags.NonPublic);
-        var sinks = (Array) sinksField?.GetValue(aggregateSink);
+		Assert.That(sinksField, Is.Not.Null, "Expected _sinks field to be present");
+        var sinks = (Array) sinksField!.GetValue(aggregateSink)!;
         Assert.That(sinks, Has.Length.EqualTo(2));
     }
 

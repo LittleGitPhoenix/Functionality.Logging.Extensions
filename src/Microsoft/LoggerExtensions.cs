@@ -122,7 +122,7 @@ remove this class!
 	/// <param name="resourceName"> The name of the resource that is the log message. </param>
 	/// <param name="args"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
 	/// <param name="outputArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="args"/> will be used. </param>
-	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogResourceEvent.LogCulture"/>. </param>
+	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogResourceEventSettings.LogCulture"/>. </param>
 	/// <returns> The translated log message. </returns>
 	public static string Log(this ILogger logger, EventId eventId, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
 		=> LogEventFromResource(new LogResourceEvent(eventId, logLevel, resourceManager, resourceName, args, outputArgs, logCulture), logger);
@@ -138,7 +138,7 @@ remove this class!
 	/// <param name="resourceName"> The name of the resource that is the log message. </param>
 	/// <param name="args"> Optional arguments passed to the log message. Those arguments are directly passed to the underlying logger instance. </param>
 	/// <param name="outputArgs"> Optional arguments merged into the returned output message via <see cref="String.Format(string,object?[])"/>. If this is omitted, then <paramref name="args"/> will be used. </param>
-	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogResourceEvent.LogCulture"/>. </param>
+	/// <param name="logCulture"> Optional <see cref="CultureInfo"/> used to resolve log messages from resource files. Default value is <see cref="LogResourceEventSettings.LogCulture"/>. </param>
 	/// <returns> The translated log message. </returns>
 	public static string Log(this ILogger logger, EventId eventId, Exception exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? args = null, object?[]? outputArgs = null, CultureInfo? logCulture = null)
 		=> LogEventFromResource(new LogResourceEvent(eventId, exception, logLevel, resourceManager, resourceName, args, outputArgs, logCulture), logger);
@@ -518,7 +518,7 @@ remove this class!
 	/// <param name="logger"> The extended <see cref="ILogger"/>. </param>
 	/// <param name="scope"> The scope to apply. </param>
 	/// <returns> The logging scope. </returns>
-	/// <remarks> It may be better to get the groups of a logger with the <see cref="AsGroup{TIdentifier}"/> extension method and then applying the scope with one of the group methods like <see cref="ILoggerGroup.CreateScope(LogScope)"/>. </remarks>
+	/// <remarks> It may be better to get the groups of a logger with the <see cref="AsGroup{TIdentifier}"/> extension method and then applying the scope with one of the group methods like <see cref="ILoggerGroup.Enrich(ILogScope)"/>. </remarks>
 	[Obsolete($"Directly creating scopes for a logger group is no longer supported. Instead use {nameof(AsGroup)} followed by {nameof(ILoggerGroup)}.{nameof(ILoggerGroup.Enrich)}.", true)]
 	public static IDisposable CreateScope<TIdentifier>(this ILogger logger, LogScope<TIdentifier>? scope)
 		where TIdentifier : notnull

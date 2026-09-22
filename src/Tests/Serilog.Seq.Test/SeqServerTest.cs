@@ -27,6 +27,9 @@ public class SeqServerTest
 
 	#region Data
 
+#pragma warning disable 8618 // → Always initialized in the 'Setup' method before a test is run.
+#pragma warning disable IDE0052 // Remove unread private member
+#pragma warning disable CS0414 // A private field is assigned but its value is never used
 	private string _title;
 
 	private string _apiKey;
@@ -34,7 +37,10 @@ public class SeqServerTest
 	private string _seqHost;
 
 	private ushort _seqPort;
-
+#pragma warning restore CS0414
+#pragma warning restore IDE0052
+#pragma warning restore 8618
+	
 	private const string ConfigurationApiKey = "pYHlGsUQw5RsLSFTJHKF";
 
 	#endregion

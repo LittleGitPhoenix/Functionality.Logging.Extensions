@@ -38,7 +38,9 @@ public record LogApplicationInformation()
 	/// <summary>
 	/// The name of the application.
 	/// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 	public string Name { get; private init; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 	/// <summary>
 	/// A unique numeric identifier build from <see cref="Name"/> that could be used to register the application with a log target or to enrich log events.
@@ -48,7 +50,9 @@ public record LogApplicationInformation()
 	/// <summary>
 	/// A unique 20 chars long alphanumeric identifier build from <see cref="Name"/> that could be used to register the application with a log target or to enrich log events.
 	/// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 	public string AlphanumericIdentifier { get; private init; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 	/// <summary> The assembly version of the running executable, which is specified in the project file as <b>AssemblyVersion</b> (https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/versioning#assembly-version). </summary>
 	/// <remarks> If the version couldn't be obtained, this will be a zero-version. </remarks>

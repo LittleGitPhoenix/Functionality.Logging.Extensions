@@ -36,10 +36,11 @@ public class LogScopeBuilderTest
 		EnumValue,
 	}
 
+#pragma warning disable IDE0032 // Use auto property
     internal bool BoolProperty => _boolField;
-    private readonly bool _boolField = true;
+	private readonly bool _boolField = true;
 
-    internal int NumericProperty => _numericField;
+	internal int NumericProperty => _numericField;
     private readonly int _numericField = 5;
 
     internal string StringProperty => _stringField;
@@ -60,6 +61,7 @@ public class LogScopeBuilderTest
 			
         internal static Guid StaticGuid { get; } = Guid.NewGuid();
     }
+#pragma warning restore IDE0032 // Use auto property
 
 	#endregion
 
@@ -207,7 +209,7 @@ public class LogScopeBuilderTest
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.BoolProperty);
 
         // Assert
-        Assert.That(name, Is.EqualTo(nameof(BoolProperty)));
+        Assert.That(name, Is.EqualTo(nameof(this.BoolProperty)));
         Assert.That(value, Is.EqualTo(this.BoolProperty));
     }
 
@@ -218,7 +220,7 @@ public class LogScopeBuilderTest
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.NumericProperty);
 
         // Assert
-        Assert.That(name, Is.EqualTo(nameof(NumericProperty)));
+        Assert.That(name, Is.EqualTo(nameof(this.NumericProperty)));
         Assert.That(value, Is.EqualTo(this.NumericProperty));
     }
 
@@ -229,7 +231,7 @@ public class LogScopeBuilderTest
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.StringProperty);
 
         // Assert
-        Assert.That(name, Is.EqualTo(nameof(StringProperty)));
+        Assert.That(name, Is.EqualTo(nameof(this.StringProperty)));
         Assert.That(value, Is.EqualTo(this.StringProperty));
     }
 
@@ -247,11 +249,13 @@ public class LogScopeBuilderTest
     [Test]
     public void GetExpressionDataSucceedsForNullStringProperty()
     {
-        // Act
-        var (name, value) = LogScopeBuilder.GetExpressionData(() => this.NullStringProperty);
+		// Act
+#pragma warning disable CS8603 // Possible null reference return. → This test explicitly checks behavior for a null string property.
+		var (name, value) = LogScopeBuilder.GetExpressionData(() => this.NullStringProperty);
+#pragma warning restore CS8603
 
-        // Assert
-        Assert.That(name, Is.EqualTo(nameof(NullStringProperty)));
+		// Assert
+		Assert.That(name, Is.EqualTo(nameof(this.NullStringProperty)));
         Assert.That(value, Is.EqualTo(this.NullStringProperty));
     }
 
@@ -262,7 +266,7 @@ public class LogScopeBuilderTest
         var (name, value) = LogScopeBuilder.GetExpressionData(() => this.NestedProperty.Guid);
 
         // Assert
-        Assert.That(name, Is.EqualTo(nameof(NestedProperty.Guid)));
+        Assert.That(name, Is.EqualTo(nameof(this.NestedProperty.Guid)));
         Assert.That(value, Is.EqualTo(this.NestedProperty.Guid));
     }
 
@@ -282,10 +286,12 @@ public class LogScopeBuilderTest
     {
         // Act
         Nested? nullInstance = null;
-        var (name, value) = LogScopeBuilder.GetExpressionData(() => nullInstance.Guid);
+#pragma warning disable CS8602 // Dereference of a possibly null reference. → This test explicitly checks behavior for a null instance.
+		var (name, value) = LogScopeBuilder.GetExpressionData(() => nullInstance.Guid);
+#pragma warning restore CS8602
 
-        // Assert
-        Assert.That(name, Is.EqualTo(nameof(Nested.Guid)));
+		// Assert
+		Assert.That(name, Is.EqualTo(nameof(Nested.Guid)));
         Assert.That(value, Is.EqualTo(null));
     }
 
@@ -338,7 +344,9 @@ public class LogScopeBuilderTest
     public void GetExpressionDataSucceedsForDirectNullValue()
     {
         // Act
+#pragma warning disable CS8603 // Possible null reference return. → This is expected because this tests explicitly tests a null value.
         var (name, value) = LogScopeBuilder.GetExpressionData(() => null);
+#pragma warning restore CS8603
 
         // Assert
         Assert.That(name, Is.EqualTo($"{nameof(System)}.{nameof(System.Object)}"));

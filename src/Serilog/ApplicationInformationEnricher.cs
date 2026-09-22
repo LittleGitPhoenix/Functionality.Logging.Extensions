@@ -6,7 +6,6 @@ using Serilog.Configuration;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using System.Reflection;
 using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Serilog;
@@ -20,6 +19,19 @@ public sealed class ApplicationInformationEnricher : ILogEventEnricher
 	#endregion
 
 	#region Constants
+		
+    /// <summary> The property name used when enriching events with <see cref="LogApplicationInformationParts.Name"/>. </summary>
+    public const string ApplicationNamePropertyName = "ApplicationName";
+		
+    /// <summary> The property name used when enriching events with <see cref="LogApplicationInformationParts.NumericIdentifier"/>. </summary>
+    public const string ApplicationIdPropertyName = "ApplicationId";
+		
+    /// <summary> The property name used when enriching events with <see cref="LogApplicationInformationParts.AlphanumericIdentifier"/>. </summary>
+	public const string ApplicationIdentifierPropertyName = "ApplicationIdentifier";
+		
+	/// <summary> The property name used when enriching events with <see cref="LogApplicationInformationParts.AssemblyVersion"/>, <see cref="LogApplicationInformationParts.FileVersion"/> or <see cref="LogApplicationInformationParts.InformationalVersion"/>. </summary>
+	public const string ApplicationVersionPropertyName = "ApplicationVersion";
+
 	#endregion
 
 	#region Fields
@@ -72,9 +84,9 @@ public sealed class ApplicationInformationEnricher : ILogEventEnricher
 	{
 		IEnumerable<LogEventProperty> BuildLogEventProperties()
 		{
-			if (propertiesToLog.HasFlag(LogApplicationInformationParts.Name)) yield return new LogEventProperty("ApplicationName", new ScalarValue(applicationInformation.Name));
-			if (propertiesToLog.HasFlag(LogApplicationInformationParts.NumericIdentifier)) yield return new LogEventProperty("ApplicationId", new ScalarValue(applicationInformation.NumericIdentifier));
-			if (propertiesToLog.HasFlag(LogApplicationInformationParts.AlphanumericIdentifier)) yield return new LogEventProperty("ApplicationIdentifier", new ScalarValue(applicationInformation.AlphanumericIdentifier));
+			if (propertiesToLog.HasFlag(LogApplicationInformationParts.Name)) yield return new LogEventProperty(ApplicationNamePropertyName, new ScalarValue(applicationInformation.Name));
+			if (propertiesToLog.HasFlag(LogApplicationInformationParts.NumericIdentifier)) yield return new LogEventProperty(ApplicationIdPropertyName, new ScalarValue(applicationInformation.NumericIdentifier));
+			if (propertiesToLog.HasFlag(LogApplicationInformationParts.AlphanumericIdentifier)) yield return new LogEventProperty(ApplicationIdentifierPropertyName, new ScalarValue(applicationInformation.AlphanumericIdentifier));
 			if
 			(
 				propertiesToLog.HasFlag(LogApplicationInformationParts.AssemblyVersion)
@@ -97,11 +109,11 @@ public sealed class ApplicationInformationEnricher : ILogEventEnricher
 				}
 				
 				if (versionModificationCallback is not null) version = versionModificationCallback.Invoke(version);
-				yield return new LogEventProperty("ApplicationVersion", new ScalarValue(version ?? "unknown"));
+				yield return new LogEventProperty(ApplicationVersionPropertyName, new ScalarValue(version ?? "unknown"));
 			}
 		}
 
-		_logEventProperties = BuildLogEventProperties().ToArray();
+		_logEventProperties = [.. BuildLogEventProperties()];
 	}
 
 	#endregion

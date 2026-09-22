@@ -100,7 +100,7 @@ class EndlessLogging
                            }
                        ))
                 {
-                    _logger.LogDebug("Starting iteration {Iteration}");
+                    _logger.LogDebug("Starting iteration {Iteration}", iteration);
 						
                     for (int i = 0; i < 6; i++)
                     {

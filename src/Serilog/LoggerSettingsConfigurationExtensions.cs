@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Debugging;
+using Serilog.Settings.Configuration;
 
 namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 
@@ -67,7 +68,8 @@ public static class LoggerSettingsConfigurationExtensions
 
         try
         {
-            var loggerConfiguration = loggerSettingsConfiguration.Configuration(configuration, foundSerilogSectionName!);
+            var readerOptions = new ConfigurationReaderOptions() { SectionName = foundSerilogSectionName! };
+            var loggerConfiguration = loggerSettingsConfiguration.Configuration(configuration, readerOptions);
             return loggerConfiguration;
         }
         catch (Exception ex)
@@ -80,12 +82,7 @@ public static class LoggerSettingsConfigurationExtensions
     {
         try
         {
-            return (
-                       new ConfigurationBuilder()
-                           .AddJsonFile(serilogConfigurationFile.FullName, false, true)
-                           .Build()
-                   )
-                   ?? throw new SerilogSettingsException($"The file {serilogConfigurationFile.FullName} could not be parsed.");
+            return new ConfigurationBuilder().AddJsonFile(serilogConfigurationFile.FullName, false, true).Build() ?? throw new SerilogSettingsException($"The file {serilogConfigurationFile.FullName} could not be parsed.");
         }
         catch (Exception ex)
         {

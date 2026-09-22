@@ -51,20 +51,20 @@ public class LoggerExtensionsTest
 		#endregion
 	}
 
-	public class InstanceWrapper
-	{
-		private readonly ILogger _logger;
+	//public class InstanceWrapper
+	//{
+	//	private readonly ILogger _logger;
 
-		public InstanceWrapper(ILogger logger)
-		{
-			_logger = logger;
-		}
+	//	public InstanceWrapper(ILogger logger)
+	//	{
+	//		_logger = logger;
+	//	}
 
-		//public virtual IDisposable CreateScopeAndLog((LogScope Scope, LogEvent Event)? log) => _logger.CreateScopeAndLog(log);
-		public virtual IDisposable CreateScopeAndLog((ILogScope Scope, ILogEvent Event)? log) => _logger.Enrich(log.Value.Scope).Log(log.Value.Event).Use();
+	//	//public virtual IDisposable CreateScopeAndLog((LogScope Scope, LogEvent Event)? log) => _logger.CreateScopeAndLog(log);
+	//	public virtual IDisposable CreateScopeAndLog((ILogScope Scope, ILogEvent Event)? log) => _logger.Enrich(log.Value.Scope).Log(log.Value.Event).Use();
 
-		//public virtual IDisposable CreateScopeAndLog<TIdentifier>((LogScope<TIdentifier> Scope, LogEvent Event)? log) where TIdentifier : notnull => _logger.CreateScopeAndLog(log);
-	}
+	//	//public virtual IDisposable CreateScopeAndLog<TIdentifier>((LogScope<TIdentifier> Scope, LogEvent Event)? log) where TIdentifier : notnull => _logger.CreateScopeAndLog(log);
+	//}
 
 	#endregion
 
@@ -123,7 +123,9 @@ public class LoggerExtensionsTest
 		var dataSetId = _fixture.Create<ushort>();
 		var logger = _fixture.Create<Mock<ILogger>>().Object;
 		Mock.Get(logger).Setup(mock => mock.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-		var targetOutputMessage = String.Format(resourceManager.GetString(resourceName, destinationCulture), dataSetId);
+		var unformattedMessage = resourceManager.GetString(resourceName, destinationCulture);
+		Assert.That(unformattedMessage, Is.Not.Null);
+		var targetOutputMessage = String.Format(unformattedMessage!, dataSetId);
 		ChangeCulture(cultureIdentifier);
 
 		// Act
@@ -133,7 +135,7 @@ public class LoggerExtensionsTest
 		Assert.That(outputMessage, Is.EqualTo(targetOutputMessage));
 	}
 
-	// Not needed anymore since we removed the overload that does not infer the generic type parameter.
+	// Not needed anymore since the overload that does not infer the generic type parameter was removed.
 	//[Test]
 	//public void CreateScopeAndLogOverloadForGroupsIsReflected()
 	//{

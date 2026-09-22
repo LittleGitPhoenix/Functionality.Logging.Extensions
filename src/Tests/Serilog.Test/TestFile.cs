@@ -10,7 +10,7 @@ sealed class TestFile : IDisposable
 
     #region Fields
 
-    private static DirectoryInfo _directory;
+    private static DirectoryInfo Directory;
 
     #endregion
 
@@ -22,6 +22,13 @@ sealed class TestFile : IDisposable
 
     #region (De)Constructors
 
+    static TestFile()
+    {
+        var directoryPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), $".temp_{Guid.NewGuid()}");
+        Directory = new DirectoryInfo(directoryPath);
+        Directory.Create();        
+    }
+
     public TestFile(string name, string content)
     {
         // Save parameters.
@@ -31,12 +38,8 @@ sealed class TestFile : IDisposable
     }
 
     private static FileInfo CreateTempFile(string name, string content)
-    {
-        var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), $".temp_{Guid.NewGuid()}");
-        _directory = new DirectoryInfo(directoryPath);
-        _directory.Create();
-			
-        var filePath = Path.Combine(_directory.FullName, name);
+    {			
+        var filePath = Path.Combine(Directory.FullName, name);
         var file = new FileInfo(filePath);
         {
             using var fileStream = file.Open(FileMode.Create, FileAccess.ReadWrite);
@@ -54,7 +57,7 @@ sealed class TestFile : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        _directory?.Delete(true);
+		if (Directory.Exists) Directory?.Delete(true);
     }
 
     #endregion

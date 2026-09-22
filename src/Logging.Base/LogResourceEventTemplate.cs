@@ -27,16 +27,20 @@ public abstract class LogResourceEventTemplateBase<TLogResourceEvent, TLogLevel,
 #if NETCOREAPP3_0_OR_GREATER
 	public required System.Resources.ResourceManager ResourceManager { get; init; }
 #else
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 	public System.Resources.ResourceManager ResourceManager { get; init; }
+#pragma warning restore CS8618
 #endif
 
 	/// <summary> The name of the resource in the <see cref="ResourceManager"/>. </summary>
 #if NETCOREAPP3_0_OR_GREATER
 	public required string ResourceName { get; init; }
 #else
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 	public string ResourceName { get; init; }
+#pragma warning restore CS8618
 #endif
-	
+
 	/// <summary>
 	/// Creates a log event based on the provided parameters. The actual implementation of this method is deferred to derived classes.
 	/// </summary>
@@ -88,7 +92,7 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 	/// <summary>
 	/// Builds a resource log event using the specified <paramref name="actualLogLevel"/>.
 	/// </summary>
-	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
+	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="ILogEvent{TLogLevel, TEventId}.LogLevel"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEventSettings.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <typeparamref name="TLogResourceEvent"/>. </returns>
@@ -98,7 +102,7 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 	/// <summary>
 	/// Builds a resource log event using the specified <paramref name="actualLogLevel"/> containing the specified <paramref name="exception"/>.
 	/// </summary>
-	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
+	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="ILogEvent{TLogLevel, TEventId}.LogLevel"/>. </param>
 	/// <param name="exception"> The exception to include in the log event. Cannot be <see langword="null"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEventSettings.LogCulture"/> will be used instead. </param>
@@ -187,7 +191,7 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 	/// Builds a resource log event using the specified <paramref name="actualLogLevel"/>.
 	/// </summary>
 	/// <param name="args"> The arguments used to construct the log event. </param>
-	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
+	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="ILogEvent{TLogLevel, TEventId}.LogLevel"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEventSettings.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <typeparamref name="TLogResourceEvent"/>. </returns>
@@ -198,7 +202,7 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 	/// Builds a resource log event using the specified <paramref name="actualLogLevel"/> containing the specified <paramref name="exception"/>.
 	/// </summary>
 	/// <param name="args"> The arguments used to construct the log event. </param>
-	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
+	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="ILogEvent{TLogLevel, TEventId}.LogLevel"/>. </param>
 	/// <param name="exception"> The exception to include in the log event. Cannot be <see langword="null"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEventSettings.LogCulture"/> will be used instead. </param>
@@ -295,7 +299,7 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 	/// </summary>
 	/// <param name="args"> The arguments used to construct the log event. </param>
 	/// <param name="outputArgs"> The arguments used to construct the output event. </param>
-	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
+	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="ILogEvent{TLogLevel, TEventId}.LogLevel"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEventSettings.LogCulture"/> will be used instead. </param>
 	/// <returns> The created <typeparamref name="TLogResourceEvent"/>. </returns>
@@ -307,7 +311,7 @@ public abstract class LogResourceEventTemplate<TLogResourceEvent, TLogLevel, TEv
 	/// </summary>
 	/// <param name="args"> The arguments used to construct the log event. </param>
 	/// <param name="outputArgs"> The arguments used to construct the output event. </param>
-	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="LogLevel"/>. </param>
+	/// <param name="actualLogLevel"> The log level to associate with the created log event. This overrides the pre-defined <see cref="ILogEvent{TLogLevel, TEventId}.LogLevel"/>. </param>
 	/// <param name="exception"> The exception to include in the log event. Cannot be <see langword="null"/>. </param>
 	/// <param name="payload"> Optional payload that will be added as scope to the log event. </param>
 	/// <param name="actualLogCulture"> Optional culture of the log message. If this is <see langword="null"/> <see cref="LogResourceEventSettings.LogCulture"/> will be used instead. </param>

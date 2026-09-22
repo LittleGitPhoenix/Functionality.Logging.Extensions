@@ -14,7 +14,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog.Microsoft;
 /// </summary>
 /// <remarks> Based on https://github.com/serilog/serilog-extensions-logging/blob/v3.1.0/src/Serilog.Extensions.Logging/Extensions/Logging/SerilogLoggerProvider.cs (v3.1.0) </remarks>
 [ProviderAlias("Serilog")]
-//? better name: class FrameworkLoggerScopeEnricher
+#pragma warning disable CS0618 // Type or member is obsolete → FrameworkLogger is still used here as this class here is a dependency of it and cannot avoid referencing it.
 internal class FrameworkLoggerEnricher : ILogEventEnricher
 {
     #region Delegates / Events
@@ -196,3 +196,4 @@ internal class FrameworkLoggerEnricher : ILogEventEnricher
 
 	#endregion
 }
+#pragma warning restore CS0618

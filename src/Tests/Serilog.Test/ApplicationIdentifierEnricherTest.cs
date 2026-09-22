@@ -6,6 +6,7 @@ using Serilog.Sinks.InMemory;
 
 namespace Serilog.Test;
 
+#pragma warning disable CS0618 // Type or member is obsolete → This is a test for an obsolete class. It is expected to use obsolete members.
 public class ApplicationIdentifierEnricherTest
 {
     [SetUp]
@@ -23,8 +24,8 @@ public class ApplicationIdentifierEnricherTest
 			.CreateLogger()
             ;
 
-        // Act
-        logger.Information(String.Empty);
+		// Act
+		logger.Information(String.Empty);
 
         // Assert
         var logEvents = InMemorySink.Instance.LogEvents;
@@ -36,3 +37,4 @@ public class ApplicationIdentifierEnricherTest
     }
 #endif
 }
+#pragma warning restore CS0618
