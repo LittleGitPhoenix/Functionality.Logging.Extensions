@@ -1495,4 +1495,4 @@ ___
 
 # Authors
 
-* **Felix Leistner**: _v1.x_ - _v2.x_
+* **Felix Leistner**: _v1.x_ - _v3.x_
