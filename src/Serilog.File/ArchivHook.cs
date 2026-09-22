@@ -71,12 +71,12 @@ public sealed class ArchiveHook : FileLifecycleHooks
             }
 
             // Delete old files in the archive directory.
-            ArchiveHook.DeleteOldFiles(archiveDirectory, _amountOfFilesToKeep);
+            DeleteOldFiles(archiveDirectory, _amountOfFilesToKeep);
 
             // Zip the file.
-            ArchiveHook.CreateZipFile(logFile, _compressionLevel, archiveDirectory);
+            CreateZipFile(logFile, _compressionLevel, archiveDirectory);
         }
-        // ReSharper disable once EmptyGeneralCatchClause → If archiving failed, this may not throw an exception that could lead to an application crash.
+        // ReSharper disable once EmptyGeneralCatchClause → If archiving failed, this must not throw an exception as that could lead to an application crash.
         catch { }
         finally
         {
@@ -93,16 +93,13 @@ public sealed class ArchiveHook : FileLifecycleHooks
     internal static int DeleteOldFiles(DirectoryInfo archiveDirectory, int amountOfFilesToKeep)
     {
         var filesToDelete = archiveDirectory
-                .EnumerateFiles("*.zip")
-                .OrderByDescending(file => file.CreationTime)
-                .Skip(amountOfFilesToKeep)
-                .ToArray()
+            .EnumerateFiles("*.zip")
+            .OrderByDescending(file => file.CreationTime)
+            .Skip(amountOfFilesToKeep)
+            .ToArray()
             ;
 			
-        foreach (var fileToDelete in filesToDelete)
-        {
-            fileToDelete.Delete();
-        }
+        foreach (var fileToDelete in filesToDelete) fileToDelete.Delete();
 
         return filesToDelete.Length;
     }

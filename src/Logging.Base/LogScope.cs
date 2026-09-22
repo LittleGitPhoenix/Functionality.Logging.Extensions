@@ -1,0 +1,444 @@
+#region LICENSE NOTICE
+//! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
+#endregion
+
+using System.Linq.Expressions;
+
+namespace Phoenix.Functionality.Logging.Base;
+
+/// <summary>
+/// Represents a named collection of key-value pairs that enrich log events with contextual data.
+/// </summary>
+/// <remarks>
+/// <para>
+/// The <see cref="LogScopeType"/> property controls how the scope is stored and which log events it reaches:
+/// </para>
+/// <list type="bullet">
+/// <item><description>
+/// <b><see cref="LogScopeType.Independent"/></b> - stored in a globally shared collection. Every log event
+/// emitted through the same logger sees this scope regardless of which thread or execution context is active.
+/// Suitable for static, lifetime-long metadata (service name, version, environment).
+/// </description></item>
+/// <item><description>
+/// <b><see cref="LogScopeType.ExecutionContextAware"/></b> - stored using copy-on-write
+/// <see cref="System.Threading.AsyncLocal{T}"/> semantics. Only log events emitted from the same execution
+/// context (or child contexts spawned after the scope was added) see this scope. Suitable for per-operation
+/// data (trace id, request id, correlation id).
+/// </description></item>
+/// </list>
+/// <para>
+/// <b>Two dimensions of isolation:</b>
+/// </para>
+/// <list type="bullet">
+/// <item><description>
+/// <b>Horizontal (concurrent operations, same class instance)</b> - a single logger instance handles many
+/// concurrent operations (e.g. 1000 parallel HTTP requests hitting a singleton). Use
+/// <see cref="LogScopeType.ExecutionContextAware"/> so each operation only sees its own scope data.
+/// </description></item>
+/// <item><description>
+/// <b>Vertical (class hierarchy, parent → child)</b> - scope added in a child class must not appear in parent
+/// class log events. This cannot be solved by <see cref="LogScopeType"/> alone; it requires each class to have
+/// its own <c>ILogger</c> instance (and therefore its own scope manager). Classes that need to share scope
+/// should be grouped via <c>ILoggerGroup</c>.
+/// </description></item>
+/// </list>
+/// </remarks>
+public interface ILogScope : IEnumerable<KeyValuePair<string, object?>>
+{
+	/// <summary> The type of the current log scope. </summary>
+	LogScopeType Type { get; }
+}
+
+/// <summary>
+/// Wrapper containing data about a logging scope.
+/// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Scope data carrier whose factories delegate to LogScopeBuilder.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
+public class LogScope : Dictionary<string, object?>, ILogScope
+{
+	#region Properties
+	
+	/// <inheritdoc />
+	public LogScopeType Type { get; init; }
+	
+	#endregion
+
+	#region Constructors
+
+#if NETCOREAPP3_0_OR_GREATER
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="value1"> The value that will be added to the scope. </param>
+	/// <param name="value2"> See: <paramref name="value1"/>. </param>
+	/// <param name="value3"> See: <paramref name="value1"/>. </param>
+	/// <param name="value4"> See: <paramref name="value1"/>. </param>
+	/// <param name="value5"> See: <paramref name="value1"/>. </param>
+	/// <param name="value6"> See: <paramref name="value1"/>. </param>
+	/// <param name="value7"> See: <paramref name="value1"/>. </param>
+	/// <param name="value8"> See: <paramref name="value1"/>. </param>
+	/// <param name="value9"> See: <paramref name="value1"/>. </param>
+	/// <param name="value10"> See: <paramref name="value1"/>. </param>
+	/// <param name="name1"> The expression name of <paramref name="value1"/> obtained via 'System.Runtime.CompilerServices.CallerArgumentExpression'. </param>
+	/// <param name="name2"> See: <paramref name="name1"/>. </param>
+	/// <param name="name3"> See: <paramref name="name1"/>. </param>
+	/// <param name="name4"> See: <paramref name="name1"/>. </param>
+	/// <param name="name5"> See: <paramref name="name1"/>. </param>
+	/// <param name="name6"> See: <paramref name="name1"/>. </param>
+	/// <param name="name7"> See: <paramref name="name1"/>. </param>
+	/// <param name="name8"> See: <paramref name="name1"/>. </param>
+	/// <param name="name9"> See: <paramref name="name1"/>. </param>
+	/// <param name="name10"> See: <paramref name="name1"/>. </param>
+	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
+	/// <returns> The logging scope. </returns>
+	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained while its value is specified. </exception>
+	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.ExecutionContextAware)} as default value.")]
+	public LogScope
+	(
+		object? value1,
+		object? value2 = null,
+		object? value3 = null,
+		object? value4 = null,
+		object? value5 = null,
+		object? value6 = null,
+		object? value7 = null,
+		object? value8 = null,
+		object? value9 = null,
+		object? value10 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value1")] string? name1 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value2")] string? name2 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value3")] string? name3 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value4")] string? name4 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value5")] string? name5 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value6")] string? name6 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value7")] string? name7 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value8")] string? name8 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value9")] string? name9 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = null,
+		bool cleanCallerArgument = true
+	)
+		: base
+		(
+			LogScopeBuilder.BuildScopeDictionary
+			(
+				value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
+				name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+				cleanCallerArgument
+			)
+		)
+	{
+		this.Type = LogScopeType.ExecutionContextAware;
+	}
+#endif
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="scopedValues"> Collection of named values. </param>
+	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.ExecutionContextAware)} as default value.")]
+	public LogScope(params (string Identifier, object? Value)[] scopedValues)
+		: base(LogScopeBuilder.BuildScopeDictionary(scopedValues))
+	{
+		this.Type = LogScopeType.ExecutionContextAware;
+	}
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
+	[Obsolete($"Use one of the static factories that implicitly specify the {nameof(LogScopeType)} of the log scope. This constructor will use {nameof(LogScopeType.ExecutionContextAware)} as default value.")]
+	public LogScope(params Expression<Func<object>>[] scopedValues)
+		: base(LogScopeBuilder.BuildScopeDictionary(scopedValues))
+	{
+		this.Type = LogScopeType.ExecutionContextAware;
+	}
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="type"> The <see cref="LogScopeType"/> of the new scope. </param>
+	/// <param name="dictionary"> A dictionary of scope values. </param>
+	/// <remarks>
+	/// <para> This constructor can be used to directly pass a <see cref="Dictionary{TKey,TValue}"/> to the base class of this class. </para>
+	/// <para> It is required as otherwise the constructor with the object parameters would be used, leading to the scope's key/value pairs being merged into a single entry in a new dictionary created by that constructor. </para>
+	/// </remarks>
+	protected LogScope(LogScopeType type, IDictionary<string, object?> dictionary) : base(dictionary)
+	{
+		this.Type = type;
+	}
+
+	#endregion
+
+	#region Factory Methods
+
+#if NETCOREAPP3_0_OR_GREATER
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with the specified <paramref name="type"/>.
+	/// </summary>
+	/// <param name="type"> The <see cref="LogScopeType"/> of the new scope. </param>
+	/// <param name="value1"> The value that will be added to the scope. </param>
+	/// <param name="value2"> See: <paramref name="value1"/>. </param>
+	/// <param name="value3"> See: <paramref name="value1"/>. </param>
+	/// <param name="value4"> See: <paramref name="value1"/>. </param>
+	/// <param name="value5"> See: <paramref name="value1"/>. </param>
+	/// <param name="value6"> See: <paramref name="value1"/>. </param>
+	/// <param name="value7"> See: <paramref name="value1"/>. </param>
+	/// <param name="value8"> See: <paramref name="value1"/>. </param>
+	/// <param name="value9"> See: <paramref name="value1"/>. </param>
+	/// <param name="value10"> See: <paramref name="value1"/>. </param>
+	/// <param name="name1"> The expression name of <paramref name="value1"/> obtained via 'System.Runtime.CompilerServices.CallerArgumentExpression'. </param>
+	/// <param name="name2"> See: <paramref name="name1"/>. </param>
+	/// <param name="name3"> See: <paramref name="name1"/>. </param>
+	/// <param name="name4"> See: <paramref name="name1"/>. </param>
+	/// <param name="name5"> See: <paramref name="name1"/>. </param>
+	/// <param name="name6"> See: <paramref name="name1"/>. </param>
+	/// <param name="name7"> See: <paramref name="name1"/>. </param>
+	/// <param name="name8"> See: <paramref name="name1"/>. </param>
+	/// <param name="name9"> See: <paramref name="name1"/>. </param>
+	/// <param name="name10"> See: <paramref name="name1"/>. </param>
+	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
+	/// <returns> The logging scope. </returns>
+	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained while its value is specified. </exception>
+	public static ILogScope Create
+	(
+		LogScopeType type,
+		object? value1,
+		object? value2 = null,
+		object? value3 = null,
+		object? value4 = null,
+		object? value5 = null,
+		object? value6 = null,
+		object? value7 = null,
+		object? value8 = null,
+		object? value9 = null,
+		object? value10 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value1")] string? name1 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value2")] string? name2 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value3")] string? name3 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value4")] string? name4 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value5")] string? name5 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value6")] string? name6 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value7")] string? name7 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value8")] string? name8 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value9")] string? name9 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = null,
+		bool cleanCallerArgument = true
+	)
+	{
+		return new LogScope
+		(
+			type,
+			LogScopeBuilder.BuildScopeDictionary
+			(
+				value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
+				name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+				cleanCallerArgument
+			)
+		);
+	}
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.Independent"/>.
+	/// </summary>
+	/// <param name="value1"> The value that will be added to the scope. </param>
+	/// <param name="value2"> See: <paramref name="value1"/>. </param>
+	/// <param name="value3"> See: <paramref name="value1"/>. </param>
+	/// <param name="value4"> See: <paramref name="value1"/>. </param>
+	/// <param name="value5"> See: <paramref name="value1"/>. </param>
+	/// <param name="value6"> See: <paramref name="value1"/>. </param>
+	/// <param name="value7"> See: <paramref name="value1"/>. </param>
+	/// <param name="value8"> See: <paramref name="value1"/>. </param>
+	/// <param name="value9"> See: <paramref name="value1"/>. </param>
+	/// <param name="value10"> See: <paramref name="value1"/>. </param>
+	/// <param name="name1"> The expression name of <paramref name="value1"/> obtained via 'System.Runtime.CompilerServices.CallerArgumentExpression'. </param>
+	/// <param name="name2"> See: <paramref name="name1"/>. </param>
+	/// <param name="name3"> See: <paramref name="name1"/>. </param>
+	/// <param name="name4"> See: <paramref name="name1"/>. </param>
+	/// <param name="name5"> See: <paramref name="name1"/>. </param>
+	/// <param name="name6"> See: <paramref name="name1"/>. </param>
+	/// <param name="name7"> See: <paramref name="name1"/>. </param>
+	/// <param name="name8"> See: <paramref name="name1"/>. </param>
+	/// <param name="name9"> See: <paramref name="name1"/>. </param>
+	/// <param name="name10"> See: <paramref name="name1"/>. </param>
+	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
+	/// <returns> The logging scope. </returns>
+	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained while its value is specified. </exception>
+	public static ILogScope CreateIndependent
+	(
+		object? value1,
+		object? value2 = null,
+		object? value3 = null,
+		object? value4 = null,
+		object? value5 = null,
+		object? value6 = null,
+		object? value7 = null,
+		object? value8 = null,
+		object? value9 = null,
+		object? value10 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value1")] string? name1 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value2")] string? name2 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value3")] string? name3 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value4")] string? name4 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value5")] string? name5 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value6")] string? name6 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value7")] string? name7 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value8")] string? name8 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value9")] string? name9 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = null,
+		bool cleanCallerArgument = true
+	)
+	{
+		return new LogScope
+		(
+			LogScopeType.Independent,
+			LogScopeBuilder.BuildScopeDictionary
+			(
+				value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
+				name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+				cleanCallerArgument
+			)
+		);
+	}
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.ExecutionContextAware"/>.
+	/// </summary>
+	/// <param name="value1"> The value that will be added to the scope. </param>
+	/// <param name="value2"> See: <paramref name="value1"/>. </param>
+	/// <param name="value3"> See: <paramref name="value1"/>. </param>
+	/// <param name="value4"> See: <paramref name="value1"/>. </param>
+	/// <param name="value5"> See: <paramref name="value1"/>. </param>
+	/// <param name="value6"> See: <paramref name="value1"/>. </param>
+	/// <param name="value7"> See: <paramref name="value1"/>. </param>
+	/// <param name="value8"> See: <paramref name="value1"/>. </param>
+	/// <param name="value9"> See: <paramref name="value1"/>. </param>
+	/// <param name="value10"> See: <paramref name="value1"/>. </param>
+	/// <param name="name1"> The expression name of <paramref name="value1"/> obtained via 'System.Runtime.CompilerServices.CallerArgumentExpression'. </param>
+	/// <param name="name2"> See: <paramref name="name1"/>. </param>
+	/// <param name="name3"> See: <paramref name="name1"/>. </param>
+	/// <param name="name4"> See: <paramref name="name1"/>. </param>
+	/// <param name="name5"> See: <paramref name="name1"/>. </param>
+	/// <param name="name6"> See: <paramref name="name1"/>. </param>
+	/// <param name="name7"> See: <paramref name="name1"/>. </param>
+	/// <param name="name8"> See: <paramref name="name1"/>. </param>
+	/// <param name="name9"> See: <paramref name="name1"/>. </param>
+	/// <param name="name10"> See: <paramref name="name1"/>. </param>
+	/// <param name="cleanCallerArgument"> Should the caller argument parameter be cleaned (removes everything but the last section of a <b>dot</b> separated string). Default is <see langword="true"/>. </param>
+	/// <returns> The logging scope. </returns>
+	/// <exception cref="ArgumentNullException"> Is thrown if any name could not be automatically obtained while its value is specified. </exception>
+	public static ILogScope CreateAware
+	(
+		object? value1,
+		object? value2 = null,
+		object? value3 = null,
+		object? value4 = null,
+		object? value5 = null,
+		object? value6 = null,
+		object? value7 = null,
+		object? value8 = null,
+		object? value9 = null,
+		object? value10 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value1")] string? name1 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value2")] string? name2 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value3")] string? name3 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value4")] string? name4 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value5")] string? name5 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value6")] string? name6 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value7")] string? name7 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value8")] string? name8 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value9")] string? name9 = null,
+		[System.Runtime.CompilerServices.CallerArgumentExpression("value10")] string? name10 = null,
+		bool cleanCallerArgument = true
+	)
+	{
+		return new LogScope
+		(
+			LogScopeType.ExecutionContextAware,
+			LogScopeBuilder.BuildScopeDictionary
+			(
+				value1, value2, value3, value4, value5, value6, value7, value8, value9, value10,
+				name1, name2, name3, name4, name5, name6, name7, name8, name9, name10,
+				cleanCallerArgument
+			)
+		);
+	}
+#endif
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.Independent"/>.
+	/// </summary>
+	/// <param name="scopedValues"> Collection of named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this logger forever</b> - static, lifetime-long metadata such as service name, version, or environment that must appear on every log event regardless of execution context. </remarks>
+	public static ILogScope CreateIndependent(params (string Identifier, object? Value)[] scopedValues)
+		=> Create(LogScopeType.Independent, scopedValues);
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.ExecutionContextAware"/>.
+	/// </summary>
+	/// <param name="scopedValues"> Collection of named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this execution</b> - per-request or per-operation data such as a trace id that must only appear on log events emitted from the same execution context. </remarks>
+	public static ILogScope CreateAware(params (string Identifier, object? Value)[] scopedValues)
+		=> Create(LogScopeType.ExecutionContextAware, scopedValues);
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with the specified <paramref name="type"/>.
+	/// </summary>
+	/// <param name="type"> The <see cref="LogScopeType"/> of the new scope. </param>
+	/// <param name="scopedValues"> Collection of named values. </param>
+	public static ILogScope Create(LogScopeType type, params (string Identifier, object? Value)[] scopedValues)
+		=> new LogScope(type, LogScopeBuilder.BuildScopeDictionary(scopedValues));
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.Independent"/>.
+	/// </summary>
+	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this logger forever</b> - static, lifetime-long metadata such as service name, version, or environment that must appear on every log event regardless of execution context. </remarks>
+	public static ILogScope CreateIndependent(params Expression<Func<object>>[] scopedValues)
+		=> Create(LogScopeType.Independent, scopedValues);
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.ExecutionContextAware"/>.
+	/// </summary>
+	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this execution</b> - per-request or per-operation data such as a trace id that must only appear on log events emitted from the same execution context. </remarks>
+	public static ILogScope CreateAware(params Expression<Func<object>>[] scopedValues)
+		=> Create(LogScopeType.ExecutionContextAware, scopedValues);
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with the specified <paramref name="type"/>.
+	/// </summary>
+	/// <param name="type"> The <see cref="LogScopeType"/> of the new scope. </param>
+	/// <param name="scopedValues"> The <see cref="Expression"/>s used to build the named values. </param>
+	public static ILogScope Create(LogScopeType type, params Expression<Func<object>>[] scopedValues)
+		=> new LogScope(type, LogScopeBuilder.BuildScopeDictionary(scopedValues));
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.Independent"/>.
+	/// </summary>
+	/// <param name="dictionary"> A dictionary of scope values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this logger forever</b> - static, lifetime-long metadata such as service name, version, or environment that must appear on every log event regardless of execution context. </remarks>
+	public static ILogScope CreateIndependent(IDictionary<string, object?> dictionary)
+		=> new LogScope(LogScopeType.Independent, dictionary);
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with <see cref="LogScopeType.ExecutionContextAware"/>.
+	/// </summary>
+	/// <param name="dictionary"> A dictionary of scope values. </param>
+	/// <remarks> Use this for scope data that belongs to <b>this execution</b> - per-request or per-operation data such as a trace id that must only appear on log events emitted from the same execution context. </remarks>
+	public static ILogScope CreateAware(IDictionary<string, object?> dictionary)
+		=> new LogScope(LogScopeType.ExecutionContextAware, dictionary);
+
+	/// <summary>
+	/// Creates a new <see cref="ILogScope"/> instance with the specified <paramref name="type"/>.	
+	/// </summary>
+	/// <param name="type"> The <see cref="LogScopeType"/> of the new scope. </param>
+	/// <param name="dictionary"> A dictionary of scope values. </param>
+	public static ILogScope Create(LogScopeType type, IDictionary<string, object?> dictionary)
+		=> new LogScope(type, dictionary);
+
+	#endregion
+}

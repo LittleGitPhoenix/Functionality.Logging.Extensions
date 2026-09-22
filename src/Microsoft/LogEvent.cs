@@ -2,142 +2,61 @@
 //! This file is subject to the terms and conditions defined in file 'LICENSE.md', which is part of this source code package.
 #endregion
 
-using System.Globalization;
-using System.Resources;
 using Microsoft.Extensions.Logging;
+using Phoenix.Functionality.Logging.Base;
 
 namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 
 /// <summary>
+/// Interface for a <see cref="global::Microsoft.Extensions.Logging"/>-based log event data.
+/// </summary>
+public interface ILogEvent : ILogEvent<LogLevel, EventId>;
+
+/// <summary>
 /// Wrapper containing log event data.
 /// </summary>
-public class LogEvent
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
+public class LogEvent : LogEvent<LogLevel, EventId>, ILogEvent
 {
-	///// <summary> Null-object </summary>
-	//public static LogEvent NoLogEvent { get; } = new(default, LogLevel.None, String.Empty);
-
-	/// <summary> The id of the event. </summary>
-	public int EventId { get; }
-
-	/// <summary>
-	/// The events <see cref="global::Microsoft.Extensions.Logging.LogLevel"/>.
-	/// </summary>
-	public LogLevel LogLevel { get; }
-
-	/// <summary> The message to log. </summary>
-	public string LogMessage { get; }
-
-	/// <summary> Format arguments of <see cref="LogMessage"/>. </summary>
-	public object?[] Args { get; }
-
-	/// <summary> Optional <see cref="System.Exception"/>. Default is <b>null</b>. </summary>
-	public Exception? Exception { get; }
-
-	/// <summary> Optional payload that is applied to the log event as scope. Default is <b>null</b>. </summary>
-	/// <remarks> Can be used to add additional key/value pairs to an event even though they are not part of the regular message. </remarks>
-	public LogScope? PayLoad { get; init; }
-
 	/// <summary>
 	/// Constructor
 	/// </summary>
 	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
 	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	/// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
-	/// <param name="args"> <inheritdoc cref="Args"/> </param>
-	public LogEvent(int eventId, LogLevel logLevel, string logMessage, params object?[] args)
-	{
-		this.EventId = eventId;
-		this.LogLevel = logLevel;
-		this.LogMessage = logMessage;
-		this.Args = args;
-	}
+	/// <param name="logMessage"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.LogMessage"/> </param>
+	/// <param name="args"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.Args"/> </param>
+	public LogEvent(EventId eventId, LogLevel logLevel, string logMessage, params object?[] args)
+		: base(eventId, logLevel, logMessage, args) { }
 
 	/// <summary>
-	/// Constructor
+	/// Constructor with exception
 	/// </summary>
 	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
 	/// <param name="exception"> <inheritdoc cref="Exception"/> </param>
 	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	/// <param name="logMessage"> <inheritdoc cref="LogMessage"/> </param>
-	/// <param name="args"> <inheritdoc cref="Args"/> </param>
-	public LogEvent(int eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
-		: this(eventId, logLevel, logMessage, args)
-	{
-		this.Exception = exception;
-	}
+	/// <param name="logMessage"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.LogMessage"/> </param>
+	/// <param name="args"> <inheritdoc cref="ILogEvent{TLogLevel,TEventId}.Args"/> </param>
+	public LogEvent(EventId eventId, Exception exception, LogLevel logLevel, string logMessage, params object?[] args)
+		: base(eventId, exception, logLevel, logMessage, args) { }
 }
 
 /// <summary>
-/// Wrapper containing log event data obtained from a <see cref="System.Resources.ResourceManager"/>.
+/// Represents a <see cref="global::Microsoft.Extensions.Logging"/>-based log event that performs no logging and contains no event data.
 /// </summary>
-public class LogResourceEvent
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Pure pass-through class.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
+public class NoLogEvent : NoLogEvent<NoLogEvent, LogLevel, EventId>, ILogEvent
 {
-	///// <summary> Null-object </summary>
-	//public static LogResourceEvent NoLogResourceEvent { get; } = new(default, LogLevel.None, new ResourceManager(typeof(LogResourceEvent)), String.Empty);
+	/// <inheritdoc />
+	public override EventId EventId => new(-1, nameof(NoLogEvent));
 
-	/// <inheritdoc cref = "LogEvent.EventId" />
-	public int EventId { get; }
-
-	/// <inheritdoc cref = "LogEvent.LogLevel" />
-	public LogLevel LogLevel { get; }
-
-	/// <summary> The <see cref="System.Resources.ResourceManager"/> from where the log message is obtained. </summary>
-	public ResourceManager ResourceManager { get; }
-
-	/// <summary> The name of the resource in <see cref="ResourceManager"/>. </summary>
-	public string ResourceName { get; }
-
-	/// <summary> Format arguments of the log message. </summary>
-	public object?[] LogArgs { get; }
-
-	/// <summary> Format arguments of the returned message. </summary>
-	public object?[] MessageArgs { get; }
-
-	/// <inheritdoc cref = "LogEvent.Exception" />
-	public Exception? Exception { get; }
-
-	/// <summary> Optional payload that is applied to the log event as scope. Default is <b>null</b>. </summary>
-	/// <remarks> Can be used to add additional key/value pairs to an event even though they are not part of the regular message. </remarks>
-	public LogScope? PayLoad { get; init; }
-
-	/// <summary> The <see cref="System.Globalization.CultureInfo"/> that contains the log message. </summary>
-	public CultureInfo? LogCulture { get; }
-
-	/// <summary>
-	/// Constructor
-	/// </summary>
-	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
-	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	/// <param name="resourceManager"> <inheritdoc cref="ResourceManager"/> </param>
-	/// <param name="resourceName"> <inheritdoc cref="ResourceName"/> </param>
-	/// <param name="logArgs"> <inheritdoc cref="LogArgs"/> </param>
-	/// <param name="messageArgs"> <inheritdoc cref="MessageArgs"/> </param>
-	/// <param name="logCulture"> <inheritdoc cref="LogCulture"/>. Default value is the culture <b>lo</b>. </param>
-	public LogResourceEvent(int eventId, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
-	{
-		this.EventId = eventId;
-		this.LogLevel = logLevel;
-		this.ResourceManager = resourceManager;
-		this.ResourceName = resourceName;
-		this.LogArgs = logArgs ?? Array.Empty<object?>();
-		this.MessageArgs = messageArgs ?? Array.Empty<object?>();
-		this.LogCulture = logCulture;
-	}
-
-	/// <summary>
-	/// Constructor
-	/// </summary>
-	/// <param name="eventId"> <inheritdoc cref="EventId"/> </param>
-	/// <param name="exception"> <inheritdoc cref="Exception"/> </param>
-	/// <param name="logLevel"> <inheritdoc cref="LogLevel"/> </param>
-	/// <param name="resourceManager"> <inheritdoc cref="ResourceManager"/> </param>
-	/// <param name="resourceName"> <inheritdoc cref="ResourceName"/> </param>
-	/// <param name="logArgs"> <inheritdoc cref="LogArgs"/> </param>
-	/// <param name="messageArgs"> <inheritdoc cref="MessageArgs"/> </param>
-	/// <param name="logCulture"> <inheritdoc cref="LogCulture"/>. Default value is the culture <b>lo</b>. </param>
-	public LogResourceEvent(int eventId, Exception exception, LogLevel logLevel, ResourceManager resourceManager, string resourceName, object?[]? logArgs = null, object?[]? messageArgs = null, CultureInfo? logCulture = null)
-		: this(eventId, logLevel, resourceManager, resourceName, logArgs, messageArgs, logCulture)
-	{
-		this.Exception = exception;
-	}
+	/// <inheritdoc />
+	public override LogLevel LogLevel => LogLevel.None;
 }

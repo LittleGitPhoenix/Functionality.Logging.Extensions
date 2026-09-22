@@ -119,7 +119,13 @@ internal class SeqServerHelper
     /// <summary>
     /// Adds or updates <paramref name="appliedProperties"/> to all <see cref="ApiKeyEntity"/>s of applications matching <paramref name="title"/> from the seq server.
     /// </summary>
+	/// <param name="title"> The title of the applications whose API keys will be updated. </param>
+	/// <param name="seqHost"> The host of the seq server. </param>
+	/// <param name="seqPort"> The port of the seq server. </param>
+	/// <param name="appliedProperties"> The properties to be applied to the API keys. </param>
+	/// <param name="configurationApiKey"> Optional API key for authenticating with the seq server. </param>
     /// <param name="throwIfMultipleApiKeysAreFound"> Optional flag specifying if this function throws if more than one <see cref="ApiKeyEntity"/> was found. </param>
+	/// <param name="cancellationToken"> Optional <see cref="CancellationToken"/>. </param>
     internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, string seqHost, ushort? seqPort, ICollection<EventPropertyPart> appliedProperties, string? configurationApiKey = null, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Establish a connection to the seq server.
@@ -130,7 +136,11 @@ internal class SeqServerHelper
     /// <summary>
     /// Adds or updates <paramref name="appliedProperties"/> to all <see cref="ApiKeyEntity"/>s of applications matching <paramref name="title"/> from the seq server using an already established <paramref name="connection"/>.
     /// </summary>
+	/// <param name="title"> The title of the applications whose API keys will be updated. </param>
+	/// <param name="connection"> The established connection to the seq server. </param>
+	/// <param name="appliedProperties"> The properties to be applied to the API keys. </param>
     /// <param name="throwIfMultipleApiKeysAreFound"> Optional flag specifying if this function throws if more than one <see cref="ApiKeyEntity"/> was found. </param>
+	/// <param name="cancellationToken"> Optional <see cref="CancellationToken"/>. </param>
     internal static async Task<int> AddOrUpdateAppliedPropertiesOfApiKeysAsync(string title, SeqConnection connection, ICollection<EventPropertyPart> appliedProperties, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Get all matching api keys.
@@ -166,7 +176,12 @@ internal class SeqServerHelper
     /// <summary>
     /// Deletes all <see cref="ApiKeyEntity"/>s of applications matching <paramref name="title"/> from the seq server.
     /// </summary>
+	/// <param name="title"> The title of the applications whose API keys will be deleted. </param>
+	/// <param name="seqHost"> The host of the seq server. </param>
+	/// <param name="seqPort"> The port of the seq server. </param>
+	/// <param name="configurationApiKey"> Optional API key for authenticating with the seq server. </param>
     /// <param name="throwIfMultipleApiKeysAreFound"> Optional flag specifying if this function throws if more than one <see cref="ApiKeyEntity"/> was found. </param>
+	/// <param name="cancellationToken"> Optional <see cref="CancellationToken"/>. </param>
     internal static async Task<int> DeleteApiKeysAsync(string title, string seqHost, ushort? seqPort, string? configurationApiKey = null, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Establish a connection to the seq server.
@@ -177,8 +192,11 @@ internal class SeqServerHelper
     /// <summary>
     /// Deletes all <see cref="ApiKeyEntity"/>s of applications matching <paramref name="title"/> from the seq server using an already established <paramref name="connection"/>.
     /// </summary>
+    /// <param name="title"> The title of the applications whose API keys will be deleted. </param>
+    /// <param name="connection"> The established connection to the seq server. </param>
     /// <param name="throwIfMultipleApiKeysAreFound"> Optional flag specifying if this function throws if more than one <see cref="ApiKeyEntity"/> was found. </param>
-    internal static async Task<int> DeleteApiKeysAsync(string title, SeqConnection connection, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
+    /// <param name="cancellationToken"> Optional <see cref="CancellationToken"/>. </param>
+	internal static async Task<int> DeleteApiKeysAsync(string title, SeqConnection connection, bool throwIfMultipleApiKeysAreFound = true, CancellationToken cancellationToken = default)
     {
         // Get all matching api keys.
         var apiKeys = await GetApiKeysByTitleAsync(title, connection, cancellationToken).ConfigureAwait(false);

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Debugging;
+using Serilog.Settings.Configuration;
 
 namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 
@@ -39,11 +40,12 @@ public static class LoggerSettingsConfigurationExtensions
     {
         // Check if the log file
         var workingPath = Directory.GetCurrentDirectory();
-#if NET5_0_OR_GREATER
-        var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
+
+#if NETCOREAPP3_0 || NETCOREAPP3_1
+		//! This is especially needed for .NET Core 3.1 single file published apps, as they run from a temp directory.
+		var applicationPath = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 #else
-			//! This is especially needed for .NET Core 3.1 single file published apps, as they run from a temp directory.
-			var applicationPath = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+        var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
 #endif
         if (workingPath != applicationPath && !serilogConfigurationFile.Exists)
         {
@@ -66,7 +68,8 @@ public static class LoggerSettingsConfigurationExtensions
 
         try
         {
-            var loggerConfiguration = loggerSettingsConfiguration.Configuration(configuration, foundSerilogSectionName!);
+            var readerOptions = new ConfigurationReaderOptions() { SectionName = foundSerilogSectionName! };
+            var loggerConfiguration = loggerSettingsConfiguration.Configuration(configuration, readerOptions);
             return loggerConfiguration;
         }
         catch (Exception ex)
@@ -79,12 +82,7 @@ public static class LoggerSettingsConfigurationExtensions
     {
         try
         {
-            return (
-                       new ConfigurationBuilder()
-                           .AddJsonFile(serilogConfigurationFile.FullName, false, true)
-                           .Build()
-                   )
-                   ?? throw new SerilogSettingsException($"The file {serilogConfigurationFile.FullName} could not be parsed.");
+            return new ConfigurationBuilder().AddJsonFile(serilogConfigurationFile.FullName, false, true).Build() ?? throw new SerilogSettingsException($"The file {serilogConfigurationFile.FullName} could not be parsed.");
         }
         catch (Exception ex)
         {

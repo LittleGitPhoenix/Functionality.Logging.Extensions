@@ -58,15 +58,55 @@ public static class LoggerSinkConfigurationExtensions
     {
         var selfLogger = (SelfLogger) errorLogLevel;
 
-        // Create the seq sink decorator.
-        var (sink, evaluationFunction) = SerilogSeqSinkHelper.CreateSink(seqHost, seqPort, applicationTitle, configurationApiKey, retryOnError, retryCount, payloadFormatter, controlLevelSwitch, batchPostingLimit, period, eventBodyLimitBytes, messageHandler, queueSizeLimit, selfLogger);
-        if (sink is null || evaluationFunction is null)
-        {
-            selfLogger.Log($"Could not create a proper instance of an '{nameof(ILogEventSink)}'. Therefore logging to the seq server is not possible. Please see the previous messages for further details.");
-            return writeTo.Conditional(_ => false, _ => { });
-        }
+		var seqServer = new SeqServer(seqHost, seqPort, configurationApiKey);
 
-        // Add the sink to the configuration.
-        return writeTo.Conditional(evaluationFunction.Invoke, wt => wt.Sink(sink, restrictedToMinimumLevel));
-    }
+		// Directly try to register the token in the seq server.
+		string apiKey;
+		bool couldRegisterApplication;
+		try
+		{
+			// Automatically cancel the initial attempt to register the application after some seconds if it didn't succeed until then.
+			// This helps keeping setup times low in cases where the server may (temporarily) be unavailable.
+			using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+			apiKey = seqServer.RegisterApplication(applicationTitle, cancellationTokenSource.Token);
+			couldRegisterApplication = true;
+		}
+		catch (SeqServerApplicationRegisterException ex)
+		{
+			if (!retryOnError)
+			{
+				selfLogger.Log($"Could not register the application '{applicationTitle}' with the seq server '{seqServer.ConnectionData.Url}'. Since '{nameof(retryOnError)}' is disabled, no logs will be written.", ex);
+				return writeTo.Conditional(_ => false, _ => { });
+			}
+
+			apiKey = ex.ApiKey;
+			couldRegisterApplication = false;
+		}
+
+		// Get the seq requirements.
+		var couldGetSeqRequirements = SerilogSeqSinkHelper.TryGetSeqRequirements(out var seqSink, out var evaluationFunction, selfLogger, seqServer.ConnectionData.Url, apiKey, payloadFormatter, controlLevelSwitch, eventBodyLimitBytes, messageHandler);
+		if (!couldGetSeqRequirements || seqSink is null || evaluationFunction is null)
+		{
+			selfLogger.Log($"Could not create the required seq objects via reflection. Therefore logging to the seq server is not possible.");
+			return writeTo.Conditional(_ => false, _ => { });
+		}
+
+		var options = new BatchingOptions
+		{
+			BatchSizeLimit = batchPostingLimit,
+			BufferingTimeLimit = period ?? TimeSpan.FromSeconds(2),
+			QueueLimit = queueSizeLimit
+		};
+
+		if (couldRegisterApplication)
+		{
+			return writeTo.Conditional(evaluationFunction.Invoke, wt => wt.Sink(seqSink, options, restrictedToMinimumLevel, levelSwitch: null));
+		}
+		else
+		{
+			// In case the application could not be registered, a buffering sink is created that will periodically try to register the application and flush the events to the seq sink once the registration succeeded.
+			var seqBufferBatchedSink = new SeqBufferBatchedSink(seqServer, applicationTitle, seqSink, retryCount, queueSizeLimit, selfLogger);
+			return writeTo.Sink(seqBufferBatchedSink, options, restrictedToMinimumLevel, controlLevelSwitch);
+		}
+	}
 }

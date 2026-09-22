@@ -7,6 +7,11 @@ namespace Phoenix.Functionality.Logging.Extensions.Serilog;
 /// <summary>
 /// Special exception used when parsing a settings file for serilog failed.
 /// </summary>
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = "Exception type contains only boilerplate constructor forwarding.")]
+#else
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+#endif
 public class SerilogSettingsException : Exception
 {
     /// <summary>

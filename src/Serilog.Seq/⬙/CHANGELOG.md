@@ -5,9 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 3.0.0
+
+📅 _2026-09-22_
+
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_minus_sign: ~~6~~ :heavy_check_mark: 8 :new: 10 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### Removed
+
+- Support for **.NET 6** has been removed since that framework is officially deprecated.
+
+### Changed
+
+- **Serilog.Sinks.Seq 9.0.0** targets **Serilog v4**, which provides built-in batching support via `LoggerSinkConfiguration.Sink(IBatchedLogEventSink, BatchingOptions)`. The previous integration relied on wrapping the seq sink in a `PeriodicBatchingSink` from the separate **Serilog.Sinks.PeriodicBatching** package. This wrapper is no longer needed and has been removed.
+- The internal `SeqBufferSink` (implementing `ILogEventSink`) used as a fallback when initial application registration fails has been replaced by `SeqBufferBatchedSink` (implementing `IBatchedLogEventSink`) to align with the new batching model. It buffers log events while registration is retried in the background and flushes them atomically once registration succeeds, using a `SemaphoreSlim` to prevent race conditions at the transition point.
+
+### References
+
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**2.0.0**](../../Logging.Base/⬙/CHANGELOG.md#2.0.0)  
+:large_blue_circle: Serilog.Sinks.Seq ~~7.0.0~~ → **9.0.0**  
+___
+
 ## 2.1.0
 
-:calendar: _2024-03-11_
+📅 _2024-03-11_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -23,14 +46,14 @@ ___
 
 ### References
 
-:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)
-:large_blue_circle: Serilog.Sinks.Seq ~~5.1.0~~ → **7.0.0**
-:large_blue_circle: Seq.Api ~~2023.1.0~~ → **2024.1.0**
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)  
+:large_blue_circle: Serilog.Sinks.Seq ~~5.1.0~~ → **7.0.0**  
+:large_blue_circle: Seq.Api ~~2023.1.0~~ → **2024.1.0**  
 ___
 
 ## 2.0.0
 
-:calendar: _2023-06-08_
+📅 _2023-06-08_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -47,13 +70,13 @@ ___
 
 ### References
 
-:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**
-:large_blue_circle: Seq.Api ~~2022.1.0~~ → **2023.1.0**
+:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**  
+:large_blue_circle: Seq.Api ~~2022.1.0~~ → **2023.1.0**  
 ___
 
 ## 1.4.0
 
-:calendar: _2022-12-30_
+📅 _2022-12-30_
 
 ### Added
 
@@ -69,13 +92,13 @@ ___
 
 ### References
 
-:large_blue_circle: Seq.Api ~~2021.3.0~~ → **2022.1.0**
+:large_blue_circle: Seq.Api ~~2021.3.0~~ → **2022.1.0**  
 
 ___
 
 ## 1.3.0
 
-:calendar: _2022-01-09_
+📅 _2022-01-09_
 
 ### Added
 
@@ -88,12 +111,12 @@ ___
 
 ### References
 
-:large_blue_circle: Serilog.Sinks.Seq ~~5.0.1~~ → **5.1.0**
+:large_blue_circle: Serilog.Sinks.Seq ~~5.0.1~~ → **5.1.0**  
 ___
 
 ## 1.2.0
 
-:calendar: _2021-11-27_
+📅 _2021-11-27_
 
 ### Added
 
@@ -107,7 +130,7 @@ ___
 
 ## 1.1.0
 
-:calendar: _2021-10-18_
+📅 _2021-10-18_
 
 ### Updated
 
@@ -120,6 +143,6 @@ ___
 
 ## 1.0.0
 
-:calendar: _2021-10-15_
+📅 _2021-10-15_
 
 Initial release.

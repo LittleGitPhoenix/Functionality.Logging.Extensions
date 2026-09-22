@@ -5,9 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 3.0.0
+
+📅 _2026-09-22_
+
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_minus_sign: ~~6~~ :heavy_check_mark: 8 :new: 10 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### Added
+
+- `ExecutionContextAwareLogScope` and `ExecutionContextAwareLogScope<TIdentifier>` have been added. Both are intended to **mark** such log scopes that should be aware about the execution context they belong to.
+
+### Deprecated
+
+- The `EventIdLogger` has been marked obsolete. Instead of inheriting from this class better use the various extension methods to `ILogger` instead.
+- The `NoLogger` has been marked obsolete. Instead use the `Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance`.
+
+### Removed
+
+- Support for **.NET 6** has been removed since that framework is officially deprecated.
+
+### References
+
+:white_circle: Microsoft.Extensions.Logging.Abstractions **10.0.0**  
+:white_circle: Phoenix.Functionality.Logging.Base **2.0.0**  
+:red_circle: ~~Microsoft.Extensions.Logging~~  
+___
+
 ## 2.3.1
 
-:calendar: _2024-03-20_
+📅 _2024-03-20_
 
 ### Fixed
 
@@ -16,7 +44,7 @@ ___
 
 ## 2.3.0
 
-:calendar: _2024-03-11_
+📅 _2024-03-11_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -36,12 +64,12 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**
+:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**  
 ___
 
 ## 2.2.0
 
-:calendar: _2023-03-27_
+📅 _2023-03-27_
 
 ### Added
 
@@ -50,23 +78,21 @@ ___
 ### Fixed
 
 - Due to **automatic type inference** not working if the **generic type** parameter is inside a **ValueTuple**, calls to `CreateScopeAndLog` having a generic `LogScope<>` as parameter was invoking the wrong method. This cannot be prevented in a reasonable way by just changing method signatures. Therefor the falsely called method now checks if its log scope parameter is generic and then forwards the call to the correct method.
-
 ___
 
 ## 2.1.0
 
-:calendar: _2023-03-16_
+📅 _2023-03-16_
 
 ### Added
 
 - New null-object logger `NoLogger.Instance`.
 - New trace and console logger `TraceLogger`. It can be instantiated or used directly via the static `TraceLogger.Instance` property.
-
 ___
 
 ## 2.0.0
 
-:calendar: _2022-12-01_
+📅 _2022-12-01_
 
 ### Changed
 
@@ -91,12 +117,11 @@ ___
 ### Fixed
 
 -   The `ILogger.CreateScope` extension method using **CallerArgumentExpression** did not clean the caller argument and therefore produced values that differed from the overload that uses **Expression**s. For example `logger.CreateScope(_member.Property)` would produce a scope with the name **MemberProperty** as opposed to just **Property**. The old behavior can be restored by setting the new optional parameter `cleanCallerArgument` to false. **This fix is implemented as a breaking change**.
-
 ___
 
 ## 1.3.0
 
-:calendar: _2022-01-09_
+📅 _2022-01-09_
 
 ### Added
 
@@ -105,12 +130,12 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Logging ~~5.0.0~~ → **6.0.0**
+:large_blue_circle: Microsoft.Extensions.Logging ~~5.0.0~~ → **6.0.0**  
 ___
 
 ## 1.2.0
 
-:calendar: _2021-11-25_
+📅 _2021-11-25_
 
 ### Fixed
 
@@ -124,7 +149,7 @@ ___
 
 ## 1.1.0
 
-:calendar: _2021-11-01_
+📅 _2021-11-01_
 
 ### Added
 
@@ -133,6 +158,6 @@ ___
 
 ## 1.0.0
 
-:calendar: _2021-10-15_
+📅 _2021-10-15_
 
 Initial release.

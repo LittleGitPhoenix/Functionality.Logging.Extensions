@@ -5,9 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 3.0.0
+
+📅 _2026-09-22_
+
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_minus_sign: ~~6~~ :heavy_check_mark: 8 :new: 10 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### Removed
+
+- Support for **.NET 6** has been removed since that framework is officially deprecated.
+
+### References
+
+:white_circle: Microsoft.Extensions.Logging.Abstractions **10.0.0**  
+:large_blue_circle: Autofac ~~6.0.0~~ → **9.1.0**  
+:red_circle: ~~Microsoft.Extensions.Logging~~  
+
+___
+
 ## 2.2.0
 
-:calendar: _2024-03-11_
+📅 _2024-03-11_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -15,12 +35,12 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**
+:large_blue_circle: Microsoft.Extensions.Logging ~~6.0.0~~ → **8.0.0**  
 ___
 
 ## 2.1.0
 
-:calendar: _2023-03-27_
+📅 _2023-03-27_
 
 ### Added
 
@@ -29,7 +49,7 @@ ___
 
 ## 2.0.0
 
-:calendar: _2022-12-30_
+📅 _2022-12-30_
 
 Initial release.
 

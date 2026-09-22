@@ -10,6 +10,7 @@ namespace Phoenix.Functionality.Logging.Extensions.Microsoft;
 /// Delegate returning an <see cref="ILogger"/>.
 /// </summary>
 /// <returns> A new <see cref="ILogger"/> instance. </returns>
+[Obsolete("This delegate is deprecated. Directly use a 'Func<ILogger>' instead.", false)]
 public delegate ILogger LoggerFactory();
 
 /// <summary>
@@ -17,4 +18,5 @@ public delegate ILogger LoggerFactory();
 /// </summary>
 /// <param name="name"> The name to use for the new <see cref="ILogger"/>. </param>
 /// <returns> A new <see cref="ILogger"/> instance. </returns>
+[Obsolete("This delegate is deprecated. Directly use a 'Func<string, ILogger>' instead.", false)]
 public delegate ILogger NamedLoggerFactory(string name);

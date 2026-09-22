@@ -5,9 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ___
 
+## 2.0.0
+
+📅 _2026-09-22_
+
+| .NET | .NET Standard | .NET Framework |
+| :-: | :-: | :-: |
+| :heavy_minus_sign: ~~6~~ :heavy_check_mark: 8 :new: 10 | :heavy_check_mark: 2.0 | :heavy_minus_sign: |
+
+### Removed
+
+- Support for **.NET 6** has been removed since that framework is officially deprecated.
+### References
+
+:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~8.0.0~~ → **10.0.0**  
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.1.0~~ → [**2.0.0**](../../Logging.Base/⬙/CHANGELOG.md#2.0.0)  
+:large_blue_circle: Serilog.Settings.Configuration ~~8.0.0~~ → **10.0.0**  
+___
+
 ## 1.5.0
 
-:calendar: _2024-03-11_
+📅 _2024-03-11_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -15,15 +33,15 @@ ___
 
 ### References
 
-:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)
-:large_blue_circle: Serilog.Settings.Configuration ~~3.3.0~~ → **8.0.0**
-:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~6.0.0~~ → **8.0.0**
+:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~6.0.0~~ → **8.0.0**  
+:large_blue_circle: Phoenix.Functionality.Logging.Base ~~1.0.0~~ → [**1.1.0**](../../Logging.Base/⬙/CHANGELOG.md#1.1.0)  
+:large_blue_circle: Serilog.Settings.Configuration ~~3.3.0~~ → **8.0.0**  
 
 ___
 
 ## 1.4.0
 
-:calendar: _2023-06-08_
+📅 _2023-06-08_
 
 | .NET | .NET Standard | .NET Framework |
 | :-: | :-: | :-: |
@@ -40,12 +58,12 @@ ___
 
 ### References
 
-:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**
+:white_circle: Phoenix.Functionality.Logging.Base **1.0.0**  
 ___
 
 ## 1.3.0
 
-:calendar: _2023-03-27_
+📅 _2023-03-27_
 
 ### Added
 
@@ -54,7 +72,7 @@ ___
 
 ## 1.2.0
 
-:calendar: _2022-01-09_
+📅 _2022-01-09_
 
 ### Added
 
@@ -62,12 +80,12 @@ ___
 
 ### References
 
-:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~5.0.0~~ → **6.0.0**
+:large_blue_circle: Microsoft.Extensions.Configuration.Json ~~5.0.0~~ → **6.0.0**  
 ___
 
 ## 1.1.0
 
-:calendar: _2021-11-27_
+📅 _2021-11-27_
 
 ### Changed
 
@@ -76,6 +94,6 @@ ___
 
 ## 1.0.0
 
-:calendar: _2021-10-15_
+📅 _2021-10-15_
 
 Initial release.

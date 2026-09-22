@@ -5,7 +5,7 @@
 namespace Phoenix.Functionality.Logging.Base;
 
 /// <summary>
-/// <see cref="LogApplicationInformation"/> builder.
+/// Builder for <see cref="LogApplicationInformation"/> instances.
 /// </summary>
 public class LogApplicationInformationBuilder
 	: ILogApplicationInformationBuilder,
