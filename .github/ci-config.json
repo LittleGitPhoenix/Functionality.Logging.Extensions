@@ -1,0 +1,9 @@
+{
+  "solutionPath": "src/Logging.Extensions.sln",
+  "coverageScope": "[Phoenix.Functionality.Logging.*]*",
+  "coverageExclude": "[*.Test]*",
+  "nugetDir": ".nuget",
+  "releaseTargets": [
+    { "type": "library", "discover": true }
+  ]
+}
