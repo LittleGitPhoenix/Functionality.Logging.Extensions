@@ -11,3 +11,5 @@ on:
 jobs:
   validate:
     uses: LittleGitPhoenix/Automation.Workflows/.github/workflows/validate.yml@v1
+    with:
+      environment: windows-latest

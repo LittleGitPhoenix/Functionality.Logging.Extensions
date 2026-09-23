@@ -51,6 +51,7 @@ public class ApplicationInformationEnricherTest
 	}
 
 #endif
+
 	#endregion
 
 	#region Tests
@@ -159,8 +160,9 @@ public class ApplicationInformationEnricherTest
 		Assert.That(modifiedLogEvent.Properties[ApplicationInformationEnricher.ApplicationVersionPropertyName].ToString().Trim('"'), Is.EqualTo(modifiedVersion));
 		Assert.That(fallbackLogEvent.Properties[ApplicationInformationEnricher.ApplicationVersionPropertyName].ToString().Trim('"'), Is.EqualTo("unknown"));
 	}
-
+	
 #endif
+
 	#endregion
 
 }
