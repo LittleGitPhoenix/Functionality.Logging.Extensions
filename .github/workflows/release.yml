@@ -1,5 +1,5 @@
 # ╔════════════════════════╗
-# ║ PHOENIX Release v1.0.0 ║
+# ║ PHOENIX Release v1.1.0 ║
 # ╚════════════════════════╝
 name: Release
 
@@ -17,3 +17,4 @@ jobs:
     uses: LittleGitPhoenix/Automation.Workflows/.github/workflows/release-library.yml@v1
     secrets:
       NUGET_USER: ${{ secrets.NUGET_USER }}
+      NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
